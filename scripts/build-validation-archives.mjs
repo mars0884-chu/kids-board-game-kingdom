@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process'
 const scriptDirectory = dirname(fileURLToPath(import.meta.url))
 const workspaceDirectory = resolve(scriptDirectory, '..')
 const releasesDirectory = join(workspaceDirectory, 'releases')
-const supportedVersions = new Set(['v0.3.13', 'v0.3.14', 'v0.3.15', 'v0.3.16', 'v0.3.17', 'v0.3.18', 'v0.3.19', 'v0.3.20', 'v0.3.21', 'v0.3.22', 'v0.3.23', 'v0.3.24', 'v0.3.25', 'v0.3.26', 'v0.3.27', 'v0.3.28', 'v0.3.29', 'v0.4.0', 'v0.4.1', 'v0.4.2', 'v0.4.3', 'v0.4.4', 'v0.4.5', 'v0.4.6', 'v0.4.7', 'v0.4.8', 'v0.4.9', 'v0.4.10', 'v0.4.11', 'v0.4.12', 'v0.4.13', 'v0.4.14', 'v0.4.15', 'v0.4.16', 'v0.4.17', 'v0.4.18', 'v0.4.19', 'v0.4.20', 'v0.4.21', 'v0.4.22', 'v0.4.23', 'v0.5.2', 'v0.5.3', 'v0.5.4', 'v0.5.5', 'v0.6.1', 'v0.6.2', 'v0.6.3', 'v0.6.4', 'v0.6.5', 'v0.6.6', 'v0.6.7', 'v0.7.0', 'v0.7.1', 'v0.7.2', 'v0.7.3', 'v0.9.0', 'v0.9.1', 'v0.9.2', 'v0.9.3'])
+const supportedVersions = new Set(['v0.3.13', 'v0.3.14', 'v0.3.15', 'v0.3.16', 'v0.3.17', 'v0.3.18', 'v0.3.19', 'v0.3.20', 'v0.3.21', 'v0.3.22', 'v0.3.23', 'v0.3.24', 'v0.3.25', 'v0.3.26', 'v0.3.27', 'v0.3.28', 'v0.3.29', 'v0.4.0', 'v0.4.1', 'v0.4.2', 'v0.4.3', 'v0.4.4', 'v0.4.5', 'v0.4.6', 'v0.4.7', 'v0.4.8', 'v0.4.9', 'v0.4.10', 'v0.4.11', 'v0.4.12', 'v0.4.13', 'v0.4.14', 'v0.4.15', 'v0.4.16', 'v0.4.17', 'v0.4.18', 'v0.4.19', 'v0.4.20', 'v0.4.21', 'v0.4.22', 'v0.4.23', 'v0.5.2', 'v0.5.3', 'v0.5.4', 'v0.5.5', 'v0.6.1', 'v0.6.2', 'v0.6.3', 'v0.6.4', 'v0.6.5', 'v0.6.6', 'v0.6.7', 'v0.7.0', 'v0.7.1', 'v0.7.2', 'v0.7.3', 'v0.9.0', 'v0.9.1', 'v0.9.2', 'v0.9.3', 'v0.9.4'])
 let activeNpmCacheDirectory = null
 const configuredNpmCacheDirectory = process.env.ARCHIVE_NPM_CACHE ?? null
 const skipArchiveRebuild = process.env.ARCHIVE_SKIP_REBUILD === '1'
@@ -599,6 +599,38 @@ async function prepareV0313(stageDirectory) {
 }
 
 function releaseNotes(version) {
+  if (version === 'v0.9.4') {
+    return `# v0.9.4 跳棋 WebRTC 公開 STUN 與 3D 棋棋貓圖示修訂版（等待製作人實體裝置 Gate）
+
+完整驗證 ZIP：releases/kids-board-game-kingdom-v0.9.4.zip
+SHA-256：以同名 .sha256 檔案為準；封包內 MANIFEST.sha256 記錄內容雜湊。
+
+## 可驗證範圍
+
+- 依製作人確認的最簡化流程整合跳棋雙裝置連線：甲分享邀請連結；乙開啟後自動產生回覆連結並只按一次「一鍵回覆給甲」；甲開啟回覆連結後自動完成連線。
+- 使用 \`stun:stun.l.google.com:19302\` 協助探索跨 NAT 的 ICE 候選；不使用 TURN、伺服器、資料庫、房間服務、帳號或棋局儲存。STUN 只取得連線候選，可能看到暫時性公開 IP，不經手棋步。
+- offer／answer 以短期 URL 查詢資料交換；甲的原遊戲分頁保持開啟，回覆頁以同源 \`window.opener.postMessage\`、BroadcastChannel／localStorage 將 answer 送回甲的可互通原分頁。連線資料逾 15 分鐘失效。
+- 主畫面圖示使用乾淨正面、完整下巴的 3D 棋棋貓頭像，並輸出 180×180／512×512 PNG；保留紫白角色、皇冠與高辨識度徽章。
+- 連線後以瀏覽器 WebRTC data channel 傳送可序列化跳棋局面；甲固定為第一位玩家、乙固定為第二位玩家，只在自己的回合操作，乙不能重設甲的棋局。
+- 連線中斷時保留裝置上的最後局面並提示重新配對；本版不含伺服器保存、自動重連、伺服器權威棋步驗證或其他棋類連線。
+
+## 操作與 Machine Gate
+
+1. 完整解壓 ZIP，不要直接在壓縮檔內執行。
+2. 執行 npm.cmd run check、npm.cmd run build、npm.cmd run verify:jump-chess-webrtc 與 npm.cmd run verify:jump-chess-online-layout。
+3. 手動驗證時啟動 npm.cmd run dev -- --host 127.0.0.1 --port 5187，甲開啟 ?preview=jump-chess-online 並保持分頁開啟。
+4. 乙開啟甲分享的邀請連結；只按一次「一鍵回覆給甲」並把回覆連結交給甲。
+5. 甲開啟回覆連結；原分頁應自動完成連線。雙方進入跳棋後，甲移動合法棋步，乙應收到相同局面與回合切換。
+
+## 尚待製作人確認的邊界
+
+- Machine Gate 已通過同來源 Edge 三分頁自動配對與落子同步；這不能取代 GitHub Pages HTTPS、兩支實體裝置、不同網路的實測。
+- 公開 STUN 可改善部分跨 NAT 連線，但不保證所有行動網路／防火牆；本版未使用 TURN。
+- LINE 內嵌瀏覽器、Safari 與主畫面 PWA 可能使用不同儲存分區；回覆連結應在甲原本的瀏覽器／PWA 分區開啟。
+- 外部通訊軟體與 STUN 服務可能依自身政策處理連線資料；本專案不讀取、不建立、不上傳兒童姓名、帳號、信箱、位置、聊天或行為追蹤資料。
+`
+  }
+
   if (version === 'v0.9.0' || version === 'v0.9.1' || version === 'v0.9.2' || version === 'v0.9.3') {
     return `# ${version} 跳棋 WebRTC 邀請／回覆直連驗證版（等待製作人實體裝置 Gate）
 

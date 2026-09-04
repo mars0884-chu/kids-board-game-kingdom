@@ -24,6 +24,7 @@ export interface WebRtcPeerSession {
 export const WEBRTC_SIGNAL_QUERY = 'webrtc'
 export const WEBRTC_SIGNAL_MAX_AGE_MS = 15 * 60 * 1000
 export const WEBRTC_CHANNEL_NAME = 'kids-board-game-webrtc'
+export const WEBRTC_ICE_SERVERS: RTCIceServer[] = [{ urls: 'stun:stun.l.google.com:19302' }]
 const SIGNAL_PREFIX = 'kids-board-game-webrtc-answer:'
 
 function isSignalKind(value: unknown): value is WebRtcSignalKind {
@@ -110,8 +111,8 @@ export function canUseWebRtc(): boolean {
 
 function getPeerConnection(): RTCPeerConnection {
   if (!canUseWebRtc()) throw new Error('這台裝置的瀏覽器不支援裝置直連。')
-  // 不預設放入第三方 STUN／TURN；沒有伺服器或外部連線帳號時，先使用瀏覽器可取得的直連路徑。
-  return new RTCPeerConnection({ iceServers: [] })
+  // 只使用公開 STUN 協助取得跨 NAT 的連線候選；不使用 TURN、中繼棋步或保存棋局。
+  return new RTCPeerConnection({ iceServers: WEBRTC_ICE_SERVERS })
 }
 
 function waitForIceGathering(connection: RTCPeerConnection, timeoutMs = 8_000): Promise<void> {
@@ -232,6 +233,15 @@ function relayMessageFor(signal: WebRtcSignal): AnswerRelayMessage {
 export function publishWebRtcAnswerToHost(signal: WebRtcSignal): void {
   if (signal.kind !== 'answer') throw new Error('只有回覆連線資料可以送回甲。')
   const message = relayMessageFor(signal)
+  // 若回覆頁是由甲的原本頁面以新分頁開啟，優先直接送回原頁面。
+  // 僅接受同源訊息；沒有 opener 時仍保留 BroadcastChannel／localStorage 路徑。
+  try {
+    if (window.opener !== null && window.opener !== window) {
+      window.opener.postMessage(message, window.location.origin)
+    }
+  } catch {
+    // 某些瀏覽器會封鎖跨分頁 opener；其他同源傳遞方式仍可使用。
+  }
   if (typeof BroadcastChannel === 'function') {
     const channel = new BroadcastChannel(`${WEBRTC_CHANNEL_NAME}:${signal.sessionId}`)
     channel.postMessage(message)
@@ -275,6 +285,11 @@ export function subscribeWebRtcAnswer(
       // 忽略損壞的分頁間資料。
     }
   }
+  const handleWindowMessage = (event: MessageEvent<AnswerRelayMessage>) => {
+    if (event.origin !== window.location.origin) return
+    handleMessage(event)
+  }
+  window.addEventListener('message', handleWindowMessage)
   window.addEventListener('storage', handleStorage)
   try {
     const stored = window.localStorage.getItem(answerStorageKey(sessionId))
@@ -285,6 +300,7 @@ export function subscribeWebRtcAnswer(
   return () => {
     channel?.removeEventListener('message', handleMessage)
     channel?.close()
+    window.removeEventListener('message', handleWindowMessage)
     window.removeEventListener('storage', handleStorage)
   }
 }

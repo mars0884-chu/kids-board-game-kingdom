@@ -1,7 +1,7 @@
 # P09-ONLINE 私人雙裝置直連規格
 
-> 文件編號：`P09-ONLINE-r06`
-> 對應規劃：`v0.9.3`
+> 文件編號：`P09-ONLINE-r08`
+> 對應規劃：`v0.9.4`
 > 目前狀態：`WAITING_FOR_PRODUCER`  
 > 更新日期：2026-09-04
 
@@ -23,13 +23,13 @@
 4. 甲點開收到的回覆連結。回覆頁會把回覆資料送回甲原本仍開啟的遊戲分頁。
 5. 甲原本的遊戲分頁自動套用回覆，雙方資料通道開啟後直接進入跳棋，不再按其他連線按鍵。
 
-甲在第 4 步前必須保持第 1 步建立的遊戲分頁開啟；瀏覽器沒有伺服器或其他裝置能找到已關閉的 `RTCPeerConnection`。若甲關閉原分頁，必須重新從甲建立邀請連結。
+甲在第 4 步前必須保持第 1 步建立的遊戲分頁開啟，且回覆連結要在甲原本的瀏覽器／PWA 儲存分區開啟；LINE 內嵌瀏覽器與 Safari、Safari 與主畫面 PWA 可能互相隔離，這時不會收到自動分頁回傳。瀏覽器沒有伺服器或其他裝置能找到已關閉的 `RTCPeerConnection`。若甲關閉原分頁或使用不同瀏覽器分區，必須重新從甲建立邀請連結。
 
 ## 3. 架構與資料流
 
 ### 3.1 不建立的項目
 
-- 不建立 Cloudflare、WSS、WebSocket、Firebase、Supabase、資料庫、房間服務或任何本專案後端。
+- 不建立 Cloudflare Workers、WSS、WebSocket、Firebase、Supabase、資料庫、房間服務或任何本專案後端；只使用公開 STUN 探索連線候選。
 - 不建立公開大廳、陌生人配對、帳號、聊天、兒童個人檔案或分析追蹤。
 - 不把目前棋局上傳到 GitHub、GitHub Issues、雲端硬碟或任何公開檔案。
 
@@ -40,9 +40,9 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 - 甲建立 `RTCPeerConnection` 與有序 `RTCDataChannel`，產生 offer。
 - 乙開啟邀請連結後建立自己的連線、套用 offer、產生 answer。
 - offer／answer 會以短期 URL 查詢資料攜帶，連線資料使用 Base64URL 編碼，不放入兒童身分或棋局內容。
-- 回覆頁以同來源 `BroadcastChannel` 將 answer 傳給甲的原始分頁；沒有 `BroadcastChannel` 時以短期 `localStorage` 事件作瀏覽器分頁備援。這不是雲端儲存，資料只在甲自己的瀏覽器分頁之間傳送。
+- 回覆頁若由甲原始分頁開啟，會先以同源 `window.opener.postMessage` 傳送 answer；同時保留同來源 `BroadcastChannel`，沒有 `BroadcastChannel` 時再以短期 `localStorage` 事件作瀏覽器分頁備援。這不是雲端儲存，資料只在可互通的瀏覽器分頁之間傳送。
 - URL 連線資料最長接受 15 分鐘；瀏覽器分頁備援資料也會在短期後清理。
-- 目前不預設 STUN／TURN，連線設定為空的 ICE 伺服器清單，不使用任何第三方帳號或額度。連線成功後的遊戲資料走兩台裝置之間的加密 WebRTC data channel；WebRTC data channel 的傳輸保護由瀏覽器的 DTLS 提供。
+- 連線使用公開 STUN `stun:stun.l.google.com:19302` 協助探索跨 NAT 的 ICE 候選；不使用 TURN，中繼服務不會代傳棋步或保存棋局，也不需要帳號或本專案額度。連線成功後的遊戲資料仍只走兩台裝置之間的加密 WebRTC data channel；WebRTC data channel 的傳輸保護由瀏覽器的 DTLS 提供。STUN 服務可能看到連線所需的暫時性公開 IP，這是本版新增的明確隱私邊界。
 
 ## 4. 跳棋整合行為
 
@@ -76,14 +76,14 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 
 ### 7.1 網路成功率
 
-沒有 STUN／TURN 時，若兩台裝置位於同一區域網路或網路允許主機候選直連，通常可建立連線；若兩邊都在不同 NAT、防火牆或行動網路限制後方，可能無法直連。這是 WebRTC 網路拓撲限制，不是分享連結格式可以消除的問題。
+加入 STUN 後，瀏覽器可額外探索部分跨 NAT 的候選，預期比只有主機候選更容易連線；若兩邊受到嚴格 NAT、防火牆、行動網路或瀏覽器政策限制，仍可能無法直連。這是 WebRTC 網路拓撲限制，不是分享連結格式可以完全消除的問題。本版未加入 TURN，因此不保證所有遠端網路都能連線。
 
 本修訂已用 Microsoft Edge 同一個瀏覽器的三個分頁完成：甲建立邀請、乙開啟邀請、乙一鍵回覆、甲開啟回覆、雙方自動連線，以及甲落子同步至乙。製作人另依相同流程實際互相走棋 5 步，確認本機三分頁可用；這不是完整對局，也不能替代兩支實體裝置、不同網路與 GitHub Pages HTTPS 的實測。
 
 ### 7.2 尚未宣稱完成的項目
 
 - QR Code：本核准流程先使用系統分享／連結，不新增 QR Code 操作依賴。
-- 跨 NAT 的 STUN／TURN：未使用；若未來需要提高跨網路成功率，必須另取得製作人對第三方服務、資料處理、費用與額度的明確授權。
+- 跨 NAT 的 STUN：已依製作人授權使用公開 `stun:stun.l.google.com:19302`；TURN 未使用，因此不提供中繼保證。STUN 只取得候選，不保存棋局或棋步，但服務可能看到暫時性公開 IP。
 - 自動重連：本版斷線保留本機畫面，但不承諾無需重新交換連線資料即可恢復。
 - 伺服器驗證棋步：本版無伺服器，接收端只做局面格式與既有規則資料驗證，不提供防竄改的權威裁判。
 - 其他棋類連線：尚未整合。
@@ -102,7 +102,7 @@ GitHub Pages 部署已完成：`.github/workflows/deploy-pages.yml` 依儲存庫
 - `scripts/verify-jump-chess-webrtc-playwright.mjs`：可重跑的 Edge 三分頁實際流程與落子同步驗證。
 - `scripts/verify-jump-chess-online-layout-playwright.mjs`：Edge DPR 1 六尺寸連線頁 1:1 截圖、頁面／按鍵邊界、注音比例與「暫停語音」不存在檢查。
 
-以上 Machine Gate 已通過；v0.9.3 完整驗證 ZIP 已建立於 `releases/kids-board-game-kingdom-v0.9.3.zip`，共 245 個 ZIP 項目、MANIFEST 243 筆，外層 SHA-256 為 `65D59694140040961F257D77542D3ADA9443593967D2FDCA035B674DDDDEF8BF`；承接且不修改 v0.9.2／v0.9.1／v0.9.0 封存 ZIP／SHA-256。乾淨解壓的 `npm ci` 仍受 Windows npm `Exit handler never called` 阻擋；解壓出的完整來源使用已通過的依賴目錄重驗 `check`／`build` 均通過，未把 npm 安裝步驟宣稱為通過。連線範圍仍僅為跳棋；其他棋類尚未整合 WebRTC。
+以上 Machine Gate 已通過；v0.9.4 完整驗證 ZIP 為 `releases/kids-board-game-kingdom-v0.9.4.zip`，共 247 個 ZIP 項目，封包內 `MANIFEST.sha256` 245 筆，外層 SHA-256 為 `F46BE3A337F30A190AA39203E104F39BE192905A6C1BCAC2900493A5EB67D6ED`；承接且不修改 v0.9.3／v0.9.2／v0.9.1／v0.9.0 封存 ZIP／SHA-256。連線範圍仍僅為跳棋；其他棋類尚未整合 WebRTC。乾淨解壓的 `npm ci` 若再次受 Windows npm `Exit handler never called` 阻擋，將如實記錄，不把 npm 安裝步驟宣稱為通過。
 
 必要檢查：
 
