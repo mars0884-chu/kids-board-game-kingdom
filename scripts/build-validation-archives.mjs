@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process'
 const scriptDirectory = dirname(fileURLToPath(import.meta.url))
 const workspaceDirectory = resolve(scriptDirectory, '..')
 const releasesDirectory = join(workspaceDirectory, 'releases')
-const supportedVersions = new Set(['v0.3.13', 'v0.3.14', 'v0.3.15', 'v0.3.16', 'v0.3.17', 'v0.3.18', 'v0.3.19', 'v0.3.20', 'v0.3.21', 'v0.3.22', 'v0.3.23', 'v0.3.24', 'v0.3.25', 'v0.3.26', 'v0.3.27', 'v0.3.28', 'v0.3.29', 'v0.4.0', 'v0.4.1', 'v0.4.2', 'v0.4.3', 'v0.4.4', 'v0.4.5', 'v0.4.6', 'v0.4.7', 'v0.4.8', 'v0.4.9', 'v0.4.10', 'v0.4.11', 'v0.4.12', 'v0.4.13', 'v0.4.14', 'v0.4.15', 'v0.4.16', 'v0.4.17', 'v0.4.18', 'v0.4.19', 'v0.4.20', 'v0.4.21', 'v0.4.22', 'v0.4.23', 'v0.5.2', 'v0.5.3', 'v0.5.4', 'v0.5.5', 'v0.6.1', 'v0.6.2', 'v0.6.3', 'v0.6.4', 'v0.6.5', 'v0.6.6', 'v0.6.7', 'v0.7.0', 'v0.7.1', 'v0.7.2', 'v0.7.3', 'v0.9.0', 'v0.9.1', 'v0.9.2'])
+const supportedVersions = new Set(['v0.3.13', 'v0.3.14', 'v0.3.15', 'v0.3.16', 'v0.3.17', 'v0.3.18', 'v0.3.19', 'v0.3.20', 'v0.3.21', 'v0.3.22', 'v0.3.23', 'v0.3.24', 'v0.3.25', 'v0.3.26', 'v0.3.27', 'v0.3.28', 'v0.3.29', 'v0.4.0', 'v0.4.1', 'v0.4.2', 'v0.4.3', 'v0.4.4', 'v0.4.5', 'v0.4.6', 'v0.4.7', 'v0.4.8', 'v0.4.9', 'v0.4.10', 'v0.4.11', 'v0.4.12', 'v0.4.13', 'v0.4.14', 'v0.4.15', 'v0.4.16', 'v0.4.17', 'v0.4.18', 'v0.4.19', 'v0.4.20', 'v0.4.21', 'v0.4.22', 'v0.4.23', 'v0.5.2', 'v0.5.3', 'v0.5.4', 'v0.5.5', 'v0.6.1', 'v0.6.2', 'v0.6.3', 'v0.6.4', 'v0.6.5', 'v0.6.6', 'v0.6.7', 'v0.7.0', 'v0.7.1', 'v0.7.2', 'v0.7.3', 'v0.9.0', 'v0.9.1', 'v0.9.2', 'v0.9.3'])
 let activeNpmCacheDirectory = null
 const configuredNpmCacheDirectory = process.env.ARCHIVE_NPM_CACHE ?? null
 const skipArchiveRebuild = process.env.ARCHIVE_SKIP_REBUILD === '1'
@@ -599,7 +599,7 @@ async function prepareV0313(stageDirectory) {
 }
 
 function releaseNotes(version) {
-  if (version === 'v0.9.0' || version === 'v0.9.1' || version === 'v0.9.2') {
+  if (version === 'v0.9.0' || version === 'v0.9.1' || version === 'v0.9.2' || version === 'v0.9.3') {
     return `# ${version} 跳棋 WebRTC 邀請／回覆直連驗證版（等待製作人實體裝置 Gate）
 
 完整驗證 ZIP：releases/kids-board-game-kingdom-${version}.zip

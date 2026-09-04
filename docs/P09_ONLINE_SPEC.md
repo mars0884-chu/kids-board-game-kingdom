@@ -1,7 +1,7 @@
 # P09-ONLINE 私人雙裝置直連規格
 
-> 文件編號：`P09-ONLINE-r04`  
-> 對應規劃：`v0.9.1`  
+> 文件編號：`P09-ONLINE-r06`
+> 對應規劃：`v0.9.3`
 > 目前狀態：`WAITING_FOR_PRODUCER`  
 > 更新日期：2026-09-04
 
@@ -60,7 +60,8 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 - 乙的主要操作是「一鍵回覆給甲」；甲的主要操作是「分享邀請連結」。系統分享不支援時才顯示複製備援，不增加空白按鍵格。
 - 甲原分頁等待回覆時必須清楚顯示狀態；回覆頁必須說明已送回甲的遊戲畫面；失敗時說明重新開啟連結或檢查兩台裝置網路。
 - 配對成功後回到既有跳棋畫面，不新增另一套棋盤、按鍵配置或兒童文字方向。
-- 配對頁在 390×844、844×390、768×1024、1024×768 均以實際視窗驗證；長操作名稱仍使用漢字與每字右側直排注音，不得溢出按鍵或頁面。844×390 使用緊湊橫向雙欄以保留必要資訊，不新增空白按鍵格。
+- 配對頁在 390×844、844×390、768×1024、1024×768 均以實際視窗驗證；另以 430×932／932×430 回歸 iPhone 15 Pro Max 比例。長操作名稱仍使用漢字與每字右側直排注音，不得溢出按鍵或頁面。844×390 使用緊湊橫向雙欄以保留必要資訊，不新增空白按鍵格。
+- 逐字注音配對改由自有 CSS Grid 直排結構呈現，不依賴 iOS Safari 對原生 `<ruby>` 的排版實作；每個配對仍保留語意化的 `aria-label` 與不可拆分的中文字／注音單位。
 
 ## 6. 隱私、連線與安全邊界
 
@@ -89,7 +90,7 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 
 下一個真正的 Producer Gate 是在 GitHub Pages HTTPS 上，以兩支實體裝置、不同網路實測成功率、連線建立時間、落子往返時間與斷線後重新配對流程；未取得該證據前，不把「所有遠端網路都能連線」或「不易斷線」寫成保證。
 
-GitHub Pages 部署前置檢查已完成：`.github/workflows/deploy-pages.yml` 可依儲存庫名稱設定子路徑；`VITE_BASE_PATH=/kids-board-game-kingdom/` 預建置的 HTML、Manifest、Service Worker 與資源路徑均通過，工作區 `npm.cmd run check` 為 35 個測試檔／184 項測試。工作區目前沒有 Git 遠端網址，尚未進行外部發布或宣稱 iPhone／不同網路測試通過。
+GitHub Pages 部署已完成：`.github/workflows/deploy-pages.yml` 依儲存庫名稱設定子路徑；`VITE_BASE_PATH=/kids-board-game-kingdom/` 建置的 HTML、Manifest、Service Worker 與資源路徑均通過，GitHub Actions `build`／`deploy` 均成功。公開網址為 `https://mars0884-chu.github.io/kids-board-game-kingdom/`；首頁、`?preview=jump-chess-online`、Manifest 與 Service Worker 均以 HTTP 200 回應。這仍未取代兩支實體裝置、不同網路與斷線後重新配對的 Producer Gate。
 
 ## 8. Machine Gate
 
@@ -99,9 +100,9 @@ GitHub Pages 部署前置檢查已完成：`.github/workflows/deploy-pages.yml` 
 - `src/online/WebRtcPairing.tsx`：分享邀請、乙一鍵回覆、甲開啟回覆後自動完成配對。
 - `src/games/jump-chess/JumpChessGame.tsx`：跳棋雙裝置角色、局面同步、回合鎖定與斷線提示。
 - `scripts/verify-jump-chess-webrtc-playwright.mjs`：可重跑的 Edge 三分頁實際流程與落子同步驗證。
-- `scripts/verify-jump-chess-online-layout-playwright.mjs`：Edge DPR 1 四尺寸連線頁 1:1 截圖、頁面／按鍵邊界、注音比例與「暫停語音」不存在檢查。
+- `scripts/verify-jump-chess-online-layout-playwright.mjs`：Edge DPR 1 六尺寸連線頁 1:1 截圖、頁面／按鍵邊界、注音比例與「暫停語音」不存在檢查。
 
-以上 Machine Gate 已通過；v0.9.1 完整驗證 ZIP 已建立於 `releases/kids-board-game-kingdom-v0.9.1.zip`（241 個 ZIP 項目、MANIFEST 239 筆），外層 SHA-256 以同名 `.sha256` 檔為準；既有 v0.9.0 封存 ZIP／SHA-256 不修改。乾淨解壓的 `npm ci` 仍受 Windows npm `Exit handler never called` 阻擋；解壓出的完整來源使用已通過的依賴目錄重驗 `check`／`build` 均通過，未把 npm 安裝步驟宣稱為通過。連線範圍仍僅為跳棋；其他棋類尚未整合 WebRTC。
+以上 Machine Gate 已通過；v0.9.3 完整驗證 ZIP 已建立於 `releases/kids-board-game-kingdom-v0.9.3.zip`，共 245 個 ZIP 項目、MANIFEST 243 筆，外層 SHA-256 為 `65D59694140040961F257D77542D3ADA9443593967D2FDCA035B674DDDDEF8BF`；承接且不修改 v0.9.2／v0.9.1／v0.9.0 封存 ZIP／SHA-256。乾淨解壓的 `npm ci` 仍受 Windows npm `Exit handler never called` 阻擋；解壓出的完整來源使用已通過的依賴目錄重驗 `check`／`build` 均通過，未把 npm 安裝步驟宣稱為通過。連線範圍仍僅為跳棋；其他棋類尚未整合 WebRTC。
 
 必要檢查：
 
