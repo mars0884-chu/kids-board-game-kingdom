@@ -33,6 +33,8 @@ import { indexedDbJumpChessStorage, type JumpChessMode, type JumpChessStorage } 
 import { WebRtcPairing } from '../../online/WebRtcPairing'
 import { closeWebRtcPeerSession, type WebRtcPeerSession } from '../../online/webrtc'
 
+const ONLINE_DISCONNECT_GRACE_MS = 5_000
+
 interface JumpChessGameProps {
   mode?: JumpChessMode
   onBack: () => void
@@ -162,6 +164,12 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
     if (mode !== 'online' || onlineSession === null) return
     const { channel, connection, role, sessionId } = onlineSession
     let active = true
+    let disconnectTimer: number | null = null
+    const clearDisconnectTimer = () => {
+      if (disconnectTimer === null) return
+      window.clearTimeout(disconnectTimer)
+      disconnectTimer = null
+    }
     const sendState = () => {
       if (!active || channel.readyState !== 'open') return
       channel.send(JSON.stringify({ type: 'state', sessionId, serializedState: serializeJumpChessState(stateRef.current) }))
@@ -191,11 +199,24 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
       }
     }
     const handleConnectionState = () => {
-      if (connection.connectionState === 'connected') {
+      if (connection.connectionState === 'connected' && channel.readyState !== 'closed') {
+        clearDisconnectTimer()
         setOnlineDisconnected(false)
         return
       }
-      if (connection.connectionState === 'disconnected' || connection.connectionState === 'failed' || connection.connectionState === 'closed' || channel.readyState === 'closed') {
+      if (connection.connectionState === 'disconnected') {
+        if (disconnectTimer !== null) return
+        disconnectTimer = window.setTimeout(() => {
+          disconnectTimer = null
+          if (!active || connection.connectionState !== 'disconnected') return
+          setOnlineDisconnected(true)
+          setFeedbackId('online.disconnected')
+          spokenFeedback.current = null
+        }, ONLINE_DISCONNECT_GRACE_MS)
+        return
+      }
+      if (connection.connectionState === 'failed' || connection.connectionState === 'closed' || channel.readyState === 'closed') {
+        clearDisconnectTimer()
         setOnlineDisconnected(true)
         setFeedbackId('online.disconnected')
         spokenFeedback.current = null
@@ -211,6 +232,7 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
     return () => {
       active = false
       window.clearTimeout(syncTimer)
+      clearDisconnectTimer()
       channel.removeEventListener('message', handleMessage)
       connection.removeEventListener('connectionstatechange', handleConnectionState)
       channel.removeEventListener('close', handleConnectionState)

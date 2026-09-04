@@ -25,6 +25,8 @@ export const WEBRTC_SIGNAL_QUERY = 'webrtc'
 export const WEBRTC_SIGNAL_MAX_AGE_MS = 15 * 60 * 1000
 export const WEBRTC_CHANNEL_NAME = 'kids-board-game-webrtc'
 export const WEBRTC_ICE_SERVERS: RTCIceServer[] = [{ urls: 'stun:stun.l.google.com:19302' }]
+export const WEBRTC_ICE_GATHERING_TIMEOUT_MS = 15_000
+export const WEBRTC_CONNECTION_TIMEOUT_MS = 5 * 60 * 1000
 const SIGNAL_PREFIX = 'kids-board-game-webrtc-answer:'
 
 function isSignalKind(value: unknown): value is WebRtcSignalKind {
@@ -115,7 +117,7 @@ function getPeerConnection(): RTCPeerConnection {
   return new RTCPeerConnection({ iceServers: WEBRTC_ICE_SERVERS })
 }
 
-function waitForIceGathering(connection: RTCPeerConnection, timeoutMs = 8_000): Promise<void> {
+function waitForIceGathering(connection: RTCPeerConnection, timeoutMs = WEBRTC_ICE_GATHERING_TIMEOUT_MS): Promise<void> {
   if (connection.iceGatheringState === 'complete') return Promise.resolve()
   return new Promise((resolve) => {
     let settled = false
@@ -168,7 +170,7 @@ export async function acceptWebRtcOffer(signal: WebRtcSignal): Promise<{
   if (signal.kind !== 'offer') throw new Error('這不是邀請連線資料。')
   const connection = getPeerConnection()
   const channel = new Promise<RTCDataChannel>((resolve, reject) => {
-    const timeout = window.setTimeout(() => reject(new Error('等待甲的連線逾時。')), 20_000)
+    const timeout = window.setTimeout(() => reject(new Error('等待甲的連線逾時。')), WEBRTC_CONNECTION_TIMEOUT_MS)
     connection.addEventListener('datachannel', (event) => {
       window.clearTimeout(timeout)
       resolve(event.channel)
@@ -191,7 +193,7 @@ export async function applyWebRtcAnswer(connection: RTCPeerConnection, signal: W
   await connection.setRemoteDescription(signal.description)
 }
 
-export function waitForWebRtcChannel(channel: RTCDataChannel, timeoutMs = 20_000): Promise<void> {
+export function waitForWebRtcChannel(channel: RTCDataChannel, timeoutMs = WEBRTC_CONNECTION_TIMEOUT_MS): Promise<void> {
   if (channel.readyState === 'open') return Promise.resolve()
   return new Promise((resolve, reject) => {
     const timeout = window.setTimeout(() => {

@@ -1,9 +1,9 @@
 # P09-ONLINE 私人雙裝置直連規格
 
-> 文件編號：`P09-ONLINE-r08`
-> 對應規劃：`v0.9.4`
+> 文件編號：`P09-ONLINE-r09`
+> 對應規劃：`v0.9.5`
 > 目前狀態：`WAITING_FOR_PRODUCER`  
-> 更新日期：2026-09-04
+> 更新日期：2026-09-05
 
 ## 1. 製作人已確認的方向
 
@@ -42,6 +42,7 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 - offer／answer 會以短期 URL 查詢資料攜帶，連線資料使用 Base64URL 編碼，不放入兒童身分或棋局內容。
 - 回覆頁若由甲原始分頁開啟，會先以同源 `window.opener.postMessage` 傳送 answer；同時保留同來源 `BroadcastChannel`，沒有 `BroadcastChannel` 時再以短期 `localStorage` 事件作瀏覽器分頁備援。這不是雲端儲存，資料只在可互通的瀏覽器分頁之間傳送。
 - URL 連線資料最長接受 15 分鐘；瀏覽器分頁備援資料也會在短期後清理。
+- 乙開啟邀請後，資料通道等待時間延長至 5 分鐘，涵蓋透過 LINE 或其他通訊方式交回覆連結的手動操作時間；這不會延長 URL 的 15 分鐘有效期限。
 - 連線使用公開 STUN `stun:stun.l.google.com:19302` 協助探索跨 NAT 的 ICE 候選；不使用 TURN，中繼服務不會代傳棋步或保存棋局，也不需要帳號或本專案額度。連線成功後的遊戲資料仍只走兩台裝置之間的加密 WebRTC data channel；WebRTC data channel 的傳輸保護由瀏覽器的 DTLS 提供。STUN 服務可能看到連線所需的暫時性公開 IP，這是本版新增的明確隱私邊界。
 
 ## 4. 跳棋整合行為
@@ -50,7 +51,7 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 - 連線完成後，甲送出初始可序列化局面；乙可要求目前局面。雙方只在輪到自己的回合時解除棋盤操作。
 - 每次合法走棋、連跳結束、自動換手、勝負或和局都傳送完整跳棋局面；接收端先以既有 `deserializeJumpChessState` 驗證格式，再更新畫面。
 - 乙不能重設甲的棋局；甲可使用既有「再試一次」重新開始並同步給乙。
-- 連線中斷不直接判負；畫面保留裝置目前最後局面並顯示「連線中斷，棋局先留在這裡」。本修訂尚未實作伺服器保存或自動重連，若資料通道失效，需重新建立一組邀請／回覆連結。
+- 連線中斷不直接判負；畫面保留裝置目前最後局面並顯示「連線中斷，棋局先留在這裡」。`disconnected` 狀態先觀察 5 秒，只有仍未恢復才顯示斷線；本修訂尚未實作伺服器保存或自動重連，若資料通道失效，需重新建立一組邀請／回覆連結。
 - 跳棋規則仍完全依 `docs/games/JUMP_CHESS_SPEC.md` 的 `JUMP-CHESS-SPEC-d05`，不新增回合上限、不改變勝負或和局。
 
 ## 5. 兒童介面契約
@@ -78,7 +79,7 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 
 加入 STUN 後，瀏覽器可額外探索部分跨 NAT 的候選，預期比只有主機候選更容易連線；若兩邊受到嚴格 NAT、防火牆、行動網路或瀏覽器政策限制，仍可能無法直連。這是 WebRTC 網路拓撲限制，不是分享連結格式可以完全消除的問題。本版未加入 TURN，因此不保證所有遠端網路都能連線。
 
-本修訂已用 Microsoft Edge 同一個瀏覽器的三個分頁完成：甲建立邀請、乙開啟邀請、乙一鍵回覆、甲開啟回覆、雙方自動連線，以及甲落子同步至乙。製作人另依相同流程實際互相走棋 5 步，確認本機三分頁可用；這不是完整對局，也不能替代兩支實體裝置、不同網路與 GitHub Pages HTTPS 的實測。
+本修訂已用 Microsoft Edge 同一個瀏覽器的三個分頁完成：甲建立邀請、乙開啟邀請、乙一鍵回覆、甲開啟回覆、雙方自動連線，以及甲落子同步至乙；另增加 5 分鐘手動交換逾時常數與短暫 `disconnected` 的 5 秒緩衝邏輯測試。製作人另依相同流程實際互相走棋 5 步，確認本機三分頁可用；這不是完整對局，也不能替代兩支實體裝置、不同網路與 GitHub Pages HTTPS 的實測。
 
 ### 7.2 尚未宣稱完成的項目
 
@@ -102,7 +103,7 @@ GitHub Pages 部署已完成：`.github/workflows/deploy-pages.yml` 依儲存庫
 - `scripts/verify-jump-chess-webrtc-playwright.mjs`：可重跑的 Edge 三分頁實際流程與落子同步驗證。
 - `scripts/verify-jump-chess-online-layout-playwright.mjs`：Edge DPR 1 六尺寸連線頁 1:1 截圖、頁面／按鍵邊界、注音比例與「暫停語音」不存在檢查。
 
-以上 Machine Gate 已通過；v0.9.4 完整驗證 ZIP 為 `releases/kids-board-game-kingdom-v0.9.4.zip`，共 247 個 ZIP 項目，封包內 `MANIFEST.sha256` 245 筆，外層 SHA-256 為 `F46BE3A337F30A190AA39203E104F39BE192905A6C1BCAC2900493A5EB67D6ED`；承接且不修改 v0.9.3／v0.9.2／v0.9.1／v0.9.0 封存 ZIP／SHA-256。連線範圍仍僅為跳棋；其他棋類尚未整合 WebRTC。乾淨解壓的 `npm ci` 若再次受 Windows npm `Exit handler never called` 阻擋，將如實記錄，不把 npm 安裝步驟宣稱為通過。
+以上 Machine Gate 已通過；v0.9.5 完整驗證 ZIP 為 `releases/kids-board-game-kingdom-v0.9.5.zip`，共 247 個 ZIP 項目，封包內 `MANIFEST.sha256` 245 筆，外層 SHA-256 為 `FCD4C789944F716747F8B4B3E8B799A61A39E25C570AD8F7C6D1B5C395AB9660`；承接且不修改 v0.9.4／v0.9.3／v0.9.2／v0.9.1／v0.9.0 封存 ZIP／SHA-256。連線範圍仍僅為跳棋；其他棋類尚未整合 WebRTC。乾淨解壓的 `npm ci` 若再次受 Windows npm `Exit handler never called` 阻擋，將如實記錄，不把 npm 安裝步驟宣稱為通過。
 
 必要檢查：
 

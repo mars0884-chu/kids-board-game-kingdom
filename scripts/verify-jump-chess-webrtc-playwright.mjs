@@ -75,6 +75,10 @@ async function main() {
     const sharedReplyLink = await guest.evaluate(() => window.__sharedWebRtcLink)
     assert(sharedReplyLink === replyLink, '乙的一鍵回覆沒有交出回覆連結。')
 
+    console.log('webrtc:simulate-slow-manual-reply')
+    await guest.waitForTimeout(21_000)
+    assert(await guest.locator('.webrtc-pairing__error').count() === 0, '乙不應在甲開啟回覆連結前因手動交換時間較久而失敗。')
+
     console.log('webrtc:host-open-reply')
     await reply.goto(sharedReplyLink, { waitUntil: 'domcontentloaded' })
     await reply.waitForSelector('[role="status"]')

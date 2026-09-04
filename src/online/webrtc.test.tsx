@@ -4,6 +4,8 @@ import { WebRtcPairing } from './WebRtcPairing'
 import {
   WEBRTC_SIGNAL_MAX_AGE_MS,
   WEBRTC_ICE_SERVERS,
+  WEBRTC_CONNECTION_TIMEOUT_MS,
+  WEBRTC_ICE_GATHERING_TIMEOUT_MS,
   createWebRtcSignalLink,
   decodeWebRtcSignal,
   encodeWebRtcSignal,
@@ -55,6 +57,11 @@ describe('WebRTC 手動連線資料', () => {
 
   it('只使用公開 STUN 探索候選，不設定 TURN 中繼', () => {
     expect(WEBRTC_ICE_SERVERS).toEqual([{ urls: 'stun:stun.l.google.com:19302' }])
+  })
+
+  it('為手動交換預留足夠的連線準備時間', () => {
+    expect(WEBRTC_ICE_GATHERING_TIMEOUT_MS).toBe(15_000)
+    expect(WEBRTC_CONNECTION_TIMEOUT_MS).toBe(5 * 60 * 1000)
   })
 
   it('瀏覽器不支援直連時顯示清楚的兒童提示', () => {
