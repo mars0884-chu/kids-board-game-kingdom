@@ -1,0 +1,387 @@
+html:has(.animal-chess-game),
+body:has(.animal-chess-game) {
+  min-width: 0;
+}
+
+body:has(.animal-chess-game) {
+  overflow: hidden;
+}
+
+.animal-chess-game {
+  height: 100svh;
+  min-height: 0;
+  overflow: hidden;
+  padding: max(0.3rem, env(safe-area-inset-top)) max(0.3rem, env(safe-area-inset-right)) max(0.3rem, env(safe-area-inset-bottom)) max(0.3rem, env(safe-area-inset-left));
+  color: #3a2f62;
+  background:
+    radial-gradient(circle at 11% 9%, rgb(255 246 190 / 88%) 0 4%, transparent 4.2%),
+    radial-gradient(circle at 91% 88%, rgb(255 224 172 / 86%) 0 5%, transparent 5.2%),
+    linear-gradient(145deg, #9edcdf, #d8efcb 48%, #f7d69b);
+}
+
+.animal-chess-game__frame {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(0.25rem, 1.2vw, 0.7rem);
+  width: min(100%, 78rem);
+  height: 100%;
+  min-height: 0;
+  margin: 0 auto;
+}
+
+.animal-chess-game__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.15rem 0.2rem;
+}
+
+.animal-chess-game__heading,
+.animal-chess-game__meta,
+.animal-chess-game__meta-item {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.animal-chess-game__heading { gap: 0.35rem; }
+.animal-chess-game__heading-icon { color: #d88938; font-size: 1.45rem; filter: drop-shadow(0 0.08rem 0 #fff1a8); }
+.animal-chess-game__title { color: #4c397d; font-size: clamp(1.15rem, 3vw, 1.8rem); font-weight: 950; }
+.animal-chess-game__title .bopomofo-pair { column-gap: 0.09em; }
+.animal-chess-game__meta { flex-wrap: wrap; justify-content: flex-end; gap: 0.25rem 0.55rem; color: #5e4a6e; font-size: clamp(0.68rem, 1.7vw, 0.84rem); font-weight: 800; }
+.animal-chess-game__meta-item { gap: 0.18rem; white-space: nowrap; }
+.animal-chess-game__meta-item strong { color: #2c6c74; font-size: 1.12em; }
+
+.animal-chess-game__layout {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 0;
+  gap: 0.4rem;
+}
+
+.animal-chess-board-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: center;
+  justify-items: center;
+  min-width: 0;
+  min-height: 0;
+}
+
+.animal-chess-board-panel__status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  width: min(100%, 32rem);
+  min-height: 2.1rem;
+  padding: 0.24rem 0.5rem;
+  border: 2px solid rgb(86 136 138 / 52%);
+  border-radius: 0.8rem;
+  color: #4b3970;
+  background: rgb(255 252 229 / 76%);
+  box-shadow: 0 0.18rem 0 #86b9ad;
+  font-size: clamp(0.78rem, 2vw, 1rem);
+  font-weight: 850;
+  text-align: center;
+}
+
+.animal-chess-board-panel__status .bopomofo-text { max-width: 100%; }
+.animal-chess-tutorial-progress { flex: 0 0 auto; color: #a45c42; font-size: 0.82em; white-space: nowrap; }
+
+.animal-chess-board {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-rows: repeat(9, minmax(0, 1fr));
+  width: auto;
+  max-width: 100%;
+  height: min(calc(100svh - 21.25rem), calc((100svw - 0.7rem) * 1.2857));
+  max-height: calc(100% - 2.35rem);
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 7 / 9;
+  overflow: hidden;
+  border: clamp(0.16rem, 0.55vw, 0.3rem) solid #6f4a34;
+  border-radius: clamp(0.55rem, 2vw, 1rem);
+  background: #9d7047;
+  box-shadow: inset 0 0 0 0.13rem #f2d48c, 0 0.35rem 0 #5d3d2b, 0 0.7rem 1rem rgb(60 70 82 / 25%);
+}
+
+.animal-chess-cell {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgb(104 69 39 / 76%);
+  color: #fff9e4;
+  background: linear-gradient(145deg, #d5aa67, #a87847);
+  cursor: pointer;
+}
+
+.animal-chess-cell--river {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 34%) 0 9%, transparent 9% 46%, rgb(255 255 255 / 28%) 46% 52%, transparent 52% 89%, rgb(255 255 255 / 28%) 89%),
+    linear-gradient(145deg, #66c8d0, #3988ae);
+}
+
+.animal-chess-cell--den {
+  background: radial-gradient(circle, #ffec99 0 16%, #e99b63 18% 46%, #9f5d62 48% 100%);
+}
+
+.animal-chess-cell--trap { background: linear-gradient(145deg, #ffc9a7, #dc7b71 60%, #ad4e59); }
+.animal-chess-cell--selected { z-index: 2; box-shadow: inset 0 0 0 0.18rem #fff05e, inset 0 0 0 0.32rem #b86432; }
+.animal-chess-cell--target { z-index: 1; background: linear-gradient(145deg, #e6f6a7, #82c889); box-shadow: inset 0 0 0 0.16rem #fff7ad; }
+.animal-chess-cell:hover:not(:disabled),
+.animal-chess-cell:focus-visible { z-index: 3; outline: 0.18rem solid #fff4a7; outline-offset: -0.25rem; }
+.animal-chess-cell:disabled { cursor: default; }
+
+.animal-piece {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(92%, 4.7rem);
+  aspect-ratio: 1;
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.animal-piece::before {
+  position: absolute;
+  inset: 0.04rem;
+  content: '';
+  pointer-events: none;
+}
+
+.animal-piece--player1::before {
+  border: 0.14rem solid #e77b4d;
+  border-radius: 50%;
+  background: rgb(255 231 174 / 26%);
+  box-shadow: 0 0 0 0.08rem rgb(255 249 219 / 80%), 0 0.12rem 0.15rem rgb(84 53 38 / 25%);
+}
+
+.animal-piece--player2::before {
+  border: 0.14rem dashed #329a9b;
+  border-radius: 24%;
+  background: rgb(210 247 235 / 24%);
+  box-shadow: 0 0 0 0.08rem rgb(255 249 219 / 80%), 0 0.12rem 0.15rem rgb(44 76 82 / 25%);
+}
+
+.animal-icon {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 90%;
+  aspect-ratio: 1;
+  height: auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 0.12rem 0.1rem rgb(61 43 31 / 35%));
+  pointer-events: none;
+}
+
+.animal-piece__owner-mark {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 28%;
+  aspect-ratio: 1;
+  border: 0.1rem solid #fff9e4;
+  color: #fff9e4;
+  background: #e77b4d;
+  box-shadow: 0 0.08rem 0.12rem rgb(61 43 31 / 45%);
+}
+
+.animal-piece__owner-mark::after {
+  width: 28%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: currentColor;
+  content: '';
+}
+
+.animal-piece--player1 .animal-piece__owner-mark {
+  top: -3%;
+  left: -3%;
+  border-radius: 50%;
+}
+
+.animal-piece--player2 .animal-piece__owner-mark {
+  right: -3%;
+  bottom: -3%;
+  border-radius: 22%;
+  background: #329a9b;
+  transform: rotate(45deg);
+}
+
+.animal-piece--player2 .animal-piece__owner-mark::after { transform: rotate(-45deg); }
+
+.animal-chess-cell__marker {
+  position: absolute;
+  inset: 0.08rem auto auto 0.16rem;
+  color: rgb(255 248 185 / 88%);
+  font-size: clamp(0.62rem, 2.1vw, 1.05rem);
+  font-weight: 950;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.animal-chess-cell__target-dot {
+  position: absolute;
+  right: 0.15rem;
+  bottom: 0.15rem;
+  width: 18%;
+  min-width: 0.25rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fff46f;
+  box-shadow: 0 0 0 0.1rem #5a946a;
+  pointer-events: none;
+}
+
+.animal-chess-controls {
+  display: grid;
+  gap: clamp(0.3rem, 1vw, 0.55rem);
+  min-width: 0;
+  max-width: 100%;
+  padding: 0.15rem;
+  box-sizing: border-box;
+}
+
+.animal-chess-controls > *,
+.animal-chess-actions > *,
+.animal-chess-tools > * {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.animal-chess-controls .feedback-card { min-height: 3rem; }
+.animal-chess-controls .feedback-card__message { font-size: clamp(0.76rem, 1.8vw, 0.96rem); }
+.animal-chess-controls .difficulty-selector { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.animal-chess-controls .difficulty-option { min-width: 0; min-height: 3rem; padding: 0.2rem; }
+.animal-chess-controls .difficulty-option__icon { display: none; }
+.animal-chess-controls .difficulty-option .child-control__label { font-size: clamp(0.66rem, 1.7vw, 0.82rem); }
+.animal-chess-controls .difficulty-status { min-height: 1.5rem; margin-top: -0.2rem; font-size: 0.7rem; }
+
+.animal-chess-tutorial-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.1rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 0.6rem;
+  color: #704b33;
+  background: rgb(255 240 183 / 84%);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.animal-chess-tutorial-card__progress,
+.animal-chess-tutorial-card__goal {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.3rem;
+}
+
+.animal-chess-tutorial-card__goal { justify-content: flex-end; white-space: nowrap; }
+.animal-chess-tutorial-card__guide { grid-column: 1 / -1; color: #4c397d; }
+
+.animal-chess-actions,
+.animal-chess-tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.animal-chess-actions:has(> :only-child) { grid-template-columns: minmax(0, 1fr); }
+
+.animal-chess-actions .child-action { min-width: 0; min-height: 3rem; padding: 0.25rem 0.35rem; }
+.animal-chess-actions .child-control__label,
+.animal-chess-tools .child-control__label {
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: clamp(0.7rem, 1.9vw, 0.86rem);
+}
+.animal-chess-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.animal-chess-tools .child-tool:last-child { grid-column: 1 / -1; }
+.animal-chess-tools .child-tool { min-width: 0; min-height: 3rem; padding: 0.2rem; }
+
+@media (orientation: landscape) and (min-width: 560px) {
+  .animal-chess-game__layout { grid-template-columns: minmax(0, 1fr) minmax(15rem, 27rem); grid-template-rows: minmax(0, 1fr); gap: clamp(0.35rem, 1.4vw, 1rem); }
+  .animal-chess-board { width: auto; height: min(calc(100svh - 5rem), 88svh); max-height: calc(100% - 2.35rem); }
+  .animal-chess-controls { align-self: center; max-height: 100%; overflow: visible; }
+  .animal-chess-board-panel__status { font-size: clamp(0.7rem, 1.6vw, 0.95rem); }
+}
+
+@media (orientation: portrait) and (min-width: 560px) {
+  /* 平板直向要為下方完整操作列預留高度，避免棋盤面板被置中到標題區。 */
+  .animal-chess-board {
+    height: min(calc(100svh - 31rem), calc((100svw - 1rem) * 1.2857));
+    max-height: calc(100% - 1rem);
+  }
+}
+
+@media (orientation: landscape) and (min-width: 900px) {
+  .animal-chess-game__header { padding-inline: 0.55rem; }
+  .animal-chess-game__layout {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+    padding-inline-end: 0.35rem;
+    box-sizing: border-box;
+  }
+  .animal-chess-controls { gap: 0.45rem; }
+}
+
+@media (orientation: landscape) and (min-width: 560px) and (max-width: 899px) {
+  .animal-chess-tools { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .animal-chess-tools .child-tool:last-child { grid-column: auto; }
+}
+
+@media (max-height: 480px) {
+  .animal-chess-game__header { padding-block: 0; }
+  .animal-chess-game__title { font-size: clamp(0.95rem, 2.8vw, 1.25rem); }
+  .animal-chess-game__heading-icon { font-size: 1.1rem; }
+  .animal-chess-game__meta { font-size: 0.62rem; }
+  .animal-chess-board-panel__status { min-height: 1.65rem; padding-block: 0.12rem; }
+  .animal-chess-cell__marker { display: none; }
+  /* 低高度橫向仍要讓按鍵陰影與相鄰列保持可見的安全距離。 */
+  .animal-chess-controls { gap: 0.55rem; }
+  .animal-chess-controls .feedback-card { min-height: 2.25rem; }
+  .animal-chess-controls .difficulty-option,
+  .animal-chess-actions .child-action,
+  .animal-chess-tools .child-tool { min-height: 3rem; }
+  .animal-chess-controls .difficulty-status { display: none; }
+}
+
+@media (orientation: landscape) and (min-width: 560px) and (min-height: 600px) {
+  .animal-chess-board { height: min(calc(100svh - 6rem), 86svh); max-height: calc(100% - 2.35rem); }
+}
+
+@media (orientation: portrait) and (min-width: 560px) {
+  /* 平板直向為工具列的按鍵陰影保留底部安全區，避免最後一列貼齊視窗邊緣。 */
+  .animal-chess-game__layout { padding-bottom: 0.55rem; box-sizing: border-box; }
+}
+
+@media (max-width: 420px) and (orientation: portrait) {
+  .animal-chess-game { padding-inline: 0.22rem; }
+  .animal-chess-game__header { gap: 0.25rem; }
+  .animal-chess-game__title { font-size: 1.08rem; }
+  .animal-chess-game__meta { max-width: 9.2rem; gap: 0.12rem 0.3rem; font-size: 0.62rem; }
+  /* 手機直向要把標題列、提示列與完整控制列一起納入高度預算。 */
+  .animal-chess-board {
+    height: min(calc(100svh - 26rem), calc((100svw - 0.45rem) * 1.2857));
+    max-height: calc(100% - 1rem);
+  }
+  .animal-chess-controls { gap: 0.25rem; }
+  .animal-chess-controls .feedback-card { min-height: 2.7rem; }
+}

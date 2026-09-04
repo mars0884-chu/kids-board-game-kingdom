@@ -1,0 +1,295 @@
+export type WebRtcSignalKind = 'offer' | 'answer'
+
+export interface WebRtcSignalDescription {
+  readonly type: WebRtcSignalKind
+  readonly sdp: string
+}
+
+export interface WebRtcSignal {
+  readonly protocol: 'kids-board-game-webrtc'
+  readonly version: 1
+  readonly sessionId: string
+  readonly kind: WebRtcSignalKind
+  readonly createdAt: number
+  readonly description: WebRtcSignalDescription
+}
+
+export interface WebRtcPeerSession {
+  readonly sessionId: string
+  readonly role: 'host' | 'guest'
+  readonly connection: RTCPeerConnection
+  readonly channel: RTCDataChannel
+}
+
+export const WEBRTC_SIGNAL_QUERY = 'webrtc'
+export const WEBRTC_SIGNAL_MAX_AGE_MS = 15 * 60 * 1000
+export const WEBRTC_CHANNEL_NAME = 'kids-board-game-webrtc'
+const SIGNAL_PREFIX = 'kids-board-game-webrtc-answer:'
+
+function isSignalKind(value: unknown): value is WebRtcSignalKind {
+  return value === 'offer' || value === 'answer'
+}
+
+function isSessionId(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-z0-9-]{12,80}$/.test(value)
+}
+
+function isSignal(value: unknown): value is WebRtcSignal {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
+  const candidate = value as Record<string, unknown>
+  const description = candidate.description
+  if (typeof description !== 'object' || description === null || Array.isArray(description)) return false
+  const candidateDescription = description as Record<string, unknown>
+  return candidate.protocol === 'kids-board-game-webrtc'
+    && candidate.version === 1
+    && isSessionId(candidate.sessionId)
+    && isSignalKind(candidate.kind)
+    && typeof candidate.createdAt === 'number'
+    && Number.isFinite(candidate.createdAt)
+    && isSignalKind(candidateDescription.type)
+    && candidateDescription.type === candidate.kind
+    && typeof candidateDescription.sdp === 'string'
+    && candidateDescription.sdp.length > 0
+}
+
+function encodeBase64Url(value: string): string {
+  const bytes = new TextEncoder().encode(value)
+  let binary = ''
+  for (const byte of bytes) binary += String.fromCharCode(byte)
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/u, '')
+}
+
+function decodeBase64Url(value: string): string {
+  const normalized = value.replaceAll('-', '+').replaceAll('_', '/')
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')
+  const binary = atob(padded)
+  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0))
+  return new TextDecoder().decode(bytes)
+}
+
+export function createWebRtcSessionId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  const randomPart = Math.random().toString(36).slice(2)
+  return `${Date.now().toString(36)}-${randomPart}`
+}
+
+export function encodeWebRtcSignal(signal: WebRtcSignal): string {
+  if (!isSignal(signal)) throw new Error('WebRTC 連線資料格式不正確。')
+  return encodeBase64Url(JSON.stringify(signal))
+}
+
+export function decodeWebRtcSignal(value: string, now = Date.now()): WebRtcSignal | null {
+  try {
+    const parsed: unknown = JSON.parse(decodeBase64Url(value))
+    if (!isSignal(parsed)) return null
+    if (Math.abs(now - parsed.createdAt) > WEBRTC_SIGNAL_MAX_AGE_MS) return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+export function createWebRtcSignalLink(signal: WebRtcSignal, location: Location = window.location): string {
+  const url = new URL(location.href)
+  url.search = ''
+  url.hash = ''
+  url.searchParams.set(WEBRTC_SIGNAL_QUERY, encodeWebRtcSignal(signal))
+  return url.toString()
+}
+
+export function readWebRtcSignal(location: Location = window.location): WebRtcSignal | null {
+  const value = new URL(location.href).searchParams.get(WEBRTC_SIGNAL_QUERY)
+  return value === null ? null : decodeWebRtcSignal(value)
+}
+
+export function canUseWebRtc(): boolean {
+  return typeof window !== 'undefined' && typeof window.RTCPeerConnection === 'function'
+}
+
+function getPeerConnection(): RTCPeerConnection {
+  if (!canUseWebRtc()) throw new Error('這台裝置的瀏覽器不支援裝置直連。')
+  // 不預設放入第三方 STUN／TURN；沒有伺服器或外部連線帳號時，先使用瀏覽器可取得的直連路徑。
+  return new RTCPeerConnection({ iceServers: [] })
+}
+
+function waitForIceGathering(connection: RTCPeerConnection, timeoutMs = 8_000): Promise<void> {
+  if (connection.iceGatheringState === 'complete') return Promise.resolve()
+  return new Promise((resolve) => {
+    let settled = false
+    const finish = () => {
+      if (settled) return
+      settled = true
+      window.clearTimeout(timeout)
+      connection.removeEventListener('icegatheringstatechange', handleStateChange)
+      resolve()
+    }
+    const handleStateChange = () => {
+      if (connection.iceGatheringState === 'complete') finish()
+    }
+    const timeout = window.setTimeout(finish, timeoutMs)
+    connection.addEventListener('icegatheringstatechange', handleStateChange)
+  })
+}
+
+function descriptionFromConnection(connection: RTCPeerConnection, kind: WebRtcSignalKind): WebRtcSignalDescription {
+  const description = connection.localDescription
+  if (description === null || description.type !== kind || typeof description.sdp !== 'string' || description.sdp.length === 0) {
+    throw new Error('WebRTC 連線資料尚未準備完成。')
+  }
+  return { type: kind, sdp: description.sdp }
+}
+
+export async function createWebRtcOffer(): Promise<{
+  readonly connection: RTCPeerConnection
+  readonly channel: RTCDataChannel
+  readonly description: WebRtcSignalDescription
+}> {
+  const connection = getPeerConnection()
+  try {
+    const channel = connection.createDataChannel(WEBRTC_CHANNEL_NAME, { ordered: true })
+    const offer = await connection.createOffer()
+    await connection.setLocalDescription(offer)
+    await waitForIceGathering(connection)
+    return { connection, channel, description: descriptionFromConnection(connection, 'offer') }
+  } catch (error) {
+    connection.close()
+    throw error
+  }
+}
+
+export async function acceptWebRtcOffer(signal: WebRtcSignal): Promise<{
+  readonly connection: RTCPeerConnection
+  readonly channel: Promise<RTCDataChannel>
+  readonly description: WebRtcSignalDescription
+}> {
+  if (signal.kind !== 'offer') throw new Error('這不是邀請連線資料。')
+  const connection = getPeerConnection()
+  const channel = new Promise<RTCDataChannel>((resolve, reject) => {
+    const timeout = window.setTimeout(() => reject(new Error('等待甲的連線逾時。')), 20_000)
+    connection.addEventListener('datachannel', (event) => {
+      window.clearTimeout(timeout)
+      resolve(event.channel)
+    }, { once: true })
+  })
+  try {
+    await connection.setRemoteDescription(signal.description)
+    const answer = await connection.createAnswer()
+    await connection.setLocalDescription(answer)
+    await waitForIceGathering(connection)
+    return { connection, channel, description: descriptionFromConnection(connection, 'answer') }
+  } catch (error) {
+    connection.close()
+    throw error
+  }
+}
+
+export async function applyWebRtcAnswer(connection: RTCPeerConnection, signal: WebRtcSignal): Promise<void> {
+  if (signal.kind !== 'answer') throw new Error('這不是回覆連線資料。')
+  await connection.setRemoteDescription(signal.description)
+}
+
+export function waitForWebRtcChannel(channel: RTCDataChannel, timeoutMs = 20_000): Promise<void> {
+  if (channel.readyState === 'open') return Promise.resolve()
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      cleanup()
+      reject(new Error('兩台裝置尚未連線成功。'))
+    }, timeoutMs)
+    const handleOpen = () => {
+      cleanup()
+      resolve()
+    }
+    const handleClose = () => {
+      cleanup()
+      reject(new Error('連線在完成前中斷。'))
+    }
+    const cleanup = () => {
+      window.clearTimeout(timeout)
+      channel.removeEventListener('open', handleOpen)
+      channel.removeEventListener('close', handleClose)
+    }
+    channel.addEventListener('open', handleOpen, { once: true })
+    channel.addEventListener('close', handleClose, { once: true })
+  })
+}
+
+interface AnswerRelayMessage {
+  readonly protocol: 'kids-board-game-webrtc-answer'
+  readonly sessionId: string
+  readonly signal: WebRtcSignal
+}
+
+function answerStorageKey(sessionId: string): string {
+  return `${SIGNAL_PREFIX}${sessionId}`
+}
+
+function relayMessageFor(signal: WebRtcSignal): AnswerRelayMessage {
+  return { protocol: 'kids-board-game-webrtc-answer', sessionId: signal.sessionId, signal }
+}
+
+export function publishWebRtcAnswerToHost(signal: WebRtcSignal): void {
+  if (signal.kind !== 'answer') throw new Error('只有回覆連線資料可以送回甲。')
+  const message = relayMessageFor(signal)
+  if (typeof BroadcastChannel === 'function') {
+    const channel = new BroadcastChannel(`${WEBRTC_CHANNEL_NAME}:${signal.sessionId}`)
+    channel.postMessage(message)
+    // 某些瀏覽器在 postMessage 後立即 close 會取消尚未送出的分頁訊息。
+    window.setTimeout(() => channel.close(), 1_000)
+  }
+  try {
+    const key = answerStorageKey(signal.sessionId)
+    const serialized = JSON.stringify(message)
+    window.localStorage.setItem(key, serialized)
+    window.setTimeout(() => {
+      try {
+        if (window.localStorage.getItem(key) === serialized) window.localStorage.removeItem(key)
+      } catch {
+        // 忽略清理時的隱私模式限制。
+      }
+    }, WEBRTC_SIGNAL_MAX_AGE_MS)
+  } catch {
+    // 有些瀏覽器的隱私模式會封鎖 localStorage；BroadcastChannel 仍可能可用。
+  }
+}
+
+export function subscribeWebRtcAnswer(
+  sessionId: string,
+  onAnswer: (signal: WebRtcSignal) => void,
+): () => void {
+  const channel = typeof BroadcastChannel === 'function'
+    ? new BroadcastChannel(`${WEBRTC_CHANNEL_NAME}:${sessionId}`)
+    : null
+  const handleMessage = (event: MessageEvent<AnswerRelayMessage>) => {
+    const message = event.data
+    if (message?.protocol !== 'kids-board-game-webrtc-answer' || message.sessionId !== sessionId || !isSignal(message.signal) || message.signal.kind !== 'answer') return
+    onAnswer(message.signal)
+  }
+  channel?.addEventListener('message', handleMessage)
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key !== answerStorageKey(sessionId) || event.newValue === null) return
+    try {
+      handleMessage({ data: JSON.parse(event.newValue) } as MessageEvent<AnswerRelayMessage>)
+    } catch {
+      // 忽略損壞的分頁間資料。
+    }
+  }
+  window.addEventListener('storage', handleStorage)
+  try {
+    const stored = window.localStorage.getItem(answerStorageKey(sessionId))
+    if (stored !== null) handleMessage({ data: JSON.parse(stored) } as MessageEvent<AnswerRelayMessage>)
+  } catch {
+    // 忽略損壞的暫存連線資料或被封鎖的 localStorage。
+  }
+  return () => {
+    channel?.removeEventListener('message', handleMessage)
+    channel?.close()
+    window.removeEventListener('storage', handleStorage)
+  }
+}
+
+export function closeWebRtcPeerSession(session: Pick<WebRtcPeerSession, 'connection' | 'channel'>): void {
+  session.channel.close()
+  session.connection.close()
+}

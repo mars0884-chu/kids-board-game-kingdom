@@ -1,0 +1,824 @@
+body:has(.jump-chess-game) {
+  overflow: hidden;
+  background: #8fd8ee;
+}
+
+.jump-chess-game {
+  min-width: 320px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: auto;
+  padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+  color: #302761;
+  background:
+    radial-gradient(circle at 10% 8%, rgb(255 255 255 / 70%) 0 4%, transparent 4.2%),
+    radial-gradient(circle at 92% 10%, rgb(255 255 255 / 48%) 0 6%, transparent 6.2%),
+    linear-gradient(180deg, #9ee1f2 0 42%, #c4e3b2 42% 100%);
+}
+
+.jump-chess-game__frame {
+  display: grid;
+  width: min(100%, 92rem);
+  min-height: calc(100dvh - 1.5rem);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(0.55rem, 1.4vw, 1rem);
+  margin: 0 auto;
+}
+
+.jump-chess-game__header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.jump-chess-game__turn-count {
+  min-height: 3rem;
+  border: 0.2rem solid #44377d;
+  border-radius: 1rem;
+  color: #fff;
+  background: #6555d9;
+  box-shadow: 0 0.28rem 0 #302761;
+  font-weight: 900;
+}
+
+.jump-chess-game__turn-count .bopomofo-text {
+  column-gap: 0.1em;
+  font-size: clamp(1rem, 2.2vw, 1.18rem);
+}
+
+.jump-chess-game__turn-count .bopomofo-pair__annotation {
+  color: #fff2aa;
+  font-size: 0.43em;
+}
+
+.jump-chess-game__heading {
+  display: flex;
+  grid-column: 2;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.4rem 1rem;
+  border: 0.3rem solid #a9612c;
+  border-radius: 1rem;
+  background: linear-gradient(#fff1c7, #f3cc83);
+  box-shadow: inset 0 0 0 0.16rem #ffe4a9, 0 0.3rem 0 #75431f;
+}
+
+.jump-chess-game__heading-icon {
+  color: #f6b933;
+  font-size: 1.6rem;
+  line-height: 1;
+  text-shadow: 0 0.12rem 0 #985c26;
+}
+
+.jump-chess-game__title {
+  margin: 0;
+  color: #3c2d76;
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-weight: 950;
+}
+
+.jump-chess-game__turn-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  grid-column: 3;
+  gap: 0.55rem;
+  padding: 0.35rem 0.7rem;
+  text-align: center;
+}
+
+.jump-chess-game__turn-count strong {
+  display: inline-grid;
+  min-width: 2rem;
+  min-height: 2rem;
+  place-items: center;
+  border-radius: 0.65rem;
+  color: #3c2d76;
+  background: #ffe39a;
+  font-size: 1.1rem;
+}
+
+.jump-chess-game__layout {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+}
+
+.jump-chess-board-panel,
+.jump-chess-controls {
+  min-width: 0;
+}
+
+.jump-chess-board-panel {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-items: center;
+  justify-items: center;
+  gap: clamp(0.72rem, 1.4vw, 1rem);
+}
+
+.jump-chess-board-panel__status {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 44rem);
+}
+
+.jump-chess-board-panel__status .feedback-card {
+  min-height: 3.5rem;
+  margin: 0;
+  padding: 0.42rem 0.75rem;
+  border-color: #473c88;
+  font-size: clamp(0.95rem, 1.7vw, 1.2rem);
+}
+
+.jump-chess-board-shell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: min(100%, 56rem);
+  min-height: 0;
+  height: 100%;
+  overflow: visible;
+  place-items: center;
+}
+
+.jump-chess-board {
+  position: relative;
+  container-type: inline-size;
+  width: min(100%, 56rem);
+  max-width: 100%;
+  max-height: 100%;
+  overflow: visible;
+  aspect-ratio: var(--jump-board-ratio);
+  background: transparent;
+}
+
+.jump-chess-board__guide {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0.28rem 0 #7b512d) drop-shadow(0 0.7rem 1.1rem rgb(49 50 82 / 18%));
+  pointer-events: none;
+}
+
+.jump-chess-board__star {
+  fill: #f5dfaa;
+  stroke: none;
+}
+
+.jump-chess-board__camp {
+  stroke: none;
+}
+
+.jump-chess-board__camp--neutral {
+  fill: rgb(218 227 198 / 68%);
+}
+
+.jump-chess-board__camp--one {
+  fill: rgb(255 174 125 / 82%);
+}
+
+.jump-chess-board__camp--two {
+  fill: rgb(116 211 197 / 82%);
+}
+
+.jump-chess-board__center {
+  fill: rgb(255 249 221 / 88%);
+  stroke: none;
+}
+
+.jump-chess-board__star-outline {
+  fill: none;
+  stroke: #8a5a31;
+  stroke-width: 0.28;
+  stroke-linejoin: round;
+}
+
+.jump-chess-hole {
+  position: absolute;
+  top: var(--jump-hole-y);
+  left: var(--jump-hole-x);
+  display: grid;
+  z-index: 1;
+  width: clamp(3rem, 5.1vw, 3.5rem);
+  min-width: 3rem;
+  aspect-ratio: 1;
+  place-items: center;
+  padding: 0;
+  border: 0.18rem solid transparent;
+  border-radius: 50%;
+  color: #302761;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  /* 121 個 48px 觸控目標在窄版會互相重疊；由棋盤依指標座標選最近棋孔，避免上層按鈕攔截。鍵盤仍可聚焦並觸發按鈕。 */
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.jump-chess-hole:hover,
+.jump-chess-hole:focus-visible {
+  z-index: 3;
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.jump-chess-hole--camp-one {
+  border-color: transparent;
+  background: transparent;
+}
+
+.jump-chess-hole--camp-two {
+  border-color: transparent;
+  background: transparent;
+}
+
+.jump-chess-hole--target {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.jump-chess-hole--selected {
+  z-index: 2;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.jump-chess-hole--path {
+  z-index: 1;
+  border-style: dashed;
+}
+
+.jump-chess-hole__well {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* 1024×768 為比例基準，其餘尺寸只依實際棋盤寬度等比縮放。 */
+  width: clamp(0.7rem, 3.6cqw, 1.75rem);
+  aspect-ratio: 1;
+  border: 0.12rem solid #766a9a;
+  border-radius: 50%;
+  /* 實心孔位中心遮住底下邊框，讓外圈在六個尖角也完整可見。 */
+  background: #f5dfaa;
+  box-shadow: 0 0.1rem 0 #625887;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.jump-chess-hole--camp-one .jump-chess-hole__well {
+  border-color: #dd8e62;
+  background: #ffbe91;
+}
+
+.jump-chess-hole--camp-two .jump-chess-hole__well {
+  border-color: #2a79c9;
+  background: #89cdf7;
+}
+
+.jump-chess-hole--target .jump-chess-hole__well {
+  border-color: #ffad2e;
+  background: #fff0a5;
+  box-shadow: 0 0 0 0.18rem rgb(255 198 52 / 42%), 0 0.12rem 0 #a96c1c;
+}
+
+.jump-chess-hole--selected .jump-chess-hole__well {
+  border-color: #3d2f86;
+  background: #fff0a5;
+  box-shadow: 0 0 0 0.16rem #fff, 0 0 0 0.3rem #3d2f86, 0 0.14rem 0 #302761;
+}
+
+.jump-chess-hole--tutorial-source .jump-chess-piece {
+  box-shadow: 0 0 0 0.14rem #fff, 0 0 0 0.34rem #f0a51e, 0 0.12rem 0 rgb(56 35 67 / 45%);
+}
+
+.jump-chess-hole--tutorial-source::after {
+  position: absolute;
+  z-index: 3;
+  inset: 0.05rem;
+  border: 0.16rem dashed #f0a51e;
+  border-radius: 50%;
+  content: '';
+  pointer-events: none;
+}
+
+.jump-chess-piece {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: clamp(1.08rem, 4.8cqw, 2.1rem);
+  height: clamp(1.08rem, 4.8cqw, 2.1rem);
+  place-items: center;
+  border: 0.12rem solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  background: #f68b65;
+  box-shadow: 0 0.1rem 0 rgb(56 35 67 / 45%);
+  font-size: clamp(0.72rem, 1.8vw, 1.1rem);
+  font-weight: 950;
+  line-height: 1;
+}
+
+.jump-chess-piece--player-one {
+  background: #e45a35;
+}
+
+.jump-chess-piece--player-two {
+  border-radius: 0.35rem;
+  color: #fff;
+  background: #1d6fc1;
+  transform: rotate(45deg);
+}
+
+.jump-chess-piece--player-two .jump-chess-piece__glyph {
+  transform: rotate(-45deg);
+}
+
+.jump-chess-piece__glyph {
+  /* 以純色棋子與外型辨識雙方，避免小尺寸被中央白色符號覆蓋。 */
+  display: none;
+}
+
+.jump-chess-hole__target-mark {
+  position: absolute;
+  z-index: 2;
+  color: #9a641b;
+  font-size: 0.86rem;
+  font-weight: 950;
+  pointer-events: none;
+}
+
+.jump-chess-board-panel__hint {
+  width: min(100%, 44rem);
+  padding: 0.3rem 0.65rem;
+  border: 0.16rem dashed #6e6094;
+  border-radius: 0.9rem;
+  color: #4d417d;
+  background: rgb(255 255 255 / 72%);
+  font-size: clamp(0.78rem, 1.5vw, 1rem);
+  font-weight: 800;
+  text-align: center;
+}
+
+.jump-chess-controls {
+  display: grid;
+  align-content: center;
+  gap: 0.75rem;
+  padding: clamp(0.75rem, 1.7vw, 1.2rem);
+  overflow-x: hidden;
+  border: 0.28rem solid #a7612d;
+  border-radius: 1.35rem;
+  background: rgb(255 249 231 / 94%);
+  box-shadow: inset 0 0 0 0.14rem #f3d28c, 0 0.5rem 0 #75431f, 0 1rem 2rem rgb(50 47 82 / 18%);
+}
+
+@media (min-width: 761px) {
+  .jump-chess-game__layout,
+  .jump-chess-board-panel {
+    height: 100%;
+  }
+
+  .jump-chess-board {
+    width: min(100%, 60vh, 56rem);
+    height: auto;
+  }
+
+  .jump-chess-controls {
+    align-self: center;
+    max-height: 100%;
+    overflow: auto;
+  }
+}
+
+.jump-chess-player-legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.jump-chess-player {
+  display: flex;
+  min-width: 0;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.35rem 0.18rem;
+  border: 0.18rem solid #b4a9cc;
+  border-radius: 0.9rem;
+  color: #625878;
+  background: #f5f0ff;
+  font-weight: 900;
+  text-align: center;
+}
+
+.jump-chess-player .bopomofo-text,
+.jump-chess-controls__card,
+.jump-chess-controls__card > .bopomofo-text,
+.jump-chess-controls__hint,
+.jump-chess-tools .child-tool,
+.jump-chess-tools .child-control__label {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.jump-chess-player--one .jump-chess-player__mark {
+  color: #e45a35;
+}
+
+.jump-chess-player--two .jump-chess-player__mark {
+  color: #1d6fc1;
+}
+
+.jump-chess-player.is-active {
+  border-color: #4b3a92;
+  color: #302761;
+  background: #fff0ad;
+  box-shadow: 0 0 0 0.18rem #fff, 0 0 0 0.34rem #4b3a92;
+}
+
+.jump-chess-controls .difficulty-selector {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.28rem;
+}
+
+.jump-chess-controls .difficulty-option {
+  min-height: 3rem;
+  flex-direction: row;
+  gap: 0.12rem;
+  padding: 0.2rem;
+  font-size: clamp(0.72rem, 1.5vw, 0.9rem);
+}
+
+.jump-chess-controls .difficulty-option__icon { display: none; }
+.jump-chess-controls .difficulty-status { min-height: 1.5rem; margin-top: -0.25rem; font-size: 0.72rem; }
+
+.jump-chess-tutorial-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.28rem 0.4rem;
+  min-width: 0;
+  padding: 0.45rem 0.55rem;
+  border: 0.16rem solid #9e83c5;
+  border-radius: 0.9rem;
+  color: #4d417d;
+  background: #f5efff;
+  font-size: clamp(0.74rem, 1.55vw, 0.9rem);
+  font-weight: 850;
+}
+
+.jump-chess-tutorial-card__progress,
+.jump-chess-tutorial-card__goal {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.28rem;
+}
+
+.jump-chess-tutorial-card__title {
+  grid-column: 1 / -1;
+  color: #302761;
+  font-size: clamp(0.88rem, 1.7vw, 1rem);
+  font-weight: 950;
+}
+
+.jump-chess-tutorial-card__goal { justify-content: flex-end; white-space: nowrap; }
+.jump-chess-tutorial-card__guide { grid-column: 1 / -1; color: #4c397d; }
+
+.jump-chess-controls__card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem 0.8rem;
+  border: 0.18rem solid #dbbf76;
+  border-radius: 0.9rem;
+  color: #4d417d;
+  background: #fff7d9;
+  font-weight: 900;
+}
+
+.jump-chess-controls__card > .bopomofo-text {
+  justify-content: flex-start;
+  color: #7d5422;
+  font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+}
+
+.jump-chess-controls__hint {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  font-size: clamp(1rem, 2vw, 1.12rem);
+  font-weight: 750;
+}
+
+.jump-chess-player .bopomofo-text {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  font-size: 1rem;
+}
+
+.jump-chess-actions,
+.jump-chess-tools {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.jump-chess-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.jump-chess-actions:has(:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.jump-chess-actions .child-action,
+.jump-chess-tools .child-tool {
+  min-width: 0;
+  min-height: 3.2rem;
+  padding: 0.3rem 0.35rem;
+}
+
+.jump-chess-actions .child-action {
+  font-size: clamp(1.08rem, 2.2vw, 1.28rem);
+}
+
+.jump-chess-tools .child-tool {
+  font-size: clamp(1rem, 2vw, 1.14rem);
+}
+
+.jump-chess-tools {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* r09：按製作人要求，跳棋工具列回到前幾版已核准的共用契約。 */
+.jump-chess-tools .child-tool {
+  color: var(--ink);
+  background: #fff;
+  border-color: #6a6192;
+  box-shadow: 0 0.31rem 0 #6a6192;
+}
+
+.jump-chess-tools .child-tool .bopomofo-pair__annotation {
+  color: var(--ink);
+}
+
+.jump-chess-tools .child-tool.is-active {
+  color: var(--ink);
+  background: #fff;
+}
+
+/* 前版四尺寸契約：390px 窄版為 2+1；其餘三個目標尺寸三鍵同列。 */
+@media (min-width: 560px) {
+  .jump-chess-tools {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .jump-chess-tools .child-tool:last-child {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .jump-chess-game__frame {
+    min-height: auto;
+  }
+
+  .jump-chess-game__header {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .jump-chess-game__heading {
+    padding-inline: 0.55rem;
+  }
+
+  .jump-chess-game__turn-count {
+    gap: 0.22rem;
+    padding-inline: 0.38rem;
+  }
+
+  .jump-chess-game__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jump-chess-controls {
+    align-content: start;
+  }
+
+  .jump-chess-hole__well {
+    width: clamp(0.5rem, 1.8cqw, 0.82rem);
+    border-width: 0.09rem;
+  }
+
+  .jump-chess-piece {
+    width: clamp(0.58rem, 2.3cqw, 0.92rem);
+    height: clamp(0.58rem, 2.3cqw, 0.92rem);
+    border-width: 0.09rem;
+  }
+}
+
+@media (orientation: portrait) {
+  .jump-chess-game__frame {
+    min-height: auto;
+  }
+
+  .jump-chess-game__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jump-chess-board-panel {
+    height: auto;
+  }
+
+  .jump-chess-board-shell {
+    width: min(100%, 24rem, 36vh);
+    height: auto;
+    overflow: visible;
+  }
+
+  .jump-chess-board {
+    width: 100%;
+    height: auto;
+    max-height: none;
+  }
+
+  .jump-chess-controls {
+    align-self: auto;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 480px) {
+  .jump-chess-game {
+    padding-inline: 0.45rem;
+    /* 窄版直向在 844px 高度以 0.6rem 底部安全距離收斂小數誤差，避免多出 2px 捲動範圍。 */
+    padding-bottom: max(0.6rem, env(safe-area-inset-bottom));
+  }
+
+  .jump-chess-game__header {
+    gap: 0.35rem;
+  }
+
+  .jump-chess-game__title {
+    font-size: 1.25rem;
+  }
+
+  .jump-chess-game__turn-count .bopomofo-text {
+    font-size: 0.92rem;
+  }
+
+  .jump-chess-board {
+    width: 100%;
+    border-radius: 0.85rem;
+  }
+
+  .jump-chess-board-shell {
+    width: min(100%, 20rem, 30vh);
+  }
+
+  .jump-chess-hole {
+    width: 3rem;
+    border-width: 0.14rem;
+  }
+
+  .jump-chess-hole--selected {
+    box-shadow: none;
+  }
+
+  .jump-chess-hole__well {
+    border-width: 0.1rem;
+  }
+
+  .jump-chess-controls {
+    gap: 0.45rem;
+    padding: 0.45rem;
+  }
+
+  .jump-chess-player {
+    min-height: 2.8rem;
+    min-width: 0;
+    gap: 0.18rem;
+    padding-inline: 0.16rem;
+    font-size: 1rem;
+  }
+
+  .jump-chess-actions .child-action,
+  .jump-chess-tools .child-tool {
+    min-height: 3rem;
+    font-size: 1rem;
+  }
+
+  .jump-chess-tools .child-tool {
+    gap: 0.2rem;
+    padding-inline: 0.2rem;
+  }
+}
+
+@media (min-width: 761px) and (max-height: 700px) {
+  .jump-chess-game__frame {
+    gap: 0.4rem;
+  }
+
+  .jump-chess-board-panel__status .feedback-card {
+    min-height: 2.7rem;
+    padding-block: 0.22rem;
+    font-size: 0.9rem;
+  }
+
+  .jump-chess-board {
+    width: min(100%, 48vh, 56rem);
+  }
+
+  .jump-chess-hole__well {
+    width: clamp(0.5rem, 1.8cqw, 0.82rem);
+    border-width: 0.1rem;
+  }
+
+  .jump-chess-piece {
+    width: clamp(0.58rem, 2.3cqw, 0.92rem);
+    height: clamp(0.58rem, 2.3cqw, 0.92rem);
+    border-width: 0.1rem;
+  }
+
+  .jump-chess-board-panel__hint {
+    padding-block: 0.04rem;
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
+  .jump-chess-controls {
+    gap: 0.35rem;
+    padding: 0.45rem;
+  }
+
+  .jump-chess-player {
+    min-height: 2.6rem;
+  }
+
+  .jump-chess-controls__card {
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.4rem;
+    padding-block: 0.35rem;
+  }
+
+  .jump-chess-controls__card > .bopomofo-text,
+  .jump-chess-controls__hint {
+    font-size: 0.92rem;
+  }
+
+  .jump-chess-controls__hint {
+    width: auto;
+  }
+
+  .jump-chess-actions,
+  .jump-chess-tools {
+    gap: 0.35rem;
+  }
+
+  .jump-chess-actions .child-action,
+  .jump-chess-tools .child-tool {
+    min-height: 3rem;
+    font-size: 0.96rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jump-chess-hole {
+    transition: none;
+  }
+}
+
+/* 1024×768 的右側控制區寬度較窄，維持三鍵同列但讓完整注音配對留在按鍵內。 */
+@media (orientation: landscape) and (min-width: 900px) and (min-height: 501px) and (max-height: 800px) {
+  .jump-chess-player {
+    gap: 0.08rem;
+    padding-inline: 0.08rem;
+  }
+
+  .jump-chess-player .bopomofo-text {
+    column-gap: 0.04em;
+  }
+
+  .jump-chess-player .bopomofo-pair {
+    column-gap: 0.08em;
+  }
+
+  .jump-chess-tools .child-tool {
+    gap: 0.2rem;
+    padding-inline: 0.2rem;
+    font-size: 0.86rem;
+  }
+}

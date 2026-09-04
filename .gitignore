@@ -1,0 +1,28 @@
+# 相依套件與建置產物
+node_modules/
+dist/
+coverage/
+
+# 測試、快取與暫存
+.vite/
+.vitest/
+test-results/
+playwright-report/
+*.log
+*.tmp
+*.bak
+*.old
+
+# 本機環境與密鑰
+.env
+.env.*
+!.env.example
+
+# 編輯器與作業系統
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# 完整版本由本機封存，不包入原始碼或下一版封包
+releases/

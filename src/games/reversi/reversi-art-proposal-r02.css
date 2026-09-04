@@ -1,0 +1,274 @@
+/* ART-007-r02：此檔由 main.tsx 在共用樣式後載入，確保僅影響黑白棋提案。 */
+body:has(.reversi-art-proposal) {
+  overflow-y: auto;
+}
+
+.reversi-art-proposal__frame {
+  align-items: start;
+  min-height: auto;
+  padding-block: max(0.3rem, env(safe-area-inset-top)) max(0.3rem, env(safe-area-inset-bottom));
+}
+
+.reversi-art-proposal .bopomofo-pair {
+  column-gap: 0.1em;
+}
+
+.reversi-art-proposal .reversi-adventure-level-title {
+  font-size: 1.06rem;
+}
+
+.reversi-art-proposal .reversi-adventure-level .bopomofo-text {
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.reversi-art-proposal .reversi-adventure-level {
+  font-size: 1rem;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .reversi-art-proposal__controls .difficulty-selector {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.16fr) !important;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option {
+    gap: 0.04rem;
+    font-size: 1.06rem;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option .bopomofo-text {
+    column-gap: 0;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option--adult .bopomofo-text {
+    transform: none;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option--adult {
+    gap: 0;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option--adult .difficulty-option__icon {
+    overflow: hidden;
+  }
+
+  .reversi-art-proposal__actions .child-action,
+  .reversi-art-proposal__tools .child-tool {
+    font-size: 1.12rem;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 431px) {
+  .reversi-board {
+    width: min(558px, calc(100vw - 0.375rem));
+  }
+
+  .reversi-art-proposal__controls .difficulty-option {
+    font-size: 1.18rem;
+  }
+
+  .reversi-score__item,
+  .reversi-turn {
+    font-size: 1.18rem;
+  }
+
+  .reversi-art-proposal__actions .child-action,
+  .reversi-art-proposal__tools .child-tool {
+    font-size: 1.24rem;
+  }
+}
+
+/* V070-REVERSI 教學互動：六關按鈕與提示以流式網格排列，保留逐字注音配對。 */
+.reversi-art-proposal--adventure .reversi-art-proposal__controls {
+  align-content: start;
+}
+
+.reversi-adventure-level-title {
+  display: block;
+  min-height: 2.2rem;
+  padding: 0.22rem 0.42rem;
+  border: 0.14rem solid #b78d4c;
+  border-radius: 0.7rem;
+  color: #6d4d20;
+  background: #fff7d0;
+  font-weight: 950;
+  text-align: center;
+}
+
+.reversi-adventure-levels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.reversi-adventure-level {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.22rem;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0.2rem 0.3rem;
+  border: 0.14rem solid #8eacc2;
+  border-radius: 0.65rem;
+  color: #315b78;
+  background: #eef9ff;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.reversi-adventure-level:hover,
+.reversi-adventure-level:focus-visible {
+  outline: 0.18rem solid #fff0a0;
+  outline-offset: 0.06rem;
+}
+
+.reversi-adventure-level--selected {
+  border-color: #c57c2b;
+  color: #6d4218;
+  background: #ffe4a8;
+  box-shadow: 0 0.14rem 0 #9c6128;
+}
+
+.reversi-adventure-level--complete {
+  border-color: #5f9c75;
+  background: #e4f6dc;
+}
+
+.reversi-adventure-level .bopomofo-text {
+  min-width: 0;
+}
+
+/* 三個工具按鈕在兩欄排列時，最後一格的暫停／繼續鍵填滿整列，
+   不留下空白半格，也讓兒童在不同方向都能清楚找到同一個控制。 */
+.reversi-art-proposal__tools .child-tool:last-child {
+  grid-column: 1 / -1;
+}
+
+.reversi-cell--suggested {
+  box-shadow: inset 0 0 0 0.2rem #fff0a0, inset 0 0 0 0.34rem #d48a2d;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .reversi-adventure-levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reversi-adventure-level { min-height: 3rem; padding: 0.14rem 0.24rem; font-size: 0.92rem; }
+  .reversi-adventure-level-title { min-height: 1.95rem; padding: 0.12rem 0.25rem; font-size: 0.98rem; }
+}
+
+@media (orientation: portrait) and (max-width: 430px) {
+  .reversi-adventure-levels { grid-template-columns: 1fr; gap: 0.3rem; }
+  .reversi-adventure-level { min-height: 3.1rem; padding: 0.16rem 0.28rem; font-size: 0.98rem; }
+  .reversi-adventure-level-title { min-height: 2.15rem; padding: 0.14rem 0.25rem; font-size: 1rem; }
+}
+
+@media (orientation: landscape) and (min-width: 900px) and (min-height: 501px) {
+  .reversi-score__item,
+  .reversi-turn {
+    font-size: 1.18rem;
+  }
+
+  .reversi-score .bopomofo-pair__annotation,
+  .reversi-turn .bopomofo-pair__annotation {
+    font-size: 0.47em;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option .bopomofo-text {
+    transform: translateX(0.33em);
+  }
+}
+
+@media (orientation: portrait) and (max-width: 430px) {
+  .reversi-cell__spark {
+    font-size: 0.6rem;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option[aria-pressed="true"]::before {
+    top: -0.35rem;
+    right: -0.15rem;
+    width: 0.95rem;
+    height: 0.95rem;
+    border-width: 0.1rem;
+    font-size: 0.52rem;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option {
+    gap: 0.04rem;
+    font-size: 0.98rem;
+  }
+
+  .reversi-art-proposal__controls .difficulty-selector {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.16fr) !important;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option .bopomofo-text {
+    column-gap: 0;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option--adult .bopomofo-text {
+    transform: none;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option--adult {
+    gap: 0;
+  }
+
+  .reversi-art-proposal__controls .difficulty-option--adult .difficulty-option__icon {
+    overflow: hidden;
+  }
+
+  .reversi-art-proposal__actions .child-action,
+  .reversi-art-proposal__tools .child-tool {
+    font-size: 1.08rem;
+  }
+
+}
+
+/* 目前回合焦點：輪到的一方放大，另一方縮小並降低視覺權重。
+   兩張卡片固定共用同一個版面高度，放大／縮小只用視覺效果，避免回合切換
+   重新計算控制區高度，連帶讓棋盤與下方按鈕跳動。 */
+.reversi-score {
+  --reversi-score-height: 3.2rem;
+  min-height: var(--reversi-score-height);
+}
+
+.reversi-score__item {
+  position: relative;
+  height: var(--reversi-score-height);
+  min-height: var(--reversi-score-height);
+  transform-origin: center;
+  transition: transform 160ms ease, font-size 160ms ease, opacity 160ms ease, box-shadow 160ms ease, border-width 160ms ease;
+}
+
+.reversi-score__item--active {
+  z-index: 1;
+  border-width: 0.22rem;
+  box-shadow: 0 0 0 0.16rem #ffd84d, 0 0.16rem 0 #6b4325;
+  font-size: 1.12em;
+  transform: scale(1.03);
+}
+
+.reversi-score__item--inactive {
+  opacity: 0.62;
+  filter: saturate(0.72);
+  font-size: 0.84em;
+  transform: scale(0.96);
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .reversi-score { --reversi-score-height: 2.55rem; }
+}
+
+@media (orientation: portrait) and (max-width: 430px) {
+  .reversi-score { --reversi-score-height: 2.55rem; }
+}
+
+@media (orientation: portrait) and (min-width: 431px) {
+  .reversi-score { --reversi-score-height: 2.9rem; }
+}

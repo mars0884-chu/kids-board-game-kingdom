@@ -1,0 +1,350 @@
+/* 五子棋棋子位於十五乘十五條線的交點；每個按鈕代表一個交點，不是方格。 */
+.gomoku-board {
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0.55rem;
+  background:
+    linear-gradient(90deg, rgb(255 226 159 / 18%) 0 1px, transparent 1px 100%),
+    linear-gradient(#e9ac5b, #d88d37);
+  box-shadow: inset 0 0 0 0.08rem rgb(100 57 28 / 72%);
+}
+
+.gomoku-cell {
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.gomoku-cell::before,
+.gomoku-cell::after {
+  position: absolute;
+  z-index: 0;
+  display: block;
+  background: rgb(96 57 29 / 72%);
+  content: '';
+}
+
+.gomoku-cell::before {
+  top: calc(50% - 0.06rem);
+  left: 0;
+  width: 100%;
+  height: 0.12rem;
+}
+
+.gomoku-cell::after {
+  top: 0;
+  left: calc(50% - 0.06rem);
+  width: 0.12rem;
+  height: 100%;
+}
+
+/* 格線只能在十五乘十五交點的外圈結束，四個角必須直接閉合。 */
+.gomoku-cell:nth-child(15n + 1)::before {
+  left: 50%;
+  width: 50%;
+}
+
+.gomoku-cell:nth-child(15n)::before {
+  width: 50%;
+}
+
+.gomoku-cell:nth-child(-n + 15)::after {
+  top: 50%;
+  height: 50%;
+}
+
+.gomoku-cell:nth-child(n + 211)::after {
+  height: 50%;
+}
+
+.gomoku-cell:not(:disabled):hover,
+.gomoku-cell--suggested {
+  background: rgb(255 240 177 / 45%);
+  outline: 0;
+  box-shadow: inset 0 0 0 0.14rem var(--blue-dark);
+}
+
+.gomoku-cell--winning {
+  outline: 0;
+  box-shadow:
+    inset 0 0 0 0.14rem #fff,
+    inset 0 0 0 0.36rem #f6bd35;
+}
+
+.gomoku-stone {
+  position: relative;
+  z-index: 1;
+  width: 76%;
+  height: 76%;
+}
+
+.game-picker-content {
+  align-content: center;
+}
+
+.game-picker-panel {
+  display: grid;
+  width: min(100%, 50rem);
+  gap: 1.15rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 0.25rem solid var(--blue-dark);
+  border-radius: 1.4rem;
+  background: rgb(255 255 255 / 82%);
+  box-shadow: var(--shadow);
+}
+
+.game-picker-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem 1rem;
+  min-height: 3rem;
+  padding: 0.55rem 0.8rem;
+  border: 0.16rem solid #d7b66d;
+  border-radius: 1rem;
+  color: #4b3c78;
+  background: #fff8df;
+  font-size: clamp(1.1rem, 3.1vw, 1.38rem);
+  font-weight: 900;
+  text-align: center;
+}
+
+.game-picker-context > .bopomofo-text + .bopomofo-text {
+  color: #175f5b;
+}
+
+.game-picker-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.game-picker-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  justify-self: center;
+  min-width: 11rem;
+  min-height: 4rem;
+  padding: 0.5rem 1rem;
+  border: 0.2rem solid var(--ink);
+  border-radius: 1rem;
+  color: var(--ink);
+  background: #fff5c9;
+  box-shadow: 0 0.25rem 0 var(--ink);
+  cursor: pointer;
+  font-size: clamp(1.35rem, 4vw, 1.7rem);
+  font-weight: 950;
+  line-height: 1;
+}
+
+.game-picker-back > .bopomofo-text {
+  flex: 0 0 auto;
+  column-gap: 0.18em;
+  white-space: nowrap;
+}
+
+.game-picker-back:hover {
+  filter: brightness(1.04);
+  transform: translateY(-0.1rem);
+}
+
+.game-picker-back:active {
+  transform: translateY(0.15rem);
+}
+
+.gomoku-board__frame {
+  position: relative;
+  width: min(100%, 44rem);
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: clamp(0.48rem, 1.1vw, 0.82rem);
+  overflow: hidden;
+  border: 0.18rem solid #875021;
+  border-radius: 0.92rem;
+  background: linear-gradient(145deg, #f5c36c, #b96a29 58%, #7f421d);
+  box-shadow:
+    inset 0 0.16rem 0 rgb(255 239 177 / 72%),
+    inset 0 -0.18rem 0 rgb(84 44 24 / 34%);
+}
+
+.gomoku-board__frame::before {
+  position: absolute;
+  z-index: 2;
+  inset: 0.24rem;
+  border: 0.1rem solid rgb(255 230 157 / 82%);
+  border-radius: 0.55rem;
+  pointer-events: none;
+  content: '';
+}
+
+.gomoku-board__frame > .gomoku-board {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+@media (max-width: 580px) {
+  .game-picker-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .game-picker-context {
+    gap: 0.35rem 0.7rem;
+  }
+}
+
+@media (orientation: landscape) and (min-width: 700px) {
+  .gomoku-board__frame {
+    width: min(100%, 60vh, 44rem);
+  }
+}
+
+@media (orientation: portrait) and (min-width: 431px) {
+  .gomoku-board__frame {
+    width: min(100%, 39vh);
+  }
+}
+
+@media (max-width: 430px) {
+  .gomoku-board__frame {
+    width: min(100%, 34vh);
+  }
+
+  .game-picker-back {
+    min-width: 10rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .gomoku-board__frame {
+    width: min(100%, 58vh);
+  }
+}
+
+.gomoku-cell--forbidden {
+  background:
+    linear-gradient(45deg, transparent 44%, rgb(177 55 76 / 86%) 45% 55%, transparent 56%),
+    linear-gradient(-45deg, transparent 44%, rgb(177 55 76 / 86%) 45% 55%, transparent 56%),
+    #f9d9c7;
+}
+
+.gomoku-forbidden-marker {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  inset: 0.14rem;
+  box-sizing: border-box;
+  place-items: center;
+  border: 0.1rem dashed #96314a;
+  border-radius: 50%;
+  color: #74263d;
+  font-size: clamp(0.55rem, 1.8vw, 1.1rem);
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.gomoku-adventure-levels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.45rem;
+}
+
+.gomoku-adventure-level {
+  display: flex;
+  min-width: 0;
+  min-height: 3.95rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.34rem;
+  padding: 0.36rem 0.42rem;
+  border: 0.22rem solid #7164a8;
+  border-radius: 0.84rem;
+  color: #302775;
+  background: #fff3c9;
+  box-shadow: 0 0.17rem 0 #7164a8;
+  font: inherit;
+  font-size: clamp(0.88rem, 2vw, 1.14rem);
+  font-weight: 900;
+  line-height: 1.08;
+  cursor: pointer;
+}
+
+.gomoku-adventure-level > span:first-child {
+  flex: 0 0 auto;
+  color: #aa7230;
+  font-size: 1.15em;
+}
+
+.gomoku-adventure-level--selected {
+  border-color: #2d2a76;
+  background: #e3dcff;
+  box-shadow: 0 0 0 0.16rem #ffd94d, 0 0.17rem 0 #2d2a76;
+}
+
+.gomoku-adventure-level--complete {
+  background: #e0f6eb;
+}
+
+.gomoku-adventure-level:focus-visible {
+  outline: 0.18rem solid #196dc2;
+  outline-offset: 0.12rem;
+}
+
+@media (max-width: 430px) {
+  .gomoku-adventure-levels {
+    gap: 0.3rem;
+  }
+
+  .gomoku-adventure-level {
+    min-height: 3.25rem;
+    padding: 0.24rem;
+    border-width: 0.18rem;
+    font-size: 0.86rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .gomoku-adventure-levels {
+    gap: 0.24rem;
+  }
+
+  .gomoku-adventure-level {
+    min-height: 2.72rem;
+    padding: 0.16rem;
+    border-width: 0.16rem;
+    font-size: 0.73rem;
+  }
+}
+
+@media (orientation: portrait) and (min-width: 431px) {
+  .gomoku-proposal--adventure .gomoku-board__frame {
+    width: min(100%, 34vh);
+  }
+
+  .gomoku-proposal--adventure .gomoku-proposal__layout,
+  .gomoku-proposal--adventure .gomoku-controls {
+    gap: 0.38rem;
+  }
+
+  .gomoku-proposal--adventure .gomoku-controls .feedback-card {
+    min-height: 4rem;
+    padding: 0.42rem;
+    font-size: 1.05rem;
+  }
+}
