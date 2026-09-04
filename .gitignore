@@ -26,3 +26,20 @@ Thumbs.db
 
 # 完整版本由本機封存，不包入原始碼或下一版封包
 releases/
+
+# 公開 GitHub 儲存庫不包含內部治理、進度與製作紀錄
+/AGENTS.md
+/ART_APPROVALS.md
+/PROJECT_STATUS.md
+/HANDOFF.md
+/RELEASE_STANDARD.md
+/CONTINUATION_MARK_v0.4.23.md
+/RELEASE_NOTES.md
+
+# 公開 GitHub 儲存庫不包含內部預覽與美術提案
+art/previews/
+art/proposals/
+/docs/VOICE_RECORDING_GUIDE.md
+/docs/games/ART-007-r01-CAPTURE-BLOCKER.md
+/scripts/capture-*-art-proposal*.mjs
+/src/assets/*-candidate.*
