@@ -9,6 +9,8 @@ describe('BopomofoText', () => {
     const pairs = container.querySelectorAll('[data-bopomofo-pair]')
 
     expect(pairs).toHaveLength(4)
+    expect(pairs[0]?.tagName).toBe('SPAN')
+    expect(pairs[0]?.querySelector('.bopomofo-pair__annotation')?.tagName).toBe('SPAN')
     expect(pairs[0].querySelector('.bopomofo-pair__hanzi')).toHaveTextContent('開')
     expect(pairs[0].querySelector('.bopomofo-pair__annotation')).toHaveTextContent('ㄎㄞ')
     expect(pairs[1].querySelector('.bopomofo-pair__hanzi')).toHaveTextContent('始')

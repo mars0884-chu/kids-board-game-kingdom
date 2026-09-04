@@ -1,13 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
-  <metadata>approval-status: technical-placeholder; approval-id: ART-000</metadata>
   <title id="title">棋藝大冒險圖示</title>
-  <desc id="description">紫色圓角底板上有一隻戴皇冠的白色棋棋貓</desc>
-  <rect width="512" height="512" rx="112" fill="#5b4bdb"/>
-  <circle cx="256" cy="278" r="152" fill="#fff8e8"/>
-  <path d="M151 212 128 96l103 74h50l103-74-23 116" fill="#fff8e8" stroke="#352d79" stroke-width="18" stroke-linejoin="round"/>
-  <path d="m188 132 68-74 68 74" fill="#ffd75e" stroke="#8e5b00" stroke-width="16" stroke-linejoin="round"/>
-  <circle cx="208" cy="270" r="17" fill="#352d79"/>
-  <circle cx="304" cy="270" r="17" fill="#352d79"/>
-  <path d="m239 309 17 13 17-13M256 322v24m0 0c-18 0-29-8-35-19m35 19c18 0 29-8 35-19" fill="none" stroke="#352d79" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M169 317h-67m72 27-62 19m231-46h67m-72 27 62 19" fill="none" stroke="#8e769e" stroke-width="9" stroke-linecap="round"/>
+  <desc id="description">藍紫色六角星棋盤背景與戴皇冠的棋棋貓</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7667e8"/>
+      <stop offset="1" stop-color="#3d2d91"/>
+    </linearGradient>
+    <linearGradient id="badge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffdf1"/>
+      <stop offset="1" stop-color="#ffe7ae"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <path d="m256 40 58 100h116l-58 116 58 116H314l-58 100-58-100H82l58-116-58-116h116z" fill="#4f95dd" opacity=".78" stroke="#a9eff1" stroke-width="12" stroke-linejoin="round"/>
+  <circle cx="256" cy="275" r="146" fill="url(#badge)" stroke="#352d79" stroke-width="18"/>
+  <path d="M157 222 148 123l80 56q28-13 56 0l80-56-9 99q22 33 15 79-12 72-114 84-102-12-114-84-7-46 15-79Z" fill="#fff8e8" stroke="#352d79" stroke-width="15" stroke-linejoin="round"/>
+  <path d="m184 169 20-75 52 48 52-48 20 75" fill="#ffd75e" stroke="#8e5b00" stroke-width="14" stroke-linejoin="round"/>
+  <circle cx="207" cy="270" r="17" fill="#352d79"/>
+  <circle cx="305" cy="270" r="17" fill="#352d79"/>
+  <path d="m239 310 17 13 17-13M256 323v22m0 0c-18 0-29-8-35-19m35 19c18 0 29-8 35-19" fill="none" stroke="#352d79" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="133" cy="391" r="25" fill="#e45a35" stroke="#fff8e8" stroke-width="9"/>
+  <rect x="354" y="366" width="50" height="50" rx="8" fill="#1d6fc1" stroke="#fff8e8" stroke-width="9" transform="rotate(45 379 391)"/>
 </svg>

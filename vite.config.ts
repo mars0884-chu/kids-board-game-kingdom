@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => {
         filename: 'sw.ts',
         registerType: 'prompt',
         injectRegister: null,
-        includeAssets: ['icons/app-icon.svg'],
+        includeAssets: ['icons/app-icon.svg', 'icons/app-icon-180.png', 'icons/app-icon-512.png'],
         manifest: {
           id: base,
           name: '綜合兒童棋藝大冒險',
@@ -45,10 +45,22 @@ export default defineConfig(({ mode }) => {
           categories: ['education', 'games', 'kids'],
           icons: [
             {
+              src: 'icons/app-icon-180.png',
+              sizes: '180x180',
+              type: 'image/png',
+              purpose: 'any',
+            },
+            {
+              src: 'icons/app-icon-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable',
+            },
+            {
               src: 'icons/app-icon.svg',
               sizes: 'any',
               type: 'image/svg+xml',
-              purpose: 'any maskable',
+              purpose: 'any',
             },
           ],
         },

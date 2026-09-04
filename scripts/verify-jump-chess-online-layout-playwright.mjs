@@ -11,6 +11,8 @@ const viewports = [
   { name: '844x390', width: 844, height: 390 },
   { name: '768x1024', width: 768, height: 1024 },
   { name: '1024x768', width: 1024, height: 768 },
+  { name: '430x932', width: 430, height: 932 },
+  { name: '932x430', width: 932, height: 430 },
 ]
 
 function assert(condition, message) {

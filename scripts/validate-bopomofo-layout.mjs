@@ -10,7 +10,7 @@ const [component, styles] = await Promise.all([
 const errors = []
 const requiredComponentPatterns = [
   ['逐字 segments 必須逐項渲染', /entry\.segments\.map\(/u],
-  ['每個中文字與注音必須共用同一個 ruby 配對', /<ruby[^>]+className="bopomofo-pair"/u],
+  ['每個中文字與注音必須共用同一個逐字配對容器', /<(?:ruby|span)[^>]+className="bopomofo-pair"/u],
   ['逐字配對必須保留自動測試識別', /data-bopomofo-pair/u],
   ['輕聲符號必須具有獨立定位類別', /bopomofo-pair__tone--neutral/u],
 ]

@@ -52,6 +52,13 @@ body:has(.reversi-art-proposal) {
   overflow: auto;
 }
 
+/* 跳棋與雙裝置連線頁在窄直向可能超過首屏；交由文件捲動，避免 iOS Safari 被 body 的全域 hidden 鎖住。 */
+body:has(.jump-chess-game),
+body:has(.webrtc-pairing) {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 button {
   font: inherit;
 }
@@ -179,11 +186,6 @@ button:focus-visible {
   align-items: center;
   white-space: nowrap;
   line-height: 1;
-  ruby-position: inter-character;
-}
-
-.bopomofo-pair rp {
-  display: none;
 }
 
 .bopomofo-pair__hanzi {

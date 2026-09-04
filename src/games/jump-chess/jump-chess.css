@@ -1,5 +1,4 @@
 body:has(.jump-chess-game) {
-  overflow: hidden;
   background: #8fd8ee;
 }
 
@@ -7,7 +6,7 @@ body:has(.jump-chess-game) {
   min-width: 320px;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow: auto;
+  overflow: visible;
   padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
   color: #302761;
   background:

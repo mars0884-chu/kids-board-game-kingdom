@@ -48,10 +48,14 @@ function BopomofoPair({ segment }: { segment: ChildTextSegment }) {
       : ''
 
   return (
-    <ruby className="bopomofo-pair" aria-hidden="true" data-bopomofo-pair>
+    <span
+      className="bopomofo-pair"
+      aria-hidden="true"
+      data-bopomofo-pair
+      data-bopomofo-layout="hanzi-right-vertical"
+    >
       <span className="bopomofo-pair__hanzi">{segment.text}</span>
-      <rp>（</rp>
-      <rt className={`bopomofo-pair__annotation ${annotationClass} ${symbolCountClass}`.trim()}>
+      <span className={`bopomofo-pair__annotation ${annotationClass} ${symbolCountClass}`.trim()}>
         <span
           className={`bopomofo-pair__symbols ${tone === '˙' ? 'bopomofo-pair__symbols--neutral' : ''} ${symbolCountClass.replace('__annotation', '__symbols')}`.trim()}
         >
@@ -60,9 +64,8 @@ function BopomofoPair({ segment }: { segment: ChildTextSegment }) {
         {tone && (
           <span className={`bopomofo-pair__tone ${toneClass} ${toneCountClass}`.trim()}>{tone}</span>
         )}
-      </rt>
-      <rp>）</rp>
-    </ruby>
+      </span>
+    </span>
   )
 }
 

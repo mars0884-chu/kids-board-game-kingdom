@@ -48,7 +48,6 @@ describe('WebRTC 手動連線資料', () => {
   it('瀏覽器不支援直連時顯示清楚的兒童提示', () => {
     render(<WebRtcPairing onBack={vi.fn()} onConnected={vi.fn()} />)
     expect(screen.getByRole('heading', { name: '兩台裝置連線' })).toBeInTheDocument()
-    const statusText = screen.getByRole('status').textContent?.replace(/（[^）]*）/g, '')
-    expect(statusText).toBe('這台裝置不能直連')
+    expect(screen.getByRole('status').querySelector('.bopomofo-text')).toHaveAttribute('aria-label', '這台裝置不能直連')
   })
 })

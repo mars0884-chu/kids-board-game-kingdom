@@ -193,7 +193,14 @@ const results = []
 try {
   results.push(await runLocalDeep(browser))
   results.push(await runNpcDeep(browser))
-  for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 768, height: 1024 }, { width: 1024, height: 768 }]) {
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 844, height: 390 },
+    { width: 768, height: 1024 },
+    { width: 1024, height: 768 },
+    { width: 430, height: 932 },
+    { width: 932, height: 430 },
+  ]) {
     results.push(await runViewportSmoke(browser, viewport))
   }
 } finally {
