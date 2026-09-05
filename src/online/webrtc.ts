@@ -27,6 +27,7 @@ export const WEBRTC_CHANNEL_NAME = 'kids-board-game-webrtc'
 export const WEBRTC_ICE_SERVERS: RTCIceServer[] = [{ urls: 'stun:stun.l.google.com:19302' }]
 export const WEBRTC_ICE_GATHERING_TIMEOUT_MS = 15_000
 export const WEBRTC_CONNECTION_TIMEOUT_MS = 5 * 60 * 1000
+export const WEBRTC_PEER_READY_TIMEOUT_MS = WEBRTC_CONNECTION_TIMEOUT_MS
 const SIGNAL_PREFIX = 'kids-board-game-webrtc-answer:'
 
 function isSignalKind(value: unknown): value is WebRtcSignalKind {
@@ -215,6 +216,73 @@ export function waitForWebRtcChannel(channel: RTCDataChannel, timeoutMs = WEBRTC
     }
     channel.addEventListener('open', handleOpen, { once: true })
     channel.addEventListener('close', handleClose, { once: true })
+  })
+}
+
+interface WebRtcPeerReadyMessage {
+  readonly protocol: 'kids-board-game-webrtc-ready'
+  readonly sessionId: string
+  readonly role: 'host' | 'guest'
+}
+
+export function waitForWebRtcPeerReady(
+  channel: RTCDataChannel,
+  sessionId: string,
+  role: WebRtcPeerSession['role'],
+  timeoutMs = WEBRTC_PEER_READY_TIMEOUT_MS,
+): Promise<void> {
+  const remoteRole = role === 'host' ? 'guest' : 'host'
+  if (channel.readyState === 'closed' || channel.readyState === 'closing') {
+    return Promise.reject(new Error('資料通道已關閉。'))
+  }
+  return new Promise((resolve, reject) => {
+    let settled = false
+    let timeout = 0
+    const cleanup = () => {
+      window.clearTimeout(timeout)
+      channel.removeEventListener('message', handleMessage)
+      channel.removeEventListener('close', handleClose)
+    }
+    const finish = (error?: Error) => {
+      if (settled) return
+      settled = true
+      cleanup()
+      if (error) reject(error)
+      else resolve()
+    }
+    const handleMessage = (event: MessageEvent<unknown>) => {
+      if (typeof event.data !== 'string') return
+      let parsed: unknown
+      try {
+        parsed = JSON.parse(event.data)
+      } catch {
+        return
+      }
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return
+      const message = parsed as Partial<WebRtcPeerReadyMessage>
+      if (
+        message.protocol !== 'kids-board-game-webrtc-ready'
+        || message.sessionId !== sessionId
+        || message.role !== remoteRole
+      ) return
+      finish()
+    }
+    const handleClose = () => finish(new Error('另一台裝置尚未完成連線。'))
+    timeout = window.setTimeout(() => {
+      finish(new Error('等待另一台裝置完成連線逾時。'))
+    }, timeoutMs)
+    channel.addEventListener('message', handleMessage)
+    channel.addEventListener('close', handleClose)
+    const readyMessage: WebRtcPeerReadyMessage = {
+      protocol: 'kids-board-game-webrtc-ready',
+      sessionId,
+      role,
+    }
+    try {
+      channel.send(JSON.stringify(readyMessage))
+    } catch (error) {
+      finish(error instanceof Error ? error : new Error('無法送出連線確認。'))
+    }
   })
 }
 

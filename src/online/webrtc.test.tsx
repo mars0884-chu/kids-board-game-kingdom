@@ -6,11 +6,13 @@ import {
   WEBRTC_ICE_SERVERS,
   WEBRTC_CONNECTION_TIMEOUT_MS,
   WEBRTC_ICE_GATHERING_TIMEOUT_MS,
+  WEBRTC_PEER_READY_TIMEOUT_MS,
   createWebRtcSignalLink,
   decodeWebRtcSignal,
   encodeWebRtcSignal,
   publishWebRtcAnswerToHost,
   readWebRtcSignal,
+  waitForWebRtcPeerReady,
   type WebRtcSignal,
 } from './webrtc'
 
@@ -27,6 +29,15 @@ const answer: WebRtcSignal = {
   ...offer,
   kind: 'answer',
   description: { type: 'answer', sdp: 'v=0\\r\\no=- answer' },
+}
+
+class FakeDataChannel extends EventTarget {
+  readyState: RTCDataChannelState = 'open'
+  readonly messages: string[] = []
+
+  send(data: string): void {
+    this.messages.push(data)
+  }
 }
 
 describe('WebRTC 手動連線資料', () => {
@@ -62,6 +73,43 @@ describe('WebRTC 手動連線資料', () => {
   it('為手動交換預留足夠的連線準備時間', () => {
     expect(WEBRTC_ICE_GATHERING_TIMEOUT_MS).toBe(15_000)
     expect(WEBRTC_CONNECTION_TIMEOUT_MS).toBe(5 * 60 * 1000)
+    expect(WEBRTC_PEER_READY_TIMEOUT_MS).toBe(5 * 60 * 1000)
+  })
+
+  it('雙方都回報同一局的就緒訊息後才完成配對', async () => {
+    const channel = new FakeDataChannel()
+    const ready = waitForWebRtcPeerReady(channel as unknown as RTCDataChannel, offer.sessionId, 'host')
+    expect(channel.messages).toEqual([
+      JSON.stringify({
+        protocol: 'kids-board-game-webrtc-ready',
+        sessionId: offer.sessionId,
+        role: 'host',
+      }),
+    ])
+
+    let completed = false
+    void ready.then(() => {
+      completed = true
+    })
+    channel.dispatchEvent(new MessageEvent('message', {
+      data: JSON.stringify({
+        protocol: 'kids-board-game-webrtc-ready',
+        sessionId: offer.sessionId,
+        role: 'host',
+      }),
+    }))
+    await Promise.resolve()
+    expect(completed).toBe(false)
+
+    channel.dispatchEvent(new MessageEvent('message', {
+      data: JSON.stringify({
+        protocol: 'kids-board-game-webrtc-ready',
+        sessionId: offer.sessionId,
+        role: 'guest',
+      }),
+    }))
+
+    await expect(ready).resolves.toBeUndefined()
   })
 
   it('瀏覽器不支援直連時顯示清楚的兒童提示', () => {

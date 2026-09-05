@@ -14,6 +14,7 @@ import {
   readWebRtcSignal,
   subscribeWebRtcAnswer,
   waitForWebRtcChannel,
+  waitForWebRtcPeerReady,
   type WebRtcPeerSession,
   type WebRtcSignal,
 } from './webrtc'
@@ -31,6 +32,7 @@ type PairingStatus =
   | 'preparing-reply'
   | 'reply-ready'
   | 'reply-sent'
+  | 'waiting-for-peer'
   | 'connected'
   | 'error'
 
@@ -42,6 +44,7 @@ function statusEntry(status: PairingStatus): string {
     case 'preparing-reply': return 'online.preparing_reply'
     case 'reply-ready': return 'online.reply_ready'
     case 'reply-sent': return 'online.reply_sent'
+    case 'waiting-for-peer': return 'online.waiting_for_peer'
     case 'connected': return 'online.connected'
     case 'error': return 'online.error'
   }
@@ -109,6 +112,9 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
           channelRef.current = channel
           await waitForWebRtcChannel(channel)
           if (!active) return
+          setStatus('waiting-for-peer')
+          await waitForWebRtcPeerReady(channel, signal.sessionId, 'guest')
+          if (!active) return
           setStatus('connected')
           handedOffRef.current = true
           onConnected({ sessionId: signal.sessionId, role: 'guest', connection: result.connection, channel })
@@ -135,7 +141,11 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
         setLink(createWebRtcSignalLink(offer))
         setStatus('waiting-for-answer')
       } catch {
-        if (active) setStatus('error')
+        if (active) {
+          channelRef.current?.close()
+          connectionRef.current?.close()
+          setStatus('error')
+        }
       }
     }
 
@@ -153,7 +163,8 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
     if (!canUseWebRtc() || signal !== null || status === 'unsupported') return
     const sessionId = sessionIdRef.current
     if (status !== 'waiting-for-answer') return
-    return subscribeWebRtcAnswer(sessionId, (answer) => {
+    let active = true
+    const unsubscribe = subscribeWebRtcAnswer(sessionId, (answer) => {
       if (answerAppliedRef.current) return
       answerAppliedRef.current = true
       const connection = connectionRef.current
@@ -166,15 +177,26 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
           const channel = channelRef.current
           if (channel === null) throw new Error('找不到甲的資料通道。')
           await waitForWebRtcChannel(channel)
+          if (!active) return
+          setStatus('waiting-for-peer')
+          await waitForWebRtcPeerReady(channel, sessionId, 'host')
+          if (!active) return
           channelRef.current = channel
           setStatus('connected')
           handedOffRef.current = true
           onConnected({ sessionId, role: 'host', connection, channel })
         })
         .catch(() => {
+          if (!active) return
+          channelRef.current?.close()
+          connectionRef.current?.close()
           setStatus('error')
         })
     })
+    return () => {
+      active = false
+      unsubscribe()
+    }
   }, [onConnected, signal, status])
 
   useEffect(() => {

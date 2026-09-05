@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process'
 const scriptDirectory = dirname(fileURLToPath(import.meta.url))
 const workspaceDirectory = resolve(scriptDirectory, '..')
 const releasesDirectory = join(workspaceDirectory, 'releases')
-const supportedVersions = new Set(['v0.3.13', 'v0.3.14', 'v0.3.15', 'v0.3.16', 'v0.3.17', 'v0.3.18', 'v0.3.19', 'v0.3.20', 'v0.3.21', 'v0.3.22', 'v0.3.23', 'v0.3.24', 'v0.3.25', 'v0.3.26', 'v0.3.27', 'v0.3.28', 'v0.3.29', 'v0.4.0', 'v0.4.1', 'v0.4.2', 'v0.4.3', 'v0.4.4', 'v0.4.5', 'v0.4.6', 'v0.4.7', 'v0.4.8', 'v0.4.9', 'v0.4.10', 'v0.4.11', 'v0.4.12', 'v0.4.13', 'v0.4.14', 'v0.4.15', 'v0.4.16', 'v0.4.17', 'v0.4.18', 'v0.4.19', 'v0.4.20', 'v0.4.21', 'v0.4.22', 'v0.4.23', 'v0.5.2', 'v0.5.3', 'v0.5.4', 'v0.5.5', 'v0.6.1', 'v0.6.2', 'v0.6.3', 'v0.6.4', 'v0.6.5', 'v0.6.6', 'v0.6.7', 'v0.7.0', 'v0.7.1', 'v0.7.2', 'v0.7.3', 'v0.9.0', 'v0.9.1', 'v0.9.2', 'v0.9.3', 'v0.9.4', 'v0.9.5'])
+const supportedVersions = new Set(['v0.3.13', 'v0.3.14', 'v0.3.15', 'v0.3.16', 'v0.3.17', 'v0.3.18', 'v0.3.19', 'v0.3.20', 'v0.3.21', 'v0.3.22', 'v0.3.23', 'v0.3.24', 'v0.3.25', 'v0.3.26', 'v0.3.27', 'v0.3.28', 'v0.3.29', 'v0.4.0', 'v0.4.1', 'v0.4.2', 'v0.4.3', 'v0.4.4', 'v0.4.5', 'v0.4.6', 'v0.4.7', 'v0.4.8', 'v0.4.9', 'v0.4.10', 'v0.4.11', 'v0.4.12', 'v0.4.13', 'v0.4.14', 'v0.4.15', 'v0.4.16', 'v0.4.17', 'v0.4.18', 'v0.4.19', 'v0.4.20', 'v0.4.21', 'v0.4.22', 'v0.4.23', 'v0.5.2', 'v0.5.3', 'v0.5.4', 'v0.5.5', 'v0.6.1', 'v0.6.2', 'v0.6.3', 'v0.6.4', 'v0.6.5', 'v0.6.6', 'v0.6.7', 'v0.7.0', 'v0.7.1', 'v0.7.2', 'v0.7.3', 'v0.9.0', 'v0.9.1', 'v0.9.2', 'v0.9.3', 'v0.9.4', 'v0.9.5', 'v0.9.6'])
 let activeNpmCacheDirectory = null
 const configuredNpmCacheDirectory = process.env.ARCHIVE_NPM_CACHE ?? null
 const skipArchiveRebuild = process.env.ARCHIVE_SKIP_REBUILD === '1'
@@ -599,6 +599,34 @@ async function prepareV0313(stageDirectory) {
 }
 
 function releaseNotes(version) {
+  if (version === 'v0.9.6') {
+    return `# v0.9.6 跳棋 WebRTC 雙方就緒確認修訂版（等待製作人實體裝置 Gate）
+
+完整驗證 ZIP：releases/kids-board-game-kingdom-v0.9.6.zip
+SHA-256：以同名 .sha256 檔案為準；封包內 MANIFEST.sha256 記錄內容雜湊。
+
+## 可驗證範圍
+
+- 修正甲端只看到自己的資料通道開啟就先進入棋盤、乙端仍停在連線失敗的非對稱狀態。
+- 兩端資料通道開啟後，以同一 sessionId 互相交換一次就緒確認；只有雙方都收到對方確認，才呼叫跳棋進入流程。
+- 任一端在雙方就緒前失敗、逾時或離開時，另一端維持連線準備畫面，不會先進入棋盤，也不會把未完成配對誤顯示成遊戲中的斷線。
+- 保留甲分享邀請、乙只按一次「一鍵回覆給甲」、甲開啟回覆連結的最少操作；系統分享優先，複製連結備援。
+- 不新增伺服器、TURN、帳號、房間、棋局儲存、QR Code、短網址服務或其他棋類連線；目前仍只有跳棋使用 WebRTC。
+
+## Machine Gate
+
+1. 執行 npm.cmd run check、npm.cmd run build、npm.cmd run verify:jump-chess-webrtc 與 npm.cmd run verify:jump-chess-online-layout。
+2. 自動測試確認只收到單端就緒訊息時不完成配對；Edge 三分頁確認雙方就緒後進入棋盤並同步甲的合法棋步。
+3. 實體測試仍須以 GitHub Pages HTTPS、兩支 iPhone、不同網路確認連線建立時間、落子往返與失敗時兩端畫面狀態。
+
+## 尚待製作人確認的邊界
+
+- Machine Gate 與同源 Edge 三分頁流程通過，仍不能取代兩支 iPhone、不同網路、Safari／PWA 的實測。
+- 公開 STUN 可能看到暫時性公開 IP；本版未使用 TURN，因此不保證所有行動網路／防火牆都能直連。
+- 沒有後端時，遠端交換邀請與回覆資料仍需兩次連結傳遞；單一 QR Code 或短網址不能在沒有中介的情況下自動回傳乙的 answer。
+`
+  }
+
   if (version === 'v0.9.5') {
     return `# v0.9.5 跳棋 WebRTC 手動交換逾時與短暫斷線修訂版（等待製作人實體裝置 Gate）
 

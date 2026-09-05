@@ -3086,6 +3086,14 @@
     "audience": "child"
   },
   {
+    "id": "online.waiting_for_peer",
+    "text_zh_tw": "請等兩台裝置確認連線",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "等", "bopomofo": "ㄉㄥˇ" }, { "text": "兩", "bopomofo": "ㄌㄧㄤˇ" }, { "text": "台", "bopomofo": "ㄊㄞˊ" }, { "text": "裝", "bopomofo": "ㄓㄨㄤ" }, { "text": "置", "bopomofo": "ㄓˋ" }, { "text": "確", "bopomofo": "ㄑㄩㄝˋ" }, { "text": "認", "bopomofo": "ㄖㄣˋ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "線", "bopomofo": "ㄒㄧㄢˋ" }],
+    "speech_zh_tw": "請等兩台裝置確認連線",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
     "id": "online.reply_ready",
     "text_zh_tw": "回覆連結準備好了",
     "segments": [{ "text": "回", "bopomofo": "ㄏㄨㄟˊ" }, { "text": "覆", "bopomofo": "ㄈㄨˋ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "結", "bopomofo": "ㄐㄧㄝˊ" }, { "text": "準", "bopomofo": "ㄓㄨㄣˇ" }, { "text": "備", "bopomofo": "ㄅㄟˋ" }, { "text": "好", "bopomofo": "ㄏㄠˇ" }, { "text": "了", "bopomofo": "ㄌㄜ˙" }],
