@@ -113,7 +113,7 @@ GitHub Pages 部署已完成：`.github/workflows/deploy-pages.yml` 依儲存庫
 - `scripts/verify-jump-chess-webrtc-playwright.mjs`：可重跑的 Edge 三分頁實際流程與落子同步驗證。
 - `scripts/verify-jump-chess-online-layout-playwright.mjs`：Edge DPR 1 六尺寸連線頁 1:1 截圖、頁面／按鍵邊界、注音比例與「暫停語音」不存在檢查。
 
-v0.9.8 Machine Gate 已通過；完整驗證 ZIP 為 `releases/kids-board-game-kingdom-v0.9.8.zip`，封包內 `MANIFEST.sha256` 與外層 SHA-256 將在封存後回填；斷線 UI 回歸測試確認棋局保留與原生棋孔鎖定。v0.9.7／v0.9.6／v0.9.5／v0.9.4／v0.9.3／v0.9.2／v0.9.1／v0.9.0 封存 ZIP／SHA-256 均承接且不修改。連線範圍仍僅為跳棋；其他棋類尚未整合 WebRTC。
+v0.9.8 Machine Gate 已通過：工作區 check（36 個測試檔／190 項測試）、build、斷線 UI 回歸、Edge／公開 Pages 六尺寸版面、公開 Pages WebRTC 三分頁配對／棋步同步與 GitHub Actions build／deploy 均通過；完整驗證 ZIP 為 `releases/kids-board-game-kingdom-v0.9.8.zip`，共 248 個 ZIP 項目、封包內 `MANIFEST.sha256` 246 筆，外層 SHA-256 為 `233CE31843A995B1C461CBC2FD38387AC4935FFA2C29200D816A3D0D7BF4B1F6`，乾淨解壓逐項重算與 `npm ci`、check、build 均通過。v0.9.7／v0.9.6／v0.9.5／v0.9.4／v0.9.3／v0.9.2／v0.9.1／v0.9.0 封存 ZIP／SHA-256 均承接且不修改。連線範圍仍僅為跳棋；其他棋類尚未整合 WebRTC。
 
 必要檢查：
 
