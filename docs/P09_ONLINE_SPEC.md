@@ -88,7 +88,7 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 
 加入 STUN 後，瀏覽器可額外探索部分跨 NAT 的候選，預期比只有主機候選更容易連線；若兩邊受到嚴格 NAT、防火牆、行動網路或瀏覽器政策限制，仍可能無法直連。這是 WebRTC 網路拓撲限制，不是分享連結格式可以完全消除的問題。本版未加入 TURN，因此不保證所有遠端網路都能連線。
 
-P09-ONLINE-r11 已用 Microsoft Edge 同一個瀏覽器的三個分頁完成：甲建立邀請、乙開啟邀請、乙一鍵回覆、甲開啟回覆、雙方就緒確認後自動連線，以及甲落子同步至乙；自動測試另確認只收到單端訊息時不完成配對，且對方監聽器延後建立時會重送就緒訊息。這不是完整對局，也不能替代兩支實體裝置、不同網路與 GitHub Pages HTTPS 的實測。
+P09-ONLINE-r11 已用 Microsoft Edge 同一個瀏覽器的三個分頁完成：甲建立邀請、乙開啟邀請、乙一鍵回覆、甲開啟回覆、雙方就緒確認後自動連線，以及甲落子同步至乙；自動測試另確認只收到單端訊息時不完成配對，且對方監聽器延後建立時會重送就緒訊息。製作人另確認兩支實體 iPhone 使用一般 Safari 完成公開 Pages HTTPS 連線，雙方各試走 5 步且對端均有顯示；這確認一般 Safari 實機的雙方就緒與棋步同步可用，但未延伸宣稱不同網路、主畫面 PWA、斷線後重新配對或所有遠端網路。
 
 ### 7.2 尚未宣稱完成的項目
 
@@ -98,9 +98,9 @@ P09-ONLINE-r11 已用 Microsoft Edge 同一個瀏覽器的三個分頁完成：�
 - 伺服器驗證棋步：本版無伺服器，接收端只做局面格式與既有規則資料驗證，不提供防竄改的權威裁判。
 - 其他棋類連線：尚未整合。
 
-下一個真正的 Producer Gate 是在 GitHub Pages HTTPS 上，以兩支實體裝置、不同網路實測成功率、連線建立時間、落子往返時間與斷線後重新配對流程；未取得該證據前，不把「所有遠端網路都能連線」或「不易斷線」寫成保證。
+下一個真正的 Producer Gate 是補做不同網路、主畫面 PWA 與斷線後重新配對流程；兩支 iPhone 一般 Safari 的公開 Pages HTTPS 連線、雙方各 5 步落子與對端顯示已由製作人確認。仍不把「所有遠端網路都能連線」或「不易斷線」寫成保證。
 
-GitHub Pages 部署已完成：`.github/workflows/deploy-pages.yml` 依儲存庫名稱設定子路徑；`VITE_BASE_PATH=/kids-board-game-kingdom/` 建置的 HTML、Manifest、Service Worker 與資源路徑均通過，GitHub Actions `build`／`deploy` 均成功。公開網址為 `https://mars0884-chu.github.io/kids-board-game-kingdom/`；首頁、`?preview=jump-chess-online`、Manifest 與 Service Worker 均以 HTTP 200 回應。這仍未取代兩支實體裝置、不同網路與斷線後重新配對的 Producer Gate。
+GitHub Pages 部署已完成：`.github/workflows/deploy-pages.yml` 依儲存庫名稱設定子路徑；`VITE_BASE_PATH=/kids-board-game-kingdom/` 建置的 HTML、Manifest、Service Worker 與資源路徑均通過，GitHub Actions `build`／`deploy` 均成功。公開網址為 `https://mars0884-chu.github.io/kids-board-game-kingdom/`；首頁、`?preview=jump-chess-online`、Manifest 與 Service Worker 均以 HTTP 200 回應。製作人已補充確認兩支 iPhone 一般 Safari 的連線與各 5 步棋步同步；不同網路、主畫面 PWA 與斷線後重新配對仍待 Producer Gate。
 
 ## 8. Machine Gate
 
