@@ -1,9 +1,9 @@
 # P09-ONLINE 私人雙裝置直連規格
 
-> 文件編號：`P09-ONLINE-r10`
-> 對應規劃：`v0.9.6`
+> 文件編號：`P09-ONLINE-r11`
+> 對應規劃：`v0.9.7`
 > 目前狀態：`WAITING_FOR_PRODUCER`  
-> 更新日期：2026-09-05
+> 更新日期：2026-09-06
 
 ## 1. 製作人已確認的方向
 
@@ -43,7 +43,7 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 - 回覆頁若由甲原始分頁開啟，會先以同源 `window.opener.postMessage` 傳送 answer；同時保留同來源 `BroadcastChannel`，沒有 `BroadcastChannel` 時再以短期 `localStorage` 事件作瀏覽器分頁備援。這不是雲端儲存，資料只在可互通的瀏覽器分頁之間傳送。
 - URL 連線資料最長接受 15 分鐘；瀏覽器分頁備援資料也會在短期後清理。
 - 乙開啟邀請後，資料通道等待時間延長至 5 分鐘，涵蓋透過 LINE 或其他通訊方式交回覆連結的手動操作時間；這不會延長 URL 的 15 分鐘有效期限。
-- 資料通道開啟不等於雙方連線完成；甲、乙都必須送出並收到同一 `sessionId` 的對方就緒訊息。任何一端尚未完成就緒、逾時或關閉時，兩端都不得進入棋盤；甲端不得因自己的通道先開啟而單方面顯示已連線。
+- 資料通道開啟不等於雙方連線完成；甲、乙都必須送出並收到同一 `sessionId` 的對方就緒訊息。兩端在等待期間每 250 毫秒重送同一個冪等確認，收到對方確認後停止重送；任何一端尚未完成就緒、逾時或關閉時，兩端都不得進入棋盤；甲端不得因自己的通道先開啟而單方面顯示已連線。
 
 ### 3.3 在無後端條件下的最簡化方式
 
@@ -88,7 +88,7 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 
 加入 STUN 後，瀏覽器可額外探索部分跨 NAT 的候選，預期比只有主機候選更容易連線；若兩邊受到嚴格 NAT、防火牆、行動網路或瀏覽器政策限制，仍可能無法直連。這是 WebRTC 網路拓撲限制，不是分享連結格式可以完全消除的問題。本版未加入 TURN，因此不保證所有遠端網路都能連線。
 
-本修訂已用 Microsoft Edge 同一個瀏覽器的三個分頁完成：甲建立邀請、乙開啟邀請、乙一鍵回覆、甲開啟回覆、雙方就緒確認後自動連線，以及甲落子同步至乙；另增加未收到對方就緒訊息時不完成配對的單元測試，並保留 5 分鐘手動交換逾時常數與短暫 `disconnected` 的 5 秒緩衝邏輯測試。製作人另依相同流程實際互相走棋 5 步，確認本機三分頁可用；這不是完整對局，也不能替代兩支實體裝置、不同網路與 GitHub Pages HTTPS 的實測。
+P09-ONLINE-r11 已用 Microsoft Edge 同一個瀏覽器的三個分頁完成：甲建立邀請、乙開啟邀請、乙一鍵回覆、甲開啟回覆、雙方就緒確認後自動連線，以及甲落子同步至乙；自動測試另確認只收到單端訊息時不完成配對，且對方監聽器延後建立時會重送就緒訊息。這不是完整對局，也不能替代兩支實體裝置、不同網路與 GitHub Pages HTTPS 的實測。
 
 ### 7.2 尚未宣稱完成的項目
 
@@ -106,13 +106,13 @@ GitHub Pages 部署已完成：`.github/workflows/deploy-pages.yml` 依儲存庫
 
 目前已加入：
 
-- `src/online/webrtc.ts`：訊號編碼、有效期限、offer／answer、分頁回傳、通道管理與雙方就緒握手。
+- `src/online/webrtc.ts`：訊號編碼、有效期限、offer／answer、分頁回傳、通道管理與可重送的雙方就緒握手。
 - `src/online/WebRtcPairing.tsx`：分享邀請、乙一鍵回覆、甲開啟回覆後等待雙方就緒再完成配對。
 - `src/games/jump-chess/JumpChessGame.tsx`：跳棋雙裝置角色、局面同步、回合鎖定與斷線提示。
 - `scripts/verify-jump-chess-webrtc-playwright.mjs`：可重跑的 Edge 三分頁實際流程與落子同步驗證。
 - `scripts/verify-jump-chess-online-layout-playwright.mjs`：Edge DPR 1 六尺寸連線頁 1:1 截圖、頁面／按鍵邊界、注音比例與「暫停語音」不存在檢查。
 
-v0.9.6 Machine Gate 已通過；完整驗證 ZIP 為 `releases/kids-board-game-kingdom-v0.9.6.zip`，共 247 個 ZIP 項目，封包內 `MANIFEST.sha256` 245 筆，外層 SHA-256 為 `C764DD56A61FFBA13B019A776F11F201E1BF070A65836CDC511DD57AE941A3A3`；乾淨解壓後逐項重算 245 筆內容雜湊，0 筆缺檔或不符，封包內版本為 0.9.6。v0.9.5／v0.9.4／v0.9.3／v0.9.2／v0.9.1／v0.9.0 封存 ZIP／SHA-256 均承接且不修改。連線範圍仍僅為跳棋；其他棋類尚未整合 WebRTC。乾淨解壓的 `npm ci` 若再次受 Windows npm `Exit handler never called` 阻擋，將如實記錄，不把 npm 安裝步驟宣稱為通過。
+v0.9.7 Machine Gate 已通過；完整驗證 ZIP 為 `releases/kids-board-game-kingdom-v0.9.7.zip`，共 247 個 ZIP 項目，封包內 `MANIFEST.sha256` 245 筆，外層 SHA-256 為 `48D9738F03EEA5C2DC93789C46C09EE8EE994C26DEF3894F8860D3D07E82B581`；乾淨解壓後逐項重算 245 筆內容雜湊，0 筆缺檔或不符，封包內版本為 0.9.7。v0.9.6／v0.9.5／v0.9.4／v0.9.3／v0.9.2／v0.9.1／v0.9.0 封存 ZIP／SHA-256 均承接且不修改。連線範圍仍僅為跳棋；其他棋類尚未整合 WebRTC。乾淨封存副本的 `npm ci`、check（35 個測試檔／189 項）與 build 均通過。
 
 必要檢查：
 

@@ -28,6 +28,7 @@ export const WEBRTC_ICE_SERVERS: RTCIceServer[] = [{ urls: 'stun:stun.l.google.c
 export const WEBRTC_ICE_GATHERING_TIMEOUT_MS = 15_000
 export const WEBRTC_CONNECTION_TIMEOUT_MS = 5 * 60 * 1000
 export const WEBRTC_PEER_READY_TIMEOUT_MS = WEBRTC_CONNECTION_TIMEOUT_MS
+export const WEBRTC_PEER_READY_RETRY_MS = 250
 const SIGNAL_PREFIX = 'kids-board-game-webrtc-answer:'
 
 function isSignalKind(value: unknown): value is WebRtcSignalKind {
@@ -238,8 +239,10 @@ export function waitForWebRtcPeerReady(
   return new Promise((resolve, reject) => {
     let settled = false
     let timeout = 0
+    let retryTimer = 0
     const cleanup = () => {
       window.clearTimeout(timeout)
+      window.clearInterval(retryTimer)
       channel.removeEventListener('message', handleMessage)
       channel.removeEventListener('close', handleClose)
     }
@@ -278,11 +281,22 @@ export function waitForWebRtcPeerReady(
       sessionId,
       role,
     }
-    try {
-      channel.send(JSON.stringify(readyMessage))
-    } catch (error) {
-      finish(error instanceof Error ? error : new Error('無法送出連線確認。'))
+    const sendReady = () => {
+      if (settled) return
+      if (channel.readyState !== 'open') {
+        finish(new Error('資料通道尚未開啟。'))
+        return
+      }
+      try {
+        channel.send(JSON.stringify(readyMessage))
+      } catch (error) {
+        finish(error instanceof Error ? error : new Error('無法送出連線確認。'))
+      }
     }
+    // Safari 等瀏覽器的分頁事件時序可能讓第一個訊息早於對方監聽器建立；
+    // 在等待期間重送同一個冪等確認，收到對方確認後由 cleanup 停止計時器。
+    retryTimer = window.setInterval(sendReady, WEBRTC_PEER_READY_RETRY_MS)
+    sendReady()
   })
 }
 

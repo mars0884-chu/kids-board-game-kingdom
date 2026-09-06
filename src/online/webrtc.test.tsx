@@ -7,6 +7,7 @@ import {
   WEBRTC_CONNECTION_TIMEOUT_MS,
   WEBRTC_ICE_GATHERING_TIMEOUT_MS,
   WEBRTC_PEER_READY_TIMEOUT_MS,
+  WEBRTC_PEER_READY_RETRY_MS,
   createWebRtcSignalLink,
   decodeWebRtcSignal,
   encodeWebRtcSignal,
@@ -110,6 +111,30 @@ describe('WebRTC 手動連線資料', () => {
     }))
 
     await expect(ready).resolves.toBeUndefined()
+  })
+
+  it('對方尚未掛上監聽器時會重送就緒訊息', async () => {
+    vi.useFakeTimers()
+    try {
+      const channel = new FakeDataChannel()
+      const ready = waitForWebRtcPeerReady(channel as unknown as RTCDataChannel, offer.sessionId, 'host')
+      expect(channel.messages).toHaveLength(1)
+
+      vi.advanceTimersByTime(WEBRTC_PEER_READY_RETRY_MS)
+      expect(channel.messages).toHaveLength(2)
+
+      channel.dispatchEvent(new MessageEvent('message', {
+        data: JSON.stringify({
+          protocol: 'kids-board-game-webrtc-ready',
+          sessionId: offer.sessionId,
+          role: 'guest',
+        }),
+      }))
+
+      await expect(ready).resolves.toBeUndefined()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('瀏覽器不支援直連時顯示清楚的兒童提示', () => {
