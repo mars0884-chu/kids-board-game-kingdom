@@ -576,6 +576,7 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
                   return (
                     <button
                       key={hole.cell}
+                      disabled={locked}
                       ref={(element) => {
                         if (element === null) holeRefs.current.delete(hole.cell)
                         else holeRefs.current.set(hole.cell, element)

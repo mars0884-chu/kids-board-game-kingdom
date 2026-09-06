@@ -9,6 +9,7 @@ const scriptDirectory = dirname(fileURLToPath(import.meta.url))
 const workspaceDirectory = resolve(scriptDirectory, '..')
 const releasesDirectory = join(workspaceDirectory, 'releases')
 const supportedVersions = new Set(['v0.3.13', 'v0.3.14', 'v0.3.15', 'v0.3.16', 'v0.3.17', 'v0.3.18', 'v0.3.19', 'v0.3.20', 'v0.3.21', 'v0.3.22', 'v0.3.23', 'v0.3.24', 'v0.3.25', 'v0.3.26', 'v0.3.27', 'v0.3.28', 'v0.3.29', 'v0.4.0', 'v0.4.1', 'v0.4.2', 'v0.4.3', 'v0.4.4', 'v0.4.5', 'v0.4.6', 'v0.4.7', 'v0.4.8', 'v0.4.9', 'v0.4.10', 'v0.4.11', 'v0.4.12', 'v0.4.13', 'v0.4.14', 'v0.4.15', 'v0.4.16', 'v0.4.17', 'v0.4.18', 'v0.4.19', 'v0.4.20', 'v0.4.21', 'v0.4.22', 'v0.4.23', 'v0.5.2', 'v0.5.3', 'v0.5.4', 'v0.5.5', 'v0.6.1', 'v0.6.2', 'v0.6.3', 'v0.6.4', 'v0.6.5', 'v0.6.6', 'v0.6.7', 'v0.7.0', 'v0.7.1', 'v0.7.2', 'v0.7.3', 'v0.9.0', 'v0.9.1', 'v0.9.2', 'v0.9.3', 'v0.9.4', 'v0.9.5', 'v0.9.6', 'v0.9.7'])
+supportedVersions.add('v0.9.8')
 let activeNpmCacheDirectory = null
 const configuredNpmCacheDirectory = process.env.ARCHIVE_NPM_CACHE ?? null
 const skipArchiveRebuild = process.env.ARCHIVE_SKIP_REBUILD === '1'
@@ -599,6 +600,33 @@ async function prepareV0313(stageDirectory) {
 }
 
 function releaseNotes(version) {
+  if (version === 'v0.9.8') {
+    return `# v0.9.8 跳棋 WebRTC 斷線操作鎖定修訂版（等待製作人實體裝置 Gate）
+
+完整驗證 ZIP：releases/kids-board-game-kingdom-v0.9.8.zip
+SHA-256：以同名 .sha256 檔案為準；封包內 MANIFEST.sha256 記錄內容雜湊。
+
+## 本次修訂
+
+- 斷線、對手回合或暫停時，跳棋 121 個棋孔按鈕改用原生 disabled 鎖定；保留原有事件層鎖定，避免鍵盤與輔助技術仍把棋孔視為可操作目標。
+- 斷線提示仍為「連線中斷，棋局先留在這裡」，保留最後局面，不直接判負；短暫 disconnected 維持 5 秒觀察，failed、closed 或資料通道關閉立即提示。
+- 新增線上斷線 UI 回歸測試，確認 20 枚棋子、回合數與局面保留，並確認斷線後棋孔原生鎖定。
+- 不新增伺服器、TURN、帳號、房間、棋局儲存、QR Code、短網址服務或其他棋類連線；目前仍只有跳棋使用 WebRTC。
+
+## Machine Gate
+
+1. 執行 npm.cmd run check、npm.cmd run build、npm.cmd run verify:jump-chess-webrtc 與 npm.cmd run verify:jump-chess-online-layout。
+2. 自動測試確認雙方就緒重送、Edge 三分頁配對／棋步同步，以及斷線後棋盤局面與操作鎖定。
+3. 確認四種正式畫面與 iPhone 直向／橫向響應式版面沒有頁面或按鍵溢出，注音配對與語音欄位驗證仍為阻擋條件。
+4. 實體測試仍須以 GitHub Pages HTTPS、兩支 iPhone、不同網路、主畫面 PWA 與斷線後重新配對確認實際行為。
+
+## 尚待製作人確認的邊界
+
+- 兩支 iPhone 一般 Safari 連線、雙方各 5 步落子與對端顯示已確認；不同網路、主畫面 PWA 實機安裝與斷線後重新配對尚未宣稱完成。
+- 公開 STUN 可能看到暫時性公開 IP；本版未使用 TURN，因此不保證所有行動網路／防火牆都能直連。
+- 沒有後端時，斷線後仍需重新建立並交換一組邀請／回覆連結；本版不承諾自動重連。
+`
+  }
   if (version === 'v0.9.7') {
     return `# v0.9.7 跳棋 WebRTC Safari 雙方就緒重送修訂版（等待製作人實體裝置 Gate）
 
