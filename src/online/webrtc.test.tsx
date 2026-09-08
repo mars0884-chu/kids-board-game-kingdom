@@ -13,6 +13,7 @@ import {
   encodeWebRtcSignal,
   publishWebRtcAnswerToHost,
   readWebRtcSignal,
+  waitForWebRtcChannel,
   waitForWebRtcPeerReady,
   type WebRtcSignal,
 } from './webrtc'
@@ -41,6 +42,10 @@ class FakeDataChannel extends EventTarget {
   }
 }
 
+class FakePeerConnection extends EventTarget {
+  connectionState: RTCPeerConnectionState = 'new'
+  iceConnectionState: RTCIceConnectionState = 'new'
+}
 describe('WebRTC 手動連線資料', () => {
   beforeEach(() => {
     window.history.replaceState({}, '', '/')
@@ -77,6 +82,39 @@ describe('WebRTC 手動連線資料', () => {
     expect(WEBRTC_PEER_READY_TIMEOUT_MS).toBe(5 * 60 * 1000)
   })
 
+  it('資料通道等待期間偵測到 ICE 失敗時會立即結束等待', async () => {
+    const channel = new FakeDataChannel()
+    channel.readyState = 'connecting'
+    const connection = new FakePeerConnection()
+    const waiting = waitForWebRtcChannel(
+      channel as unknown as RTCDataChannel,
+      WEBRTC_CONNECTION_TIMEOUT_MS,
+      connection as unknown as RTCPeerConnection,
+    )
+
+    connection.iceConnectionState = 'failed'
+    connection.dispatchEvent(new Event('iceconnectionstatechange'))
+
+    await expect(waiting).rejects.toThrow('兩台裝置的網路連線失敗。')
+  })
+
+  it('雙方就緒等待期間偵測到連線關閉時會立即結束等待', async () => {
+    const channel = new FakeDataChannel()
+    channel.readyState = 'open'
+    const connection = new FakePeerConnection()
+    const waiting = waitForWebRtcPeerReady(
+      channel as unknown as RTCDataChannel,
+      offer.sessionId,
+      'host',
+      WEBRTC_PEER_READY_TIMEOUT_MS,
+      connection as unknown as RTCPeerConnection,
+    )
+
+    connection.connectionState = 'closed'
+    connection.dispatchEvent(new Event('connectionstatechange'))
+
+    await expect(waiting).rejects.toThrow('兩台裝置的網路連線失敗。')
+  })
   it('雙方都回報同一局的就緒訊息後才完成配對', async () => {
     const channel = new FakeDataChannel()
     const ready = waitForWebRtcPeerReady(channel as unknown as RTCDataChannel, offer.sessionId, 'host')

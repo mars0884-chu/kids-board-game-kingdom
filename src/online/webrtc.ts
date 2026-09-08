@@ -202,9 +202,25 @@ export async function applyWebRtcAnswer(connection: RTCPeerConnection, signal: W
   await connection.setRemoteDescription(signal.description)
 }
 
-export function waitForWebRtcChannel(channel: RTCDataChannel, timeoutMs = WEBRTC_CONNECTION_TIMEOUT_MS): Promise<void> {
+function isWebRtcConnectionFailed(connection: RTCPeerConnection | undefined): boolean {
+  if (connection === undefined) return false
+  return connection.connectionState === 'failed'
+    || connection.connectionState === 'closed'
+    || connection.iceConnectionState === 'failed'
+    || connection.iceConnectionState === 'closed'
+}
+
+export function waitForWebRtcChannel(
+  channel: RTCDataChannel,
+  timeoutMs = WEBRTC_CONNECTION_TIMEOUT_MS,
+  connection?: RTCPeerConnection,
+): Promise<void> {
   if (channel.readyState === 'open') return Promise.resolve()
   return new Promise((resolve, reject) => {
+    if (isWebRtcConnectionFailed(connection)) {
+      reject(new Error('兩台裝置的網路連線失敗。'))
+      return
+    }
     const timeout = window.setTimeout(() => {
       cleanup()
       reject(new Error('兩台裝置尚未連線成功。'))
@@ -217,13 +233,22 @@ export function waitForWebRtcChannel(channel: RTCDataChannel, timeoutMs = WEBRTC
       cleanup()
       reject(new Error('連線在完成前中斷。'))
     }
+    const handleConnectionFailure = () => {
+      if (!isWebRtcConnectionFailed(connection)) return
+      cleanup()
+      reject(new Error('兩台裝置的網路連線失敗。'))
+    }
     const cleanup = () => {
       window.clearTimeout(timeout)
       channel.removeEventListener('open', handleOpen)
       channel.removeEventListener('close', handleClose)
+      connection?.removeEventListener('connectionstatechange', handleConnectionFailure)
+      connection?.removeEventListener('iceconnectionstatechange', handleConnectionFailure)
     }
     channel.addEventListener('open', handleOpen, { once: true })
     channel.addEventListener('close', handleClose, { once: true })
+    connection?.addEventListener('connectionstatechange', handleConnectionFailure)
+    connection?.addEventListener('iceconnectionstatechange', handleConnectionFailure)
   })
 }
 
@@ -238,10 +263,14 @@ export function waitForWebRtcPeerReady(
   sessionId: string,
   role: WebRtcPeerSession['role'],
   timeoutMs = WEBRTC_PEER_READY_TIMEOUT_MS,
+  connection?: RTCPeerConnection,
 ): Promise<void> {
   const remoteRole = role === 'host' ? 'guest' : 'host'
   if (channel.readyState === 'closed' || channel.readyState === 'closing') {
     return Promise.reject(new Error('資料通道已關閉。'))
+  }
+  if (isWebRtcConnectionFailed(connection)) {
+    return Promise.reject(new Error('兩台裝置的網路連線失敗。'))
   }
   return new Promise((resolve, reject) => {
     let settled = false
@@ -252,6 +281,8 @@ export function waitForWebRtcPeerReady(
       window.clearInterval(retryTimer)
       channel.removeEventListener('message', handleMessage)
       channel.removeEventListener('close', handleClose)
+      connection?.removeEventListener('connectionstatechange', handleConnectionFailure)
+      connection?.removeEventListener('iceconnectionstatechange', handleConnectionFailure)
     }
     const finish = (error?: Error) => {
       if (settled) return
@@ -278,11 +309,16 @@ export function waitForWebRtcPeerReady(
       finish()
     }
     const handleClose = () => finish(new Error('另一台裝置尚未完成連線。'))
+    const handleConnectionFailure = () => {
+      if (isWebRtcConnectionFailed(connection)) finish(new Error('兩台裝置的網路連線失敗。'))
+    }
     timeout = window.setTimeout(() => {
       finish(new Error('等待另一台裝置完成連線逾時。'))
     }, timeoutMs)
     channel.addEventListener('message', handleMessage)
     channel.addEventListener('close', handleClose)
+    connection?.addEventListener('connectionstatechange', handleConnectionFailure)
+    connection?.addEventListener('iceconnectionstatechange', handleConnectionFailure)
     const readyMessage: WebRtcPeerReadyMessage = {
       protocol: 'kids-board-game-webrtc-ready',
       sessionId,

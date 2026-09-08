@@ -112,10 +112,10 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
             return
           }
           channelRef.current = channel
-          await waitForWebRtcChannel(channel)
+          await waitForWebRtcChannel(channel, undefined, result.connection)
           if (!active) return
           setStatus('waiting-for-peer')
-          await waitForWebRtcPeerReady(channel, signal.sessionId, 'guest')
+          await waitForWebRtcPeerReady(channel, signal.sessionId, 'guest', undefined, result.connection)
           if (!active) return
           setStatus('connected')
           handedOffRef.current = true
@@ -178,10 +178,10 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
         .then(async () => {
           const channel = channelRef.current
           if (channel === null) throw new Error('找不到甲的資料通道。')
-          await waitForWebRtcChannel(channel)
+          await waitForWebRtcChannel(channel, undefined, connection)
           if (!active) return
           setStatus('waiting-for-peer')
-          await waitForWebRtcPeerReady(channel, sessionId, 'host')
+          await waitForWebRtcPeerReady(channel, sessionId, 'host', undefined, connection)
           if (!active) return
           channelRef.current = channel
           setStatus('connected')

@@ -98,8 +98,8 @@ export function FirebaseRandomPairing({ onBack, onConnected }: FirebaseRandomPai
           setStatus('matched')
           const answer = await pairing.waitForAnswer()
           await applyWebRtcAnswer(result.connection, answer)
-          await waitForWebRtcChannel(result.channel)
-          await waitForWebRtcPeerReady(result.channel, offer.sessionId, 'host')
+          await waitForWebRtcChannel(result.channel, undefined, result.connection)
+          await waitForWebRtcPeerReady(result.channel, offer.sessionId, 'host', undefined, result.connection)
           if (!active) return
           handedOffRef.current = true
           onConnected({
@@ -132,8 +132,8 @@ export function FirebaseRandomPairing({ onBack, onConnected }: FirebaseRandomPai
         await pairing.publishAnswer(answer)
         const channel = await result.channel
         channelRef.current = channel
-        await waitForWebRtcChannel(channel)
-        await waitForWebRtcPeerReady(channel, offer.sessionId, 'guest')
+        await waitForWebRtcChannel(channel, undefined, result.connection)
+        await waitForWebRtcPeerReady(channel, offer.sessionId, 'guest', undefined, result.connection)
         if (!active) return
         handedOffRef.current = true
         onConnected({
