@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { WebRtcPairing } from './WebRtcPairing'
 import {
   WEBRTC_SIGNAL_MAX_AGE_MS,
@@ -143,6 +143,14 @@ describe('WebRTC 手動連線資料', () => {
     expect(screen.getByRole('status').querySelector('.bopomofo-text')).toHaveAttribute('aria-label', '這台裝置不能直連')
   })
 
+  it('手動配對頁可以進入匿名隨機配對的家長同意頁', () => {
+    render(<WebRtcPairing onBack={vi.fn()} onConnected={vi.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: '隨機配對' }))
+
+    expect(screen.getByRole('status').querySelector('.bopomofo-text')).toHaveAttribute('aria-label', '請家長先同意')
+    expect(screen.getByRole('button', { name: '家長已了解並同意' })).toBeInTheDocument()
+  })
   it('回覆頁由原頁面開啟時會以同源訊息送回甲', () => {
     const postMessage = vi.fn()
     Object.defineProperty(window, 'opener', { configurable: true, value: { postMessage } })

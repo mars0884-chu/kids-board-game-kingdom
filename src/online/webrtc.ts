@@ -14,11 +14,18 @@ export interface WebRtcSignal {
   readonly description: WebRtcSignalDescription
 }
 
+export interface WebRtcPairingControls {
+  readonly report: () => Promise<void>
+  readonly block: () => Promise<void>
+}
+
 export interface WebRtcPeerSession {
   readonly sessionId: string
   readonly role: 'host' | 'guest'
   readonly connection: RTCPeerConnection
   readonly channel: RTCDataChannel
+  readonly pairingCleanup?: () => void
+  readonly pairingControls?: WebRtcPairingControls
 }
 
 export const WEBRTC_SIGNAL_QUERY = 'webrtc'
@@ -389,7 +396,8 @@ export function subscribeWebRtcAnswer(
   }
 }
 
-export function closeWebRtcPeerSession(session: Pick<WebRtcPeerSession, 'connection' | 'channel'>): void {
+export function closeWebRtcPeerSession(session: Pick<WebRtcPeerSession, 'connection' | 'channel' | 'pairingCleanup'>): void {
   session.channel.close()
   session.connection.close()
+  session.pairingCleanup?.()
 }

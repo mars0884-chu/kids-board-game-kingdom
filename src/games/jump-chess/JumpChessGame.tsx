@@ -98,6 +98,7 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
   const [isHydrated, setIsHydrated] = useState(mode === 'online')
   const [onlineSession, setOnlineSession] = useState<WebRtcPeerSession | null>(null)
   const [onlineDisconnected, setOnlineDisconnected] = useState(false)
+  const [onlineSafetyMessage, setOnlineSafetyMessage] = useState('')
   const holeRefs = useRef(new Map<number, HTMLButtonElement>())
   const spokenFeedback = useRef<string | null>(null)
   const stateRef = useRef(state)
@@ -495,6 +496,29 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
     spokenFeedback.current = null
   }, [])
 
+
+  async function reportOnlinePlayer() {
+    const controls = onlineSession?.pairingControls
+    if (controls === undefined) return
+    try {
+      await controls.report()
+      setOnlineSafetyMessage('online.report_done')
+    } catch {
+      setOnlineSafetyMessage('online.report_failed')
+    }
+  }
+
+  async function blockOnlinePlayer() {
+    const controls = onlineSession?.pairingControls
+    if (controls === undefined) return
+    try {
+      await controls.block()
+      onBack()
+    } catch {
+      setOnlineSafetyMessage('online.report_failed')
+    }
+  }
+
   if (mode === 'online' && onlineSession === null) {
     return <WebRtcPairing onBack={onBack} onConnected={handleOnlineConnected} />
   }
@@ -663,6 +687,26 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
               />
             </div>
 
+            {mode === 'online' && onlineSession?.pairingControls !== undefined ? (
+              <>
+                <div className="jump-chess-online-safety">
+                  <ChildActionButton
+                    entry={getChildText('online.report_player')}
+                    icon="hint"
+                    tone="secondary"
+                    disabled={onlineSafetyMessage === 'online.report_done'}
+                    onClick={() => void reportOnlinePlayer()}
+                  />
+                  <ChildActionButton
+                    entry={getChildText('online.block_player')}
+                    icon="target"
+                    tone="secondary"
+                    onClick={() => void blockOnlinePlayer()}
+                  />
+                </div>
+                {onlineSafetyMessage !== '' ? <BopomofoText className="jump-chess-online-safety__message" entry={getChildText(onlineSafetyMessage)} /> : null}
+              </>
+            ) : null}
             <div className="jump-chess-tools">
               <ToolButton entry={getChildText('common.back')} icon="back" onClick={onBack} />
               <ToolButton entry={getChildText('common.listen')} icon="speaker" disabled={!isSupported} onClick={() => speak(currentFeedback)} />

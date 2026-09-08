@@ -12,6 +12,7 @@ import {
   DARK_CHESS_BOARD_WIDTH,
   applyDarkChessAction,
   createDarkChessState,
+  createRandomDarkChessState,
   getLegalDarkChessActions,
   getNpcDrawResponse,
   getPieceAt,
@@ -153,7 +154,7 @@ export function DarkChessGame({ onBack, mode, artProposal = false }: DarkChessGa
   const [tutorialFinished, setTutorialFinished] = useState(false)
   const [state, setState] = useState<DarkChessState>(() => mode === 'adventure'
     ? artProposal ? createArtProposalState() : createTutorialState(0)
-    : createDarkChessState())
+    : createRandomDarkChessState())
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('beginner')
   const [selectedCell, setSelectedCell] = useState<number | null>(null)
   const [isPaused, setIsPaused] = useState(false)
@@ -222,7 +223,7 @@ export function DarkChessGame({ onBack, mode, artProposal = false }: DarkChessGa
   const restart = () => {
     setTutorialFinished(false)
     setTutorialStep(artProposal ? 4 : 0)
-    setState(mode === 'adventure' ? artProposal ? createArtProposalState() : createTutorialState(0) : createDarkChessState())
+    setState(mode === 'adventure' ? artProposal ? createArtProposalState() : createTutorialState(0) : createRandomDarkChessState())
     setSelectedCell(null)
     setIsPaused(false)
     setNotice('')

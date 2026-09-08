@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { FirebaseRandomPairing } from './FirebaseRandomPairing'
 import { BopomofoText } from '../components/BopomofoText'
 import { ChildActionButton, ToolButton } from '../components/common-ui'
 import { getChildText } from '../content/child-text'
@@ -72,6 +73,7 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
   const signal = useMemo(() => readWebRtcSignal(), [])
   const [status, setStatus] = useState<PairingStatus>(() => !canUseWebRtc() ? 'unsupported' : signal?.kind === 'answer' ? 'reply-ready' : signal?.kind === 'offer' ? 'preparing-reply' : 'preparing-offer')
   const [link, setLink] = useState('')
+  const [randomMode, setRandomMode] = useState(false)
   const [message, setMessage] = useState('')
   const sessionIdRef = useRef(signal?.sessionId ?? createWebRtcSessionId())
   const connectionRef = useRef<RTCPeerConnection | null>(null)
@@ -81,7 +83,7 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
   const replyPublishedRef = useRef(false)
 
   useEffect(() => {
-    if (!canUseWebRtc() || signal?.kind === 'answer') return
+    if (!canUseWebRtc() || signal?.kind === 'answer' || randomMode) return
     let active = true
 
     const prepare = async () => {
@@ -157,10 +159,10 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
         channelRef.current?.close()
       }
     }
-  }, [onConnected, signal])
+  }, [onConnected, randomMode, signal])
 
   useEffect(() => {
-    if (!canUseWebRtc() || signal !== null || status === 'unsupported') return
+    if (!canUseWebRtc() || signal !== null || randomMode || status === 'unsupported') return
     const sessionId = sessionIdRef.current
     if (status !== 'waiting-for-answer') return
     let active = true
@@ -206,6 +208,14 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
     setStatus('reply-sent')
   }, [signal])
 
+  function handleRandomPairing() {
+    connectionRef.current?.close()
+    channelRef.current?.close()
+    setLink('')
+    setMessage('')
+    setRandomMode(true)
+  }
+
   async function handleShare() {
     if (link === '') return
     try {
@@ -233,6 +243,10 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
   }
 
   const isOffer = signal?.kind !== 'answer'
+  if (randomMode) {
+    return <FirebaseRandomPairing onBack={() => setRandomMode(false)} onConnected={onConnected} />
+  }
+
   const title = signal?.kind === 'answer' ? 'online.reply_title' : signal?.kind === 'offer' ? 'online.reply_title' : 'online.invite_title'
   const description = signal?.kind === 'answer' ? 'online.reply_description' : signal?.kind === 'offer' ? 'online.reply_description' : 'online.invite_description'
   const actionText = signal?.kind === 'offer' ? 'online.share_reply' : 'online.share_offer'
@@ -279,6 +293,9 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
         </div>
 
         <div className="webrtc-pairing__tools">
+        {signal === null ? (
+          <ChildActionButton entry={getChildText('online.random_match')} icon="target" tone="secondary" onClick={handleRandomPairing} />
+        ) : null}
           <ToolButton entry={getChildText('common.back')} icon="back" onClick={onBack} />
         </div>
       </section>

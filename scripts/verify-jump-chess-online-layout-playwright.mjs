@@ -27,7 +27,7 @@ async function inspectViewport(page, viewport) {
   const metrics = await page.evaluate(() => {
     const root = document.querySelector('.webrtc-pairing')
     const card = document.querySelector('.webrtc-pairing__card')
-    const buttons = Array.from(document.querySelectorAll('.webrtc-pairing__actions .child-action, .webrtc-pairing__tools .child-tool'))
+    const buttons = Array.from(document.querySelectorAll('.webrtc-pairing__actions .child-action, .webrtc-pairing__tools .child-action, .webrtc-pairing__tools .child-tool'))
     const rect = (element) => {
       if (!(element instanceof HTMLElement)) return null
       const box = element.getBoundingClientRect()
@@ -65,7 +65,8 @@ async function inspectViewport(page, viewport) {
   assert(metrics.document.scrollHeight <= viewport.height, `${viewport.name} 發生垂直溢出：${metrics.document.scrollHeight}px。`)
   assert(metrics.root?.left >= -1 && metrics.root?.right <= viewport.width + 1, `${viewport.name} 連線頁超出左右安全邊界。`)
   assert(metrics.card?.left >= -1 && metrics.card?.right <= viewport.width + 1, `${viewport.name} 連線卡片超出左右安全邊界。`)
-  assert(metrics.buttons.length === 3, `${viewport.name} 按鍵數量異常，預期分享、複製、返回共 3 個。`)
+  assert(metrics.buttons.length === 4, `${viewport.name} 按鍵數量異常，預期分享、複製、隨機配對、返回共 4 個。`)
+  assert(metrics.buttons.some((button) => button.name.includes('隨') && button.name.includes('配')), `${viewport.name} 缺少「隨機配對」按鍵。`)
   assert(!metrics.hasPauseVoiceButton, `${viewport.name} 不應顯示「暫停語音」按鍵。`)
 
   for (const button of metrics.buttons) {

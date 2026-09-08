@@ -5,6 +5,7 @@ import {
   DARK_CHESS_NPC_DRAW_ACCEPT_STEPS,
   applyDarkChessAction,
   createDarkChessState,
+  createRandomDarkChessState,
   deserializeDarkChessState,
   getLegalDarkChessActions,
   getLegalDarkChessActionsForPlayer,
@@ -68,6 +69,15 @@ describe('台灣暗棋規則核心', () => {
     expect(first.board).not.toEqual(different.board)
     expect(first.currentPlayer).toBe('player1')
     expect(getLegalDarkChessActions(first)).toHaveLength(32)
+  })
+
+  it('正式新局會產生有效的隨機暗棋排列', () => {
+    const state = createRandomDarkChessState()
+
+    expect(state.seed).toEqual(expect.any(Number))
+    expect(state.board).toHaveLength(32)
+    expect(new Set(state.board).size).toBe(32)
+    expect(state.board.every((pieceId) => state.pieces.find((piece) => piece.id === pieceId)?.revealed === false)).toBe(true)
   })
 
   it('第一枚翻出的棋子決定第一位玩家陣營，並在回合後交給另一位玩家', () => {

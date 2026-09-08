@@ -3268,5 +3268,165 @@
     "speech_zh_tw": "分享連結",
     "audio_asset": "tts:zh-TW",
     "audience": "child"
+  },
+  {
+    "id": "online.random_match",
+    "text_zh_tw": "隨機配對",
+    "segments": [{ "text": "隨", "bopomofo": "ㄙㄨㄟˊ" }, { "text": "機", "bopomofo": "ㄐㄧ" }, { "text": "配", "bopomofo": "ㄆㄟˋ" }, { "text": "對", "bopomofo": "ㄉㄨㄟˋ" }],
+    "speech_zh_tw": "隨機配對",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_description",
+    "text_zh_tw": "與另一位玩家隨機對戰",
+    "segments": [{ "text": "與", "bopomofo": "ㄩˇ" }, { "text": "另", "bopomofo": "ㄌㄧㄥˋ" }, { "text": "一", "bopomofo": "ㄧ" }, { "text": "位", "bopomofo": "ㄨㄟˋ" }, { "text": "玩", "bopomofo": "ㄨㄢˊ" }, { "text": "家", "bopomofo": "ㄐㄧㄚ" }, { "text": "隨", "bopomofo": "ㄙㄨㄟˊ" }, { "text": "機", "bopomofo": "ㄐㄧ" }, { "text": "對", "bopomofo": "ㄉㄨㄟˋ" }, { "text": "戰", "bopomofo": "ㄓㄢˋ" }],
+    "speech_zh_tw": "與另一位玩家隨機對戰",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_privacy_notice",
+    "text_zh_tw": "不使用姓名聊天位置或個人資料",
+    "segments": [{ "text": "不", "bopomofo": "ㄅㄨˋ" }, { "text": "使", "bopomofo": "ㄕˇ" }, { "text": "用", "bopomofo": "ㄩㄥˋ" }, { "text": "姓", "bopomofo": "ㄒㄧㄥˋ" }, { "text": "名", "bopomofo": "ㄇㄧㄥˊ" }, { "text": "聊", "bopomofo": "ㄌㄧㄠˊ" }, { "text": "天", "bopomofo": "ㄊㄧㄢ" }, { "text": "位", "bopomofo": "ㄨㄟˋ" }, { "text": "置", "bopomofo": "ㄓˋ" }, { "text": "或", "bopomofo": "ㄏㄨㄛˋ" }, { "text": "個", "bopomofo": "ㄍㄜˋ" }, { "text": "人", "bopomofo": "ㄖㄣˊ" }, { "text": "資", "bopomofo": "ㄗ" }, { "text": "料", "bopomofo": "ㄌㄧㄠˋ" }],
+    "speech_zh_tw": "不使用姓名、聊天、位置或個人資料",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_parent_notice",
+    "text_zh_tw": "請家長先同意",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "家", "bopomofo": "ㄐㄧㄚ" }, { "text": "長", "bopomofo": "ㄓㄤˇ" }, { "text": "先", "bopomofo": "ㄒㄧㄢ" }, { "text": "同", "bopomofo": "ㄊㄨㄥˊ" }, { "text": "意", "bopomofo": "ㄧˋ" }],
+    "speech_zh_tw": "請家長先同意",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_consent",
+    "text_zh_tw": "家長已了解並同意",
+    "segments": [{ "text": "家", "bopomofo": "ㄐㄧㄚ" }, { "text": "長", "bopomofo": "ㄓㄤˇ" }, { "text": "已", "bopomofo": "ㄧˇ" }, { "text": "了", "bopomofo": "ㄌㄧㄠˇ" }, { "text": "解", "bopomofo": "ㄐㄧㄝˇ" }, { "text": "並", "bopomofo": "ㄅㄧㄥˋ" }, { "text": "同", "bopomofo": "ㄊㄨㄥˊ" }, { "text": "意", "bopomofo": "ㄧˋ" }],
+    "speech_zh_tw": "家長已了解並同意",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_preparing",
+    "text_zh_tw": "正在準備隨機配對",
+    "segments": [{ "text": "正", "bopomofo": "ㄓㄥˋ" }, { "text": "在", "bopomofo": "ㄗㄞˋ" }, { "text": "準", "bopomofo": "ㄓㄨㄣˇ" }, { "text": "備", "bopomofo": "ㄅㄟˋ" }, { "text": "隨", "bopomofo": "ㄙㄨㄟˊ" }, { "text": "機", "bopomofo": "ㄐㄧ" }, { "text": "配", "bopomofo": "ㄆㄟˋ" }, { "text": "對", "bopomofo": "ㄉㄨㄟˋ" }],
+    "speech_zh_tw": "正在準備隨機配對",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_waiting",
+    "text_zh_tw": "正在等待另一位玩家",
+    "segments": [{ "text": "正", "bopomofo": "ㄓㄥˋ" }, { "text": "在", "bopomofo": "ㄗㄞˋ" }, { "text": "等", "bopomofo": "ㄉㄥˇ" }, { "text": "待", "bopomofo": "ㄉㄞˋ" }, { "text": "另", "bopomofo": "ㄌㄧㄥˋ" }, { "text": "一", "bopomofo": "ㄧ" }, { "text": "位", "bopomofo": "ㄨㄟˋ" }, { "text": "玩", "bopomofo": "ㄨㄢˊ" }, { "text": "家", "bopomofo": "ㄐㄧㄚ" }],
+    "speech_zh_tw": "正在等待另一位玩家",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_waiting_detail",
+    "text_zh_tw": "找不到玩家時會自動離開",
+    "segments": [{ "text": "找", "bopomofo": "ㄓㄠˇ" }, { "text": "不", "bopomofo": "ㄅㄨˋ" }, { "text": "到", "bopomofo": "ㄉㄠˋ" }, { "text": "玩", "bopomofo": "ㄨㄢˊ" }, { "text": "家", "bopomofo": "ㄐㄧㄚ" }, { "text": "時", "bopomofo": "ㄕˊ" }, { "text": "會", "bopomofo": "ㄏㄨㄟˋ" }, { "text": "自", "bopomofo": "ㄗˋ" }, { "text": "動", "bopomofo": "ㄉㄨㄥˋ" }, { "text": "離", "bopomofo": "ㄌㄧˊ" }, { "text": "開", "bopomofo": "ㄎㄞ" }],
+    "speech_zh_tw": "找不到玩家時會自動離開",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_matched",
+    "text_zh_tw": "已找到另一位玩家",
+    "segments": [{ "text": "已", "bopomofo": "ㄧˇ" }, { "text": "找", "bopomofo": "ㄓㄠˇ" }, { "text": "到", "bopomofo": "ㄉㄠˋ" }, { "text": "另", "bopomofo": "ㄌㄧㄥˋ" }, { "text": "一", "bopomofo": "ㄧ" }, { "text": "位", "bopomofo": "ㄨㄟˋ" }, { "text": "玩", "bopomofo": "ㄨㄢˊ" }, { "text": "家", "bopomofo": "ㄐㄧㄚ" }],
+    "speech_zh_tw": "已找到另一位玩家",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_matched_detail",
+    "text_zh_tw": "正在準備兩台裝置連線",
+    "segments": [{ "text": "正", "bopomofo": "ㄓㄥˋ" }, { "text": "在", "bopomofo": "ㄗㄞˋ" }, { "text": "準", "bopomofo": "ㄓㄨㄣˇ" }, { "text": "備", "bopomofo": "ㄅㄟˋ" }, { "text": "兩", "bopomofo": "ㄌㄧㄤˇ" }, { "text": "台", "bopomofo": "ㄊㄞˊ" }, { "text": "裝", "bopomofo": "ㄓㄨㄤ" }, { "text": "置", "bopomofo": "ㄓˋ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "線", "bopomofo": "ㄒㄧㄢˋ" }],
+    "speech_zh_tw": "正在準備兩台裝置連線",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_unavailable",
+    "text_zh_tw": "隨機配對尚未設定",
+    "segments": [{ "text": "隨", "bopomofo": "ㄙㄨㄟˊ" }, { "text": "機", "bopomofo": "ㄐㄧ" }, { "text": "配", "bopomofo": "ㄆㄟˋ" }, { "text": "對", "bopomofo": "ㄉㄨㄟˋ" }, { "text": "尚", "bopomofo": "ㄕㄤˋ" }, { "text": "未", "bopomofo": "ㄨㄟˋ" }, { "text": "設", "bopomofo": "ㄕㄜˋ" }, { "text": "定", "bopomofo": "ㄉㄧㄥˋ" }],
+    "speech_zh_tw": "隨機配對尚未設定",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_timeout",
+    "text_zh_tw": "等待時間到了，配對已離開",
+    "segments": [{ "text": "等", "bopomofo": "ㄉㄥˇ" }, { "text": "待", "bopomofo": "ㄉㄞˋ" }, { "text": "時", "bopomofo": "ㄕˊ" }, { "text": "間", "bopomofo": "ㄐㄧㄢ" }, { "text": "到", "bopomofo": "ㄉㄠˋ" }, { "text": "了", "bopomofo": "ㄌㄜ˙" }, { "text": "，", "bopomofo": null }, { "text": "配", "bopomofo": "ㄆㄟˋ" }, { "text": "對", "bopomofo": "ㄉㄨㄟˋ" }, { "text": "已", "bopomofo": "ㄧˇ" }, { "text": "離", "bopomofo": "ㄌㄧˊ" }, { "text": "開", "bopomofo": "ㄎㄞ" }],
+    "speech_zh_tw": "等待時間到了，配對已離開",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_error",
+    "text_zh_tw": "隨機配對沒有完成",
+    "segments": [{ "text": "隨", "bopomofo": "ㄙㄨㄟˊ" }, { "text": "機", "bopomofo": "ㄐㄧ" }, { "text": "配", "bopomofo": "ㄆㄟˋ" }, { "text": "對", "bopomofo": "ㄉㄨㄟˋ" }, { "text": "沒", "bopomofo": "ㄇㄟˊ" }, { "text": "有", "bopomofo": "ㄧㄡˇ" }, { "text": "完", "bopomofo": "ㄨㄢˊ" }, { "text": "成", "bopomofo": "ㄔㄥˊ" }],
+    "speech_zh_tw": "隨機配對沒有完成",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_error_detail",
+    "text_zh_tw": "請稍後再試，或回到遊戲首頁",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "稍", "bopomofo": "ㄕㄠ" }, { "text": "後", "bopomofo": "ㄏㄡˋ" }, { "text": "再", "bopomofo": "ㄗㄞˋ" }, { "text": "試", "bopomofo": "ㄕˋ" }, { "text": "，", "bopomofo": null }, { "text": "或", "bopomofo": "ㄏㄨㄛˋ" }, { "text": "回", "bopomofo": "ㄏㄨㄟˊ" }, { "text": "到", "bopomofo": "ㄉㄠˋ" }, { "text": "遊", "bopomofo": "ㄧㄡˊ" }, { "text": "戲", "bopomofo": "ㄒㄧˋ" }, { "text": "首", "bopomofo": "ㄕㄡˇ" }, { "text": "頁", "bopomofo": "ㄧㄝˋ" }],
+    "speech_zh_tw": "請稍後再試，或回到遊戲首頁",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_retry",
+    "text_zh_tw": "再試一次",
+    "segments": [{ "text": "再", "bopomofo": "ㄗㄞˋ" }, { "text": "試", "bopomofo": "ㄕˋ" }, { "text": "一", "bopomofo": "ㄧ" }, { "text": "次", "bopomofo": "ㄘˋ" }],
+    "speech_zh_tw": "再試一次",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  }
+  ,{
+    "id": "online.leave_pairing",
+    "text_zh_tw": "離開配對",
+    "segments": [{ "text": "離", "bopomofo": "ㄌㄧˊ" }, { "text": "開", "bopomofo": "ㄎㄞ" }, { "text": "配", "bopomofo": "ㄆㄟˋ" }, { "text": "對", "bopomofo": "ㄉㄨㄟˋ" }],
+    "speech_zh_tw": "離開配對",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.report_player",
+    "text_zh_tw": "檢舉玩家",
+    "segments": [{ "text": "檢", "bopomofo": "ㄐㄧㄢˇ" }, { "text": "舉", "bopomofo": "ㄐㄩˇ" }, { "text": "玩", "bopomofo": "ㄨㄢˊ" }, { "text": "家", "bopomofo": "ㄐㄧㄚ" }],
+    "speech_zh_tw": "檢舉玩家",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.block_player",
+    "text_zh_tw": "封鎖玩家",
+    "segments": [{ "text": "封", "bopomofo": "ㄈㄥ" }, { "text": "鎖", "bopomofo": "ㄙㄨㄛˇ" }, { "text": "玩", "bopomofo": "ㄨㄢˊ" }, { "text": "家", "bopomofo": "ㄐㄧㄚ" }],
+    "speech_zh_tw": "封鎖玩家",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.report_done",
+    "text_zh_tw": "已送出檢舉",
+    "segments": [{ "text": "已", "bopomofo": "ㄧˇ" }, { "text": "送", "bopomofo": "ㄙㄨㄥˋ" }, { "text": "出", "bopomofo": "ㄔㄨ" }, { "text": "檢", "bopomofo": "ㄐㄧㄢˇ" }, { "text": "舉", "bopomofo": "ㄐㄩˇ" }],
+    "speech_zh_tw": "已送出檢舉",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.report_failed",
+    "text_zh_tw": "檢舉沒有送出",
+    "segments": [{ "text": "檢", "bopomofo": "ㄐㄧㄢˇ" }, { "text": "舉", "bopomofo": "ㄐㄩˇ" }, { "text": "沒", "bopomofo": "ㄇㄟˊ" }, { "text": "有", "bopomofo": "ㄧㄡˇ" }, { "text": "送", "bopomofo": "ㄙㄨㄥˋ" }, { "text": "出", "bopomofo": "ㄔㄨ" }],
+    "speech_zh_tw": "檢舉沒有送出",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
   }
 ]

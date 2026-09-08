@@ -1,19 +1,19 @@
 # P09-ONLINE 私人雙裝置直連規格
 
-> 文件編號：`P09-ONLINE-r12`
-> 對應規劃：`v0.9.8`
-> 目前狀態：`WAITING_FOR_PRODUCER`  
-> 更新日期：2026-09-06
+> 文件編號：`P09-ONLINE-r13`
+> 對應規劃：`v0.10.0`
+> 目前狀態：`BLOCKED`（等待 Firebase 試驗專案與 Pages Variables 設定）
+> 更新日期：2026-09-07
 
 ## 1. 製作人已確認的方向
 
-- 完成後只放在 GitHub／GitHub Pages，不建立本專案自己的雲端儲存、資料庫或伺服器。
+- 熟人保留 GitHub Pages 上的私人邀請／回覆連結流程；陌生人隨機配對新增 Firebase 免費方案小規模試驗，只處理短期配對與信令資料。
 - 不建立兒童帳號，不要求姓名、信箱、電話、位置、頭像、聊天或行為追蹤資料。
 - 雙裝置連線採 WebRTC 點對點直連，使用「邀請連結／回覆連結」交換連線資料。
 - 已確認的最簡化操作只有：乙按一次「一鍵回覆給甲」；甲點一次收到的回覆連結。雙方不再輸入長字串或按第二個連線按鈕。
 - 第一個整合遊戲為跳棋；其他棋類不得因本規格自動宣稱已支援連線。
 
-這是「不使用本專案伺服器」的折衷方案。它不等同於所有網路環境都能直連，也不提供伺服器保存棋局或伺服器驗證棋步。
+熟人流程仍是不使用本專案伺服器的 WebRTC 直連；陌生人流程只在已設定 Firebase 試驗專案時啟用配對佇列。兩種流程都不保證所有網路環境都能直連，也不由伺服器保存棋局或驗證棋步。
 
 ## 2. 核准的使用流程
 
@@ -29,11 +29,12 @@
 
 ### 3.1 不建立的項目
 
-- 不建立 Cloudflare Workers、WSS、WebSocket、Firebase、Supabase、資料庫、房間服務或任何本專案後端；只使用公開 STUN 探索連線候選。
-- 不建立公開大廳、陌生人配對、帳號、聊天、兒童個人檔案或分析追蹤。
+- 熟人私人邀請流程不建立 Cloudflare Workers、WSS、WebSocket、TURN、房間伺服器或棋局伺服器；只使用公開 STUN 探索連線候選。
+- 陌生人隨機配對試驗可使用 Firebase Anonymous Authentication 與 Realtime Database 的短期佇列、認領、offer／answer 信令及匿名檢舉資料；不使用 Google 登入，不建立兒童帳號或個人檔案。
+- 不建立公開大廳、公開玩家名單、帳號、聊天、兒童個人檔案或分析追蹤；陌生人匿名配對只在 Firebase 試驗佇列中短期配對。
 - 不把目前棋局上傳到 GitHub、GitHub Issues、雲端硬碟或任何公開檔案。
 
-GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是房間伺服器。
+GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；熟人流程不需要房間伺服器，Firebase 試驗只作陌生人配對的短期信令中介。
 
 ### 3.2 WebRTC 交換
 
@@ -52,6 +53,15 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 - 單一 QR Code、單一短網址或只分享一次連結，若不增加能代為轉交回覆的伺服器或第三方服務，無法讓遠端乙端的回覆自動抵達甲端；因此本版不增加 QR Code、短網址服務或其他帳號／額度依賴。
 - 連線使用公開 STUN `stun:stun.l.google.com:19302` 協助探索跨 NAT 的 ICE 候選；不使用 TURN，中繼服務不會代傳棋步或保存棋局，也不需要帳號或本專案額度。連線成功後的遊戲資料仍只走兩台裝置之間的加密 WebRTC data channel；WebRTC data channel 的傳輸保護由瀏覽器的 DTLS 提供。STUN 服務可能看到連線所需的暫時性公開 IP，這是本版新增的明確隱私邊界。
 
+### 3.4 陌生人匿名隨機配對試驗
+
+- 玩家先看到家長同意提示，再按一次「家長已了解並同意」進入匿名等待佇列；不提供姓名、聊天、位置、Google 登入或其他個人資料欄位。
+- Firebase Anonymous Authentication 只建立隨機 UID；Realtime Database 以建立時間排序，避免同一 UID 自己配到自己，並跳過本機已封鎖的匿名 UID。
+- 等待佇列逾時為 2 分鐘；配對完成後信令與配對資料最多等待 5 分鐘。玩家按「離開配對」、關閉頁面或取消流程時清理可清理資料。
+- 配對成功後仍使用同一套 WebRTC offer／answer、公開 STUN 與雙方同一 `sessionId` 的 250 毫秒就緒重送；Firebase 不轉送棋步。
+- 「檢舉玩家」只送出匿名 UID、短期局號與時間，禁止輸入檢舉文字；「封鎖玩家」寫入本機封鎖清單並離開對局，之後本機配對會跳過該 UID。
+- Firebase 免費方案是小規模驗證邊界，不是容量或可用性保證；未設定 Variables 時功能顯示未設定並停在安全畫面，不自動建立服務。
+
 ## 4. 跳棋整合行為
 
 - 甲固定為第一位玩家，乙固定為第二位玩家；下方第一位玩家先手的既有跳棋規則不變。
@@ -59,6 +69,7 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 - 連線完成後，甲送出初始可序列化局面；乙可要求目前局面。雙方只在輪到自己的回合時解除棋盤操作。
 - 每次合法走棋、連跳結束、自動換手、勝負或和局都傳送完整跳棋局面；接收端先以既有 `deserializeJumpChessState` 驗證格式，再更新畫面。
 - 乙不能重設甲的棋局；甲可使用既有「再試一次」重新開始並同步給乙。
+- 隨機配對對局額外顯示「檢舉玩家」與「封鎖玩家」；封鎖會先清除配對資料再離開，熟人私人連線不顯示這兩個控制。
 - 雙方就緒後的連線中斷不直接判負；畫面保留裝置目前最後局面並顯示「連線中斷，棋局先留在這裡」。`disconnected` 狀態先觀察 5 秒，只有仍未恢復才顯示斷線；本修訂尚未實作伺服器保存或自動重連，若資料通道失效，需重新建立一組邀請／回覆連結。
 - 斷線、對手回合或暫停時，121 個棋孔按鈕使用原生 `disabled` 鎖定；這只限制兒童操作，不改變棋盤局面、回合規則或重新配對流程。
 - 跳棋規則仍完全依 `docs/games/JUMP_CHESS_SPEC.md` 的 `JUMP-CHESS-SPEC-d05`，不新增回合上限、不改變勝負或和局。
@@ -66,6 +77,7 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 ## 5. 兒童介面契約
 
 - 兒童入口顯示「雙裝置連線」；配對畫面只使用台灣繁體中文。
+- 隨機配對先顯示「與另一位玩家隨機對戰」及家長同意提示；等待頁顯示會自動離開，並提供「離開配對」。
 - 所有兒童文案仍由 `src/content/child-text.json` 管理，每個中文字右側直排自己的台灣注音，並保留 `speech_zh_tw` 與語音欄位。
 - 乙的主要操作是「一鍵回覆給甲」；甲的主要操作是「分享邀請連結」。系統分享不支援時才顯示複製備援，不增加空白按鍵格。
 - 甲原分頁等待回覆時必須清楚顯示狀態；回覆頁必須說明已送回甲的遊戲畫面；失敗時說明重新開啟連結或檢查兩台裝置網路。
@@ -78,10 +90,10 @@ GitHub Pages 只提供靜態 HTML、CSS、JavaScript 與 PWA 資產；它不是�
 
 - 本專案程式不讀取、不建立、不上傳兒童姓名、帳號、信箱、位置、聯絡人、聊天或行為歷史。
 - 邀請／回覆 URL 本身包含 WebRTC SDP 與候選連線資訊；依瀏覽器與網路環境可能含有供連線使用的主機候選或 mDNS 名稱。因此連結應視為一次性邀請，只傳給對方，不要公開張貼。
-- 連線資料 15 分鐘後失效；連線成功後不再需要 URL。棋步只在兩台已連線裝置之間傳送，不經本專案伺服器。
+- 熟人連線資料 15 分鐘後失效；連線成功後不再需要 URL。熟人棋步只在兩台已連線裝置之間傳送，不經本專案伺服器；匿名配對的 Firebase 只承接短期 offer／answer 信令，不轉送棋步。
 - 外部分享工具（例如簡訊或通訊軟體）可能依其自身政策處理連結；本專案不控制該工具的紀錄方式。
 - 沒有伺服器時沒有真正的房間擁有權、登入驗證、權威棋步驗證或反作弊能力；這一版以兩位互相信任的玩家為使用前提。
-- GitHub Pages 仍可能依 GitHub 自身網站基礎設施政策處理一般網站請求紀錄；本專案無法承諾第三方基礎設施完全不留網路服務紀錄。
+- Firebase 試驗會產生不可顯示給玩家的匿名 UID、配對佇列與短期信令資料；Realtime Database 規則限制玩家只能以自己的匿名 UID 建立／修改配對資料，檢舉資料不可由玩家讀取。Firebase 或 GitHub 的基礎設施可能依其政策處理網路請求紀錄，本專案不宣稱第三方完全不留紀錄。
 
 ## 7. 已知限制與下一個 Gate
 
@@ -96,10 +108,10 @@ P09-ONLINE-r11 已用 Microsoft Edge 同一個瀏覽器的三個分頁完成：�
 - QR Code：本核准流程先使用系統分享／連結，不新增 QR Code 操作依賴。
 - 跨 NAT 的 STUN：已依製作人授權使用公開 `stun:stun.l.google.com:19302`；TURN 未使用，因此不提供中繼保證。STUN 只取得候選，不保存棋局或棋步，但服務可能看到暫時性公開 IP。
 - 自動重連：本版斷線保留本機畫面，但不承諾無需重新交換連線資料即可恢復。
-- 伺服器驗證棋步：本版無伺服器，接收端只做局面格式與既有規則資料驗證，不提供防竄改的權威裁判。
+- 伺服器驗證棋步：Firebase 試驗只作配對與信令中介，棋步仍由 WebRTC 傳送；接收端只做局面格式與既有規則資料驗證，不提供防竄改的權威裁判。
 - 其他棋類連線：尚未整合。
 
-下一個真正的 Producer Gate 是補做不同網路、主畫面 PWA 與斷線後重新配對流程；兩支 iPhone 一般 Safari 的公開 Pages HTTPS 連線、雙方各 5 步落子與對端顯示已由製作人確認。仍不把「所有遠端網路都能連線」或「不易斷線」寫成保證。
+下一個外部阻擋是建立 Firebase 免費試驗專案、啟用 Anonymous、套用 Realtime Database 規則並設定 GitHub Pages Variables；完成後才可進行兩支 iPhone Safari 的陌生人隨機配對實測。不同網路、主畫面 PWA、斷線後重新配對與所有遠端 NAT 仍不宣稱保證。
 
 GitHub Pages 部署已完成：`.github/workflows/deploy-pages.yml` 依儲存庫名稱設定子路徑；`VITE_BASE_PATH=/kids-board-game-kingdom/` 建置的 HTML、Manifest、Service Worker 與資源路徑均通過，GitHub Actions `build`／`deploy` 均成功。公開網址為 `https://mars0884-chu.github.io/kids-board-game-kingdom/`；首頁、`?preview=jump-chess-online`、Manifest 與 Service Worker 均以 HTTP 200 回應。製作人已補充確認兩支 iPhone 一般 Safari 的連線與各 5 步棋步同步；不同網路、主畫面 PWA 與斷線後重新配對仍待 Producer Gate。
 
@@ -113,7 +125,12 @@ GitHub Pages 部署已完成：`.github/workflows/deploy-pages.yml` 依儲存庫
 - `scripts/verify-jump-chess-webrtc-playwright.mjs`：可重跑的 Edge 三分頁實際流程與落子同步驗證。
 - `scripts/verify-jump-chess-online-layout-playwright.mjs`：Edge DPR 1 六尺寸連線頁 1:1 截圖、頁面／按鍵邊界、注音比例與「暫停語音」不存在檢查。
 
-v0.9.8 Machine Gate 已通過：工作區 check（36 個測試檔／190 項測試）、build、斷線 UI 回歸、Edge／公開 Pages 六尺寸版面、公開 Pages WebRTC 三分頁配對／棋步同步與 GitHub Actions build／deploy 均通過；完整驗證 ZIP 為 `releases/kids-board-game-kingdom-v0.9.8.zip`，共 248 個 ZIP 項目、封包內 `MANIFEST.sha256` 246 筆，外層 SHA-256 為 `233CE31843A995B1C461CBC2FD38387AC4935FFA2C29200D816A3D0D7BF4B1F6`，乾淨解壓逐項重算與 `npm ci`、check、build 均通過。v0.9.7／v0.9.6／v0.9.5／v0.9.4／v0.9.3／v0.9.2／v0.9.1／v0.9.0 封存 ZIP／SHA-256 均承接且不修改。連線範圍仍僅為跳棋；其他棋類尚未整合 WebRTC。
+
+P09-ONLINE-r13 本機 Machine Gate 已通過：
+pm.cmd run check` 為 36 個測試檔／191 項測試，內容 367 筆，
+pm.cmd run build` 成功；匿名配對入口、家長同意、等待逾時、離開、檢舉、封鎖及 WebRTC session cleanup 已加入。尚未通過的外部 Gate 是 Firebase 專案建立、匿名登入／Realtime Database 實際規則部署、GitHub Pages Variables、兩台 iPhone Safari 公開網址隨機配對、不同網路與斷線回歸；在此之前不宣稱陌生人配對已上線。
+v0.9.8 Machine Gate 已通過：工作區 check（36 個測試檔／190 項測試）、build、斷線 UI 回歸、Edge／公開 Pages 六尺寸版面、公開 Pages WebRTC 三分頁配對／棋步同步與 GitHub Actions build／deploy 均通過；完整驗證 ZIP 為 `releases/kids-board-game-kingdom-v0.9.8.zip`，共 248 個 ZIP 項目、封包內 `MANIFEST.sha256` 246 筆，外層 SHA-256 為 `233CE31843A995B1C461CBC2FD38387AC4935FFA2C29200D816A3D0D7BF4B1F6`，乾淨解壓逐項重算與
+pm ci`、check、build 均通過。v0.9.7／v0.9.6／v0.9.5／v0.9.4／v0.9.3／v0.9.2／v0.9.1／v0.9.0 封存 ZIP／SHA-256 均承接且不修改。連線範圍仍僅為跳棋；其他棋類尚未整合 WebRTC。
 
 必要檢查：
 
@@ -130,3 +147,5 @@ npm.cmd run verify:jump-chess-online-layout
 - [MDN：Signaling and video calling](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling)
 - [MDN：Using data channels](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_data_channels)
 - [MDN：Web Share API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Share_API)
+- [Firebase Pricing](https://firebase.google.com/pricing)
+- [Firebase Realtime Database Security Rules](https://firebase.google.com/docs/database/security)

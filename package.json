@@ -1,6 +1,6 @@
 {
   "name": "kids-board-game-kingdom",
-  "version": "0.9.8",
+  "version": "0.10.1",
   "private": true,
   "type": "module",
   "engines": {
@@ -13,6 +13,7 @@
     "test": "vitest run --pool=forks --maxWorkers=1",
     "verify:jump-chess-webrtc": "node scripts/verify-jump-chess-webrtc-playwright.mjs",
     "verify:jump-chess-online-layout": "node scripts/verify-jump-chess-online-layout-playwright.mjs",
+    "verify:game-picker-layout": "node scripts/verify-game-picker-layout-playwright.mjs",
     "test:watch": "vitest",
     "capture:reversi:firefox": "node scripts/capture-reversi-art-proposal-firefox.mjs",
     "capture:dark-chess:edge": "node scripts/capture-dark-chess-art-proposal.mjs",
@@ -21,6 +22,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "firebase": "12.4.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "workbox-window": "^7.4.1"

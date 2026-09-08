@@ -51,6 +51,11 @@ body:has(.tictactoe-proposal) {
 body:has(.reversi-art-proposal) {
   overflow: auto;
 }
+body:has(.game-picker-content) {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
 /* 跳棋與雙裝置連線頁在窄直向可能超過首屏；交由文件捲動，避免 iOS Safari 被 body 的全域 hidden 鎖住。 */
 body:has(.jump-chess-game),
@@ -78,6 +83,10 @@ button:focus-visible {
   overflow: hidden;
   grid-template-rows: auto 1fr;
   padding: max(0.8rem, env(safe-area-inset-top)) max(0.8rem, env(safe-area-inset-right)) max(0.8rem, env(safe-area-inset-bottom)) max(0.8rem, env(safe-area-inset-left));
+}
+
+.app-shell:has(.game-picker-content) {
+  overflow: visible;
 }
 
 .home-scene,
@@ -1218,6 +1227,14 @@ button:focus-visible {
 
 .game-picker-content {
   align-content: center;
+}
+
+.home-content.game-picker-content {
+  justify-content: flex-start;
+  align-content: flex-start;
+  overflow: visible;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
 }
 
 .game-picker-panel {

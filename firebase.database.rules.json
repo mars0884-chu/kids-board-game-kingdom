@@ -1,0 +1,47 @@
+{
+  "rules": {
+    "pairing": {
+      "queue": {
+        ".indexOn": ["createdAt"],
+        "$ticketId": {
+          ".read": "auth != null",
+          ".write": "auth != null && ((!data.exists() && newData.child('uid').val() == auth.uid) || (data.child('uid').val() == auth.uid && newData.child('uid').val() == data.child('uid').val()) || (!newData.exists() && (data.child('uid').val() == auth.uid || data.child('expiresAt').val() < now)))",
+          ".validate": "newData.hasChildren(['uid', 'state', 'createdAt', 'expiresAt']) && newData.child('uid').isString() && (newData.child('state').val() == 'waiting' || newData.child('state').val() == 'matched') && newData.child('createdAt').isNumber() && newData.child('expiresAt').isNumber() && (newData.child('state').val() == 'waiting' || (newData.hasChildren(['matchedTicketId', 'matchId']) && newData.child('matchedTicketId').isString() && newData.child('matchId').isString()))"
+        }
+      },
+      "claims": {
+        "$targetTicketId": {
+          ".read": "auth != null",
+          "$claimTicketId": {
+            ".write": "auth != null && ((!data.exists() && newData.child('uid').val() == auth.uid && newData.child('ticketId').val() == $claimTicketId) || (data.child('uid').val() == auth.uid && newData.child('uid').val() == data.child('uid').val()) || (!newData.exists() && (data.child('uid').val() == auth.uid || data.child('expiresAt').val() < now)))",
+            ".validate": "newData.hasChildren(['uid', 'ticketId', 'createdAt', 'expiresAt']) && newData.child('uid').isString() && newData.child('ticketId').isString() && newData.child('createdAt').isNumber() && newData.child('expiresAt').isNumber()"
+          }
+        }
+      },
+      "reports": {
+        "$reportId": {
+          ".read": false,
+          ".write": "auth != null && !data.exists() && newData.child('reporterUid').val() == auth.uid && newData.child('targetUid').val() != auth.uid",
+          ".validate": "newData.hasChildren(['reporterUid', 'targetUid', 'matchId', 'createdAt']) && newData.child('reporterUid').isString() && newData.child('targetUid').isString() && newData.child('matchId').isString() && newData.child('createdAt').isNumber()"
+        }
+      },
+      "matches": {
+        "$matchId": {
+          ".read": "auth != null && (data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid)",
+          ".write": "auth != null && ((!data.exists() && newData.child('hostUid').val() == auth.uid) || (data.exists() && data.child('hostUid').val() == auth.uid && newData.child('hostUid').val() == data.child('hostUid').val() && newData.child('guestUid').val() == data.child('guestUid').val()) || (!newData.exists() && (data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid || data.child('expiresAt').val() < now)))",
+          ".validate": "newData.hasChildren(['hostUid', 'guestUid', 'hostTicketId', 'guestTicketId', 'createdAt', 'expiresAt']) && newData.child('hostUid').isString() && newData.child('guestUid').isString() && newData.child('hostTicketId').isString() && newData.child('guestTicketId').isString() && newData.child('createdAt').isNumber() && newData.child('expiresAt').isNumber()",
+          "signals": {
+            "offer": {
+              ".write": "auth != null && data.parent().parent().child('hostUid').val() == auth.uid",
+              ".validate": "newData.child('protocol').val() == 'kids-board-game-webrtc' && newData.child('kind').val() == 'offer'"
+            },
+            "answer": {
+              ".write": "auth != null && data.parent().parent().child('guestUid').val() == auth.uid",
+              ".validate": "newData.child('protocol').val() == 'kids-board-game-webrtc' && newData.child('kind').val() == 'answer'"
+            }
+          }
+        }
+      }
+    }
+  }
+}

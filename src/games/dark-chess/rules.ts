@@ -395,6 +395,21 @@ export function createDarkChessState(seed = DARK_CHESS_DEFAULT_SEED): DarkChessS
   }
 }
 
+function createFreshDarkChessSeed(): number {
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const values = new Uint32Array(1)
+    crypto.getRandomValues(values)
+    return normalizeSeed(values[0] ?? DARK_CHESS_DEFAULT_SEED)
+  }
+
+  const fallbackSeed = (Date.now() ^ Math.floor(Math.random() * 0x100000000)) >>> 0
+  return normalizeSeed(fallbackSeed)
+}
+
+export function createRandomDarkChessState(): DarkChessState {
+  return createDarkChessState(createFreshDarkChessSeed())
+}
+
 export function getPieceAt(state: DarkChessState, cell: number): DarkChessPiece | null {
   return isCell(cell) ? pieceAt(state, cell) : null
 }

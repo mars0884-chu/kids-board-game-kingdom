@@ -275,6 +275,10 @@
     grid-row: 5;
   }
 
+  .webrtc-pairing__tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .webrtc-pairing__actions .child-action,
   .webrtc-pairing__tools .child-tool {
     min-height: 3rem;
@@ -286,6 +290,16 @@
     flex-direction: column;
     gap: 0.12rem;
     padding: 0.25rem 0.2rem;
+  }
+  .webrtc-pairing__tools .child-action {
+    flex-direction: column;
+    gap: 0.12rem;
+    padding: 0.25rem 0.2rem;
+  }
+
+  .webrtc-pairing__tools .child-action .child-control__icon {
+    width: 1.15rem;
+    height: 1.15rem;
   }
 
   .webrtc-pairing__actions .child-control__icon {
