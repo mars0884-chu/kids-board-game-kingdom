@@ -215,6 +215,17 @@ describe('WebRTC 手動連線資料', () => {
     expect(screen.getByRole('status').querySelector('.bopomofo-text')).toHaveAttribute('aria-label', '連線連結無效')
     expect(screen.queryByRole('button', { name: '隨機配對' })).not.toBeInTheDocument()
   })
+  it('沒有邀請連結時不會自動把裝置設為甲端', () => {
+    const peerConstructor = vi.fn()
+    Object.defineProperty(window, 'RTCPeerConnection', { configurable: true, value: peerConstructor })
+
+    render(<WebRtcPairing onBack={vi.fn()} onConnected={vi.fn()} />)
+
+    expect(screen.getByRole('status').querySelector('.bopomofo-text')).toHaveAttribute('aria-label', '請先選擇連線方式')
+    expect(screen.getByRole('button', { name: '建立邀請連結' })).toBeInTheDocument()
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    expect(peerConstructor).not.toHaveBeenCalled()
+  })
   it('瀏覽器不支援直連時顯示清楚的兒童提示', () => {
     render(<WebRtcPairing onBack={vi.fn()} onConnected={vi.fn()} />)
     expect(screen.getByRole('heading', { name: '兩台裝置連線' })).toBeInTheDocument()

@@ -29,6 +29,7 @@ interface WebRtcPairingProps {
 
 type PairingStatus =
   | 'unsupported'
+  | 'ready-to-invite'
   | 'invalid-link'
   | 'preparing-offer'
   | 'waiting-for-answer'
@@ -42,6 +43,7 @@ type PairingStatus =
 function statusEntry(status: PairingStatus): string {
   switch (status) {
     case 'unsupported': return 'online.unsupported'
+    case 'ready-to-invite': return 'online.ready_to_invite'
     case 'invalid-link': return 'online.invalid_link'
     case 'preparing-offer': return 'online.preparing_offer'
     case 'waiting-for-answer': return 'online.waiting_for_answer'
@@ -78,8 +80,11 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
   const [status, setStatus] = useState<PairingStatus>(() => {
     if (!canUseWebRtc()) return 'unsupported'
     if (hasSignalParameter && signal === null) return 'invalid-link'
-    return signal?.kind === 'answer' ? 'reply-ready' : signal?.kind === 'offer' ? 'preparing-reply' : 'preparing-offer'
+    if (signal?.kind === 'answer') return 'reply-ready'
+    if (signal?.kind === 'offer') return 'preparing-reply'
+    return 'ready-to-invite'
   })
+  const [hostStarted, setHostStarted] = useState(false)
   const [link, setLink] = useState('')
   const [randomMode, setRandomMode] = useState(false)
   const [message, setMessage] = useState('')
@@ -91,7 +96,7 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
   const replyPublishedRef = useRef(false)
 
   useEffect(() => {
-    if (!canUseWebRtc() || signal?.kind === 'answer' || (hasSignalParameter && signal === null) || randomMode) return
+    if (!canUseWebRtc() || signal?.kind === 'answer' || (hasSignalParameter && signal === null) || randomMode || (!hostStarted && signal?.kind !== 'offer')) return
     let active = true
 
     const prepare = async () => {
@@ -167,12 +172,11 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
         channelRef.current?.close()
       }
     }
-  }, [hasSignalParameter, onConnected, randomMode, signal])
+  }, [hasSignalParameter, hostStarted, onConnected, randomMode, signal])
 
   useEffect(() => {
-    if (!canUseWebRtc() || signal !== null || randomMode || status === 'unsupported') return
+    if (!canUseWebRtc() || signal !== null || randomMode || !hostStarted) return
     const sessionId = sessionIdRef.current
-    if (status !== 'waiting-for-answer') return
     let active = true
     const unsubscribe = subscribeWebRtcAnswer(sessionId, (answer) => {
       if (answerAppliedRef.current) return
@@ -207,7 +211,7 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
       active = false
       unsubscribe()
     }
-  }, [onConnected, signal, status])
+  }, [hostStarted, onConnected, randomMode, signal])
 
   useEffect(() => {
     if (signal?.kind !== 'answer' || replyPublishedRef.current) return
@@ -215,6 +219,12 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
     publishWebRtcAnswerToHost(signal)
     setStatus('reply-sent')
   }, [signal])
+
+  function handleCreateInvitation() {
+    setMessage('')
+    setStatus('preparing-offer')
+    setHostStarted(true)
+  }
 
   function handleRandomPairing() {
     connectionRef.current?.close()
@@ -250,13 +260,14 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
     }
   }
 
-  const isOffer = !hasSignalParameter && signal?.kind !== 'answer'
+  const isFreshPairing = signal === null && !hasSignalParameter && !hostStarted
+  const isOffer = hostStarted && !hasSignalParameter && signal?.kind !== 'answer'
   if (randomMode) {
     return <FirebaseRandomPairing onBack={() => setRandomMode(false)} onConnected={onConnected} />
   }
 
-  const title = signal?.kind === 'answer' ? 'online.reply_title' : signal?.kind === 'offer' ? 'online.reply_title' : 'online.invite_title'
-  const description = signal?.kind === 'answer' ? 'online.reply_description' : signal?.kind === 'offer' ? 'online.reply_description' : 'online.invite_description'
+  const title = isFreshPairing ? 'online.choose_connection' : signal?.kind === 'answer' ? 'online.reply_title' : signal?.kind === 'offer' ? 'online.reply_title' : 'online.invite_title'
+  const description = isFreshPairing ? 'online.choose_connection_detail' : signal?.kind === 'answer' ? 'online.reply_description' : signal?.kind === 'offer' ? 'online.reply_description' : 'online.invite_description'
   const actionText = signal?.kind === 'offer' ? 'online.share_reply' : 'online.share_offer'
 
   return (
@@ -298,14 +309,19 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
 
         {message !== '' ? <p className="webrtc-pairing__message" role="status">{message}</p> : null}
 
-        <div className="webrtc-pairing__notes">
-          <BopomofoText entry={getChildText(isOffer ? 'online.keep_open' : 'online.no_server')} />
-        </div>
+        {!isFreshPairing ? (
+          <div className="webrtc-pairing__notes">
+            <BopomofoText entry={getChildText(isOffer ? 'online.keep_open' : 'online.no_server')} />
+          </div>
+        ) : null}
 
         <div className="webrtc-pairing__tools">
-        {signal === null && !hasSignalParameter ? (
-          <ChildActionButton entry={getChildText('online.random_match')} icon="target" tone="secondary" onClick={handleRandomPairing} />
-        ) : null}
+          {isFreshPairing ? (
+            <>
+              <ChildActionButton entry={getChildText('online.create_invitation')} icon="link" tone="primary" onClick={handleCreateInvitation} />
+              <ChildActionButton entry={getChildText('online.random_match')} icon="target" tone="secondary" onClick={handleRandomPairing} />
+            </>
+          ) : null}
           <ToolButton entry={getChildText('common.back')} icon="back" onClick={onBack} />
         </div>
       </section>

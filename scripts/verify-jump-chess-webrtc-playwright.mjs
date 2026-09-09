@@ -56,6 +56,7 @@ async function main() {
   try {
     console.log('webrtc:host-open')
     await host.goto(`${baseUrl}?preview=jump-chess-online`, { waitUntil: 'domcontentloaded' })
+    await host.getByRole('button', { name: '建立邀請連結' }).click()
     await host.waitForSelector('#webrtc-pairing-link')
     const inviteLink = await host.locator('#webrtc-pairing-link').inputValue()
     assert(inviteLink.includes('webrtc='), '甲的邀請連結沒有 WebRTC 資料。')

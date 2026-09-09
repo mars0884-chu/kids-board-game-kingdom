@@ -3069,6 +3069,37 @@
     "audio_asset": "tts:zh-TW",
     "audience": "child"
   },  {
+    "id": "online.ready_to_invite",
+    "text_zh_tw": "請先選擇連線方式",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "先", "bopomofo": "ㄒㄧㄢ" }, { "text": "選", "bopomofo": "ㄒㄩㄢˇ" }, { "text": "擇", "bopomofo": "ㄗㄜˊ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "線", "bopomofo": "ㄒㄧㄢˋ" }, { "text": "方", "bopomofo": "ㄈㄤ" }, { "text": "式", "bopomofo": "ㄕˋ" }],
+    "speech_zh_tw": "請先選擇連線方式",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.create_invitation",
+    "text_zh_tw": "建立邀請連結",
+    "segments": [{ "text": "建", "bopomofo": "ㄐㄧㄢˋ" }, { "text": "立", "bopomofo": "ㄌㄧˋ" }, { "text": "邀", "bopomofo": "ㄧㄠ" }, { "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "結", "bopomofo": "ㄐㄧㄝˊ" }],
+    "speech_zh_tw": "建立邀請連結",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.choose_connection",
+    "text_zh_tw": "選擇連線方式",
+    "segments": [{ "text": "選", "bopomofo": "ㄒㄩㄢˇ" }, { "text": "擇", "bopomofo": "ㄗㄜˊ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "線", "bopomofo": "ㄒㄧㄢˋ" }, { "text": "方", "bopomofo": "ㄈㄤ" }, { "text": "式", "bopomofo": "ㄕˋ" }],
+    "speech_zh_tw": "選擇連線方式",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.choose_connection_detail",
+    "text_zh_tw": "沒有邀請時才建立連結",
+    "segments": [{ "text": "沒", "bopomofo": "ㄇㄟˊ" }, { "text": "有", "bopomofo": "ㄧㄡˇ" }, { "text": "邀", "bopomofo": "ㄧㄠ" }, { "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "時", "bopomofo": "ㄕˊ" }, { "text": "才", "bopomofo": "ㄘㄞˊ" }, { "text": "建", "bopomofo": "ㄐㄧㄢˋ" }, { "text": "立", "bopomofo": "ㄌㄧˋ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "結", "bopomofo": "ㄐㄧㄝˊ" }],
+    "speech_zh_tw": "沒有邀請時才建立連結",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },  {
     "id": "online.preparing_offer",
     "text_zh_tw": "正在準備邀請連結",
     "segments": [{ "text": "正", "bopomofo": "ㄓㄥˋ" }, { "text": "在", "bopomofo": "ㄗㄞˋ" }, { "text": "準", "bopomofo": "ㄓㄨㄣˇ" }, { "text": "備", "bopomofo": "ㄅㄟˋ" }, { "text": "邀", "bopomofo": "ㄧㄠ" }, { "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "結", "bopomofo": "ㄐㄧㄝˊ" }],
