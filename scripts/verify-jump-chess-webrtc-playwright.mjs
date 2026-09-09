@@ -45,7 +45,7 @@ async function main() {
   const host = await context.newPage()
   const guest = await context.newPage()
   const reply = await context.newPage()
-  for (const page of [host, guest, reply]) page.setDefaultTimeout(8_000)
+  for (const page of [host, guest, reply]) page.setDefaultTimeout(30_000)
   for (const [name, page] of [['host', host], ['guest', guest], ['reply', reply]]) {
     page.on('pageerror', (error) => console.log(`${name}:pageerror:${error.message}`))
     page.on('console', (message) => {

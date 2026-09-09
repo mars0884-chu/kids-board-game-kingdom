@@ -256,6 +256,7 @@ interface WebRtcPeerReadyMessage {
   readonly protocol: 'kids-board-game-webrtc-ready'
   readonly sessionId: string
   readonly role: 'host' | 'guest'
+  readonly kind: 'ready' | 'ack'
 }
 
 export function waitForWebRtcPeerReady(
@@ -276,6 +277,8 @@ export function waitForWebRtcPeerReady(
     let settled = false
     let timeout = 0
     let retryTimer = 0
+    let remoteReadyReceived = false
+    let remoteAckReceived = false
     const cleanup = () => {
       window.clearTimeout(timeout)
       window.clearInterval(retryTimer)
@@ -290,6 +293,36 @@ export function waitForWebRtcPeerReady(
       cleanup()
       if (error) reject(error)
       else resolve()
+    }
+    const maybeFinish = () => {
+      if (remoteReadyReceived && remoteAckReceived) finish()
+    }
+    const sendReadyAndAck = () => {
+      if (settled) return
+      if (channel.readyState !== 'open') {
+        finish(new Error('資料通道尚未開啟。'))
+        return
+      }
+      const readyMessage: WebRtcPeerReadyMessage = {
+        protocol: 'kids-board-game-webrtc-ready',
+        sessionId,
+        role,
+        kind: 'ready',
+      }
+      try {
+        channel.send(JSON.stringify(readyMessage))
+        if (remoteReadyReceived) {
+          const ackMessage: WebRtcPeerReadyMessage = {
+            protocol: 'kids-board-game-webrtc-ready',
+            sessionId,
+            role,
+            kind: 'ack',
+          }
+          channel.send(JSON.stringify(ackMessage))
+        }
+      } catch (error) {
+        finish(error instanceof Error ? error : new Error('無法送出連線確認。'))
+      }
     }
     const handleMessage = (event: MessageEvent<unknown>) => {
       if (typeof event.data !== 'string') return
@@ -306,7 +339,13 @@ export function waitForWebRtcPeerReady(
         || message.sessionId !== sessionId
         || message.role !== remoteRole
       ) return
-      finish()
+      if (message.kind === 'ready') {
+        remoteReadyReceived = true
+        sendReadyAndAck()
+      } else if (message.kind === 'ack') {
+        remoteAckReceived = true
+      }
+      maybeFinish()
     }
     const handleClose = () => finish(new Error('另一台裝置尚未完成連線。'))
     const handleConnectionFailure = () => {
@@ -319,30 +358,12 @@ export function waitForWebRtcPeerReady(
     channel.addEventListener('close', handleClose)
     connection?.addEventListener('connectionstatechange', handleConnectionFailure)
     connection?.addEventListener('iceconnectionstatechange', handleConnectionFailure)
-    const readyMessage: WebRtcPeerReadyMessage = {
-      protocol: 'kids-board-game-webrtc-ready',
-      sessionId,
-      role,
-    }
-    const sendReady = () => {
-      if (settled) return
-      if (channel.readyState !== 'open') {
-        finish(new Error('資料通道尚未開啟。'))
-        return
-      }
-      try {
-        channel.send(JSON.stringify(readyMessage))
-      } catch (error) {
-        finish(error instanceof Error ? error : new Error('無法送出連線確認。'))
-      }
-    }
     // Safari 等瀏覽器的分頁事件時序可能讓第一個訊息早於對方監聽器建立；
-    // 在等待期間重送同一個冪等確認，收到對方確認後由 cleanup 停止計時器。
-    retryTimer = window.setInterval(sendReady, WEBRTC_PEER_READY_RETRY_MS)
-    sendReady()
+    // 在等待期間重送同一個冪等確認，收到雙方確認後由 cleanup 停止計時器。
+    retryTimer = window.setInterval(sendReadyAndAck, WEBRTC_PEER_READY_RETRY_MS)
+    sendReadyAndAck()
   })
 }
-
 interface AnswerRelayMessage {
   readonly protocol: 'kids-board-game-webrtc-answer'
   readonly sessionId: string

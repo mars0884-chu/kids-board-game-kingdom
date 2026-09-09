@@ -123,6 +123,7 @@ describe('WebRTC 手動連線資料', () => {
         protocol: 'kids-board-game-webrtc-ready',
         sessionId: offer.sessionId,
         role: 'host',
+        kind: 'ready',
       }),
     ])
 
@@ -135,6 +136,7 @@ describe('WebRTC 手動連線資料', () => {
         protocol: 'kids-board-game-webrtc-ready',
         sessionId: offer.sessionId,
         role: 'host',
+        kind: 'ready',
       }),
     }))
     await Promise.resolve()
@@ -145,12 +147,23 @@ describe('WebRTC 手動連線資料', () => {
         protocol: 'kids-board-game-webrtc-ready',
         sessionId: offer.sessionId,
         role: 'guest',
+        kind: 'ready',
+      }),
+    }))
+    await Promise.resolve()
+    expect(completed).toBe(false)
+
+    channel.dispatchEvent(new MessageEvent('message', {
+      data: JSON.stringify({
+        protocol: 'kids-board-game-webrtc-ready',
+        sessionId: offer.sessionId,
+        role: 'guest',
+        kind: 'ack',
       }),
     }))
 
     await expect(ready).resolves.toBeUndefined()
   })
-
   it('對方尚未掛上監聽器時會重送就緒訊息', async () => {
     vi.useFakeTimers()
     try {
@@ -166,9 +179,18 @@ describe('WebRTC 手動連線資料', () => {
           protocol: 'kids-board-game-webrtc-ready',
           sessionId: offer.sessionId,
           role: 'guest',
+          kind: 'ready',
         }),
       }))
 
+      channel.dispatchEvent(new MessageEvent('message', {
+        data: JSON.stringify({
+          protocol: 'kids-board-game-webrtc-ready',
+          sessionId: offer.sessionId,
+          role: 'guest',
+          kind: 'ack',
+        }),
+      }))
       await expect(ready).resolves.toBeUndefined()
     } finally {
       vi.useRealTimers()
