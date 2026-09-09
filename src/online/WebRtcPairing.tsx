@@ -11,6 +11,7 @@ import {
   createWebRtcOffer,
   createWebRtcSessionId,
   createWebRtcSignalLink,
+  hasWebRtcSignalParameter,
   publishWebRtcAnswerToHost,
   readWebRtcSignal,
   subscribeWebRtcAnswer,
@@ -28,6 +29,7 @@ interface WebRtcPairingProps {
 
 type PairingStatus =
   | 'unsupported'
+  | 'invalid-link'
   | 'preparing-offer'
   | 'waiting-for-answer'
   | 'preparing-reply'
@@ -40,6 +42,7 @@ type PairingStatus =
 function statusEntry(status: PairingStatus): string {
   switch (status) {
     case 'unsupported': return 'online.unsupported'
+    case 'invalid-link': return 'online.invalid_link'
     case 'preparing-offer': return 'online.preparing_offer'
     case 'waiting-for-answer': return 'online.waiting_for_answer'
     case 'preparing-reply': return 'online.preparing_reply'
@@ -71,7 +74,12 @@ async function shareOrCopyLink(link: string, title: string, fallbackMessage: str
 
 export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
   const signal = useMemo(() => readWebRtcSignal(), [])
-  const [status, setStatus] = useState<PairingStatus>(() => !canUseWebRtc() ? 'unsupported' : signal?.kind === 'answer' ? 'reply-ready' : signal?.kind === 'offer' ? 'preparing-reply' : 'preparing-offer')
+  const hasSignalParameter = useMemo(() => hasWebRtcSignalParameter(), [])
+  const [status, setStatus] = useState<PairingStatus>(() => {
+    if (!canUseWebRtc()) return 'unsupported'
+    if (hasSignalParameter && signal === null) return 'invalid-link'
+    return signal?.kind === 'answer' ? 'reply-ready' : signal?.kind === 'offer' ? 'preparing-reply' : 'preparing-offer'
+  })
   const [link, setLink] = useState('')
   const [randomMode, setRandomMode] = useState(false)
   const [message, setMessage] = useState('')
@@ -83,7 +91,7 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
   const replyPublishedRef = useRef(false)
 
   useEffect(() => {
-    if (!canUseWebRtc() || signal?.kind === 'answer' || randomMode) return
+    if (!canUseWebRtc() || signal?.kind === 'answer' || (hasSignalParameter && signal === null) || randomMode) return
     let active = true
 
     const prepare = async () => {
@@ -159,7 +167,7 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
         channelRef.current?.close()
       }
     }
-  }, [onConnected, randomMode, signal])
+  }, [hasSignalParameter, onConnected, randomMode, signal])
 
   useEffect(() => {
     if (!canUseWebRtc() || signal !== null || randomMode || status === 'unsupported') return
@@ -242,7 +250,7 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
     }
   }
 
-  const isOffer = signal?.kind !== 'answer'
+  const isOffer = !hasSignalParameter && signal?.kind !== 'answer'
   if (randomMode) {
     return <FirebaseRandomPairing onBack={() => setRandomMode(false)} onConnected={onConnected} />
   }
@@ -265,10 +273,12 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
         <BopomofoText id="webrtc-pairing-title" className="webrtc-pairing__subtitle" entry={getChildText(title)} />
         <BopomofoText className="webrtc-pairing__description" entry={getChildText(description)} />
 
-        {status === 'error' ? (
-          <BopomofoText className="webrtc-pairing__error" entry={getChildText('online.error_detail')} />
+        {status === 'error' || status === 'invalid-link' ? (
+          <BopomofoText
+            className="webrtc-pairing__error"
+            entry={getChildText(status === 'invalid-link' ? 'online.invalid_link_detail' : 'online.error_detail')}
+          />
         ) : null}
-
         {link !== '' && (status === 'waiting-for-answer' || status === 'reply-ready') ? (
           <div className="webrtc-pairing__link-box">
             <label htmlFor="webrtc-pairing-link">
@@ -293,7 +303,7 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
         </div>
 
         <div className="webrtc-pairing__tools">
-        {signal === null ? (
+        {signal === null && !hasSignalParameter ? (
           <ChildActionButton entry={getChildText('online.random_match')} icon="target" tone="secondary" onClick={handleRandomPairing} />
         ) : null}
           <ToolButton entry={getChildText('common.back')} icon="back" onClick={onBack} />

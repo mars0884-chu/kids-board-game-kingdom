@@ -3062,6 +3062,13 @@
     "audience": "child"
   },
   {
+    "id": "online.invalid_link",
+    "text_zh_tw": "連線連結無效",
+    "segments": [{ "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "線", "bopomofo": "ㄒㄧㄢˋ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "結", "bopomofo": "ㄐㄧㄝˊ" }, { "text": "無", "bopomofo": "ㄨˊ" }, { "text": "效", "bopomofo": "ㄒㄧㄠˋ" }],
+    "speech_zh_tw": "連線連結無效",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },  {
     "id": "online.preparing_offer",
     "text_zh_tw": "正在準備邀請連結",
     "segments": [{ "text": "正", "bopomofo": "ㄓㄥˋ" }, { "text": "在", "bopomofo": "ㄗㄞˋ" }, { "text": "準", "bopomofo": "ㄓㄨㄣˇ" }, { "text": "備", "bopomofo": "ㄅㄟˋ" }, { "text": "邀", "bopomofo": "ㄧㄠ" }, { "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "結", "bopomofo": "ㄐㄧㄝˊ" }],
@@ -3070,6 +3077,13 @@
     "audience": "child"
   },
   {
+    "id": "online.invalid_link_detail",
+    "text_zh_tw": "請重新開啟完整連結",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "重", "bopomofo": "ㄔㄨㄥˊ" }, { "text": "新", "bopomofo": "ㄒㄧㄣ" }, { "text": "開", "bopomofo": "ㄎㄞ" }, { "text": "啟", "bopomofo": "ㄑㄧˇ" }, { "text": "完", "bopomofo": "ㄨㄢˊ" }, { "text": "整", "bopomofo": "ㄓㄥˇ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "結", "bopomofo": "ㄐㄧㄝˊ" }],
+    "speech_zh_tw": "請重新開啟完整連結",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },  {
     "id": "online.waiting_for_answer",
     "text_zh_tw": "請等甲回覆連結",
     "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "等", "bopomofo": "ㄉㄥˇ" }, { "text": "甲", "bopomofo": "ㄐㄧㄚˇ" }, { "text": "回", "bopomofo": "ㄏㄨㄟˊ" }, { "text": "覆", "bopomofo": "ㄈㄨˋ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "結", "bopomofo": "ㄐㄧㄝˊ" }],

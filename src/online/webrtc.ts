@@ -111,6 +111,10 @@ export function createWebRtcSignalLink(signal: WebRtcSignal, location: Location 
   return url.toString()
 }
 
+export function hasWebRtcSignalParameter(location: Location = window.location): boolean {
+  return new URL(location.href).searchParams.has(WEBRTC_SIGNAL_QUERY)
+}
+
 export function readWebRtcSignal(location: Location = window.location): WebRtcSignal | null {
   const value = new URL(location.href).searchParams.get(WEBRTC_SIGNAL_QUERY)
   return value === null ? null : decodeWebRtcSignal(value)

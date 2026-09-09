@@ -11,6 +11,7 @@ import {
   createWebRtcSignalLink,
   decodeWebRtcSignal,
   encodeWebRtcSignal,
+  hasWebRtcSignalParameter,
   publishWebRtcAnswerToHost,
   readWebRtcSignal,
   waitForWebRtcChannel,
@@ -72,6 +73,14 @@ describe('WebRTC 手動連線資料', () => {
     expect(readWebRtcSignal(parsedLocation)).toEqual(offer)
   })
 
+  it('區分缺少連線參數與無效連線參數', () => {
+    const baseLocation = new URL('https://example.test/game') as unknown as Location
+    const invalidLocation = new URL('https://example.test/game?webrtc=broken') as unknown as Location
+
+    expect(hasWebRtcSignalParameter(baseLocation)).toBe(false)
+    expect(hasWebRtcSignalParameter(invalidLocation)).toBe(true)
+    expect(readWebRtcSignal(invalidLocation)).toBeNull()
+  })
   it('只使用公開 STUN 探索候選，不設定 TURN 中繼', () => {
     expect(WEBRTC_ICE_SERVERS).toEqual([{ urls: 'stun:stun.l.google.com:19302' }])
   })
@@ -197,6 +206,15 @@ describe('WebRTC 手動連線資料', () => {
     }
   })
 
+  it('無效連線網址不會被誤認為新的甲端', () => {
+    Object.defineProperty(window, 'RTCPeerConnection', { configurable: true, value: vi.fn() })
+    window.history.replaceState({}, '', '/?webrtc=broken')
+
+    render(<WebRtcPairing onBack={vi.fn()} onConnected={vi.fn()} />)
+
+    expect(screen.getByRole('status').querySelector('.bopomofo-text')).toHaveAttribute('aria-label', '連線連結無效')
+    expect(screen.queryByRole('button', { name: '隨機配對' })).not.toBeInTheDocument()
+  })
   it('瀏覽器不支援直連時顯示清楚的兒童提示', () => {
     render(<WebRtcPairing onBack={vi.fn()} onConnected={vi.fn()} />)
     expect(screen.getByRole('heading', { name: '兩台裝置連線' })).toBeInTheDocument()
