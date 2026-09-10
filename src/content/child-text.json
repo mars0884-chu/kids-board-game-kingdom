@@ -3307,6 +3307,14 @@
     "audience": "child"
   },
   {
+    "id": "online.restart_connection",
+    "text_zh_tw": "重新開始連線",
+    "segments": [{ "text": "重", "bopomofo": "ㄔㄨㄥˊ" }, { "text": "新", "bopomofo": "ㄒㄧㄣ" }, { "text": "開", "bopomofo": "ㄎㄞ" }, { "text": "始", "bopomofo": "ㄕˇ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "線", "bopomofo": "ㄒㄧㄢˋ" }],
+    "speech_zh_tw": "重新開始連線",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
     "id": "online.share_cancel",
     "text_zh_tw": "分享連結",
     "segments": [{ "text": "分", "bopomofo": "ㄈㄣ" }, { "text": "享", "bopomofo": "ㄒㄧㄤˇ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "結", "bopomofo": "ㄐㄧㄝˊ" }],

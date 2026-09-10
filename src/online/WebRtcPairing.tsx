@@ -285,10 +285,15 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
         <BopomofoText className="webrtc-pairing__description" entry={getChildText(description)} />
 
         {status === 'error' || status === 'invalid-link' ? (
-          <BopomofoText
-            className="webrtc-pairing__error"
-            entry={getChildText(status === 'invalid-link' ? 'online.invalid_link_detail' : 'online.error_detail')}
-          />
+          <>
+            <BopomofoText
+              className="webrtc-pairing__error"
+              entry={getChildText(status === 'invalid-link' ? 'online.invalid_link_detail' : 'online.error_detail')}
+            />
+            {status === 'error' ? (
+              <ChildActionButton entry={getChildText('online.restart_connection')} icon="retry" tone="secondary" onClick={onBack} />
+            ) : null}
+          </>
         ) : null}
         {link !== '' && (status === 'waiting-for-answer' || status === 'reply-ready') ? (
           <div className="webrtc-pairing__link-box">

@@ -10,6 +10,7 @@ const workspaceDirectory = resolve(scriptDirectory, '..')
 const releasesDirectory = join(workspaceDirectory, 'releases')
 const supportedVersions = new Set(['v0.3.13', 'v0.3.14', 'v0.3.15', 'v0.3.16', 'v0.3.17', 'v0.3.18', 'v0.3.19', 'v0.3.20', 'v0.3.21', 'v0.3.22', 'v0.3.23', 'v0.3.24', 'v0.3.25', 'v0.3.26', 'v0.3.27', 'v0.3.28', 'v0.3.29', 'v0.4.0', 'v0.4.1', 'v0.4.2', 'v0.4.3', 'v0.4.4', 'v0.4.5', 'v0.4.6', 'v0.4.7', 'v0.4.8', 'v0.4.9', 'v0.4.10', 'v0.4.11', 'v0.4.12', 'v0.4.13', 'v0.4.14', 'v0.4.15', 'v0.4.16', 'v0.4.17', 'v0.4.18', 'v0.4.19', 'v0.4.20', 'v0.4.21', 'v0.4.22', 'v0.4.23', 'v0.5.2', 'v0.5.3', 'v0.5.4', 'v0.5.5', 'v0.6.1', 'v0.6.2', 'v0.6.3', 'v0.6.4', 'v0.6.5', 'v0.6.6', 'v0.6.7', 'v0.7.0', 'v0.7.1', 'v0.7.2', 'v0.7.3', 'v0.9.0', 'v0.9.1', 'v0.9.2', 'v0.9.3', 'v0.9.4', 'v0.9.5', 'v0.9.6', 'v0.9.7'])
 supportedVersions.add('v0.9.8')
+supportedVersions.add('v0.10.2')
 let activeNpmCacheDirectory = null
 const configuredNpmCacheDirectory = process.env.ARCHIVE_NPM_CACHE ?? null
 const skipArchiveRebuild = process.env.ARCHIVE_SKIP_REBUILD === '1'
@@ -600,7 +601,33 @@ async function prepareV0313(stageDirectory) {
 }
 
 function releaseNotes(version) {
-  if (version === 'v0.9.8') {
+  if (version === 'v0.10.2') {
+    return `# v0.10.2 WebRTC 失敗後重新開始連線修訂版
+
+完整驗證 ZIP：releases/kids-board-game-kingdom-v0.10.2.zip
+SHA-256：以同名 .sha256 檔案為準；封包內 MANIFEST.sha256 記錄內容雜湊。
+
+## 本次修正
+
+- WebRTC 明確失敗頁除了失敗說明外，新增「重新開始連線」按鍵；按下後返回既有連線入口，玩家可重新建立邀請，不必停在失敗頁。
+- 保留熟人私人邀請流程，不把 Firebase 隨機配對混入熟人 WebRTC。
+- 不新增 TURN、Cloudflare、付費服務、帳號、聊天、姓名、位置或兒童個資；公開 STUN 與零費用邊界不變。
+- Firebase 匿名隨機配對仍是獨立工作，等待 Firebase 專案規則與 GitHub Pages Variables 的外部設定，不宣稱本版已完成陌生人配對。
+
+## Machine Gate
+
+- npm.cmd run check：36 個測試檔／197 項測試全部通過。
+- WebRTC 專項 src/online/webrtc.test.tsx：15/15 通過。
+- npm.cmd run build：內容、注音、型別、Vite 與 PWA 建置通過。
+- npm.cmd run verify:jump-chess-webrtc：甲建立邀請、乙開啟、乙一鍵回覆、甲開啟回覆、雙方自動連線與棋步同步通過。
+- 既有 v0.10.1 及更早正式封存不修改。
+
+## 外部限制
+
+- STUN-only WebRTC 不保證兩支電信商網路在 CGNAT／嚴格 NAT 下直連；失敗時本版提供明確重新開始入口，但不宣稱所有行動網路都能成功。
+- Firebase Realtime Database 規則、匿名配對公開設定與 GitHub Pages Variables 仍需外部主控台完成後，才能進行陌生人配對實機驗證。
+`
+  }  if (version === 'v0.9.8') {
     return `# v0.9.8 跳棋 WebRTC 斷線操作鎖定修訂版（等待製作人實體裝置 Gate）
 
 完整驗證 ZIP：releases/kids-board-game-kingdom-v0.9.8.zip
