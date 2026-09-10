@@ -11,6 +11,7 @@ const releasesDirectory = join(workspaceDirectory, 'releases')
 const supportedVersions = new Set(['v0.3.13', 'v0.3.14', 'v0.3.15', 'v0.3.16', 'v0.3.17', 'v0.3.18', 'v0.3.19', 'v0.3.20', 'v0.3.21', 'v0.3.22', 'v0.3.23', 'v0.3.24', 'v0.3.25', 'v0.3.26', 'v0.3.27', 'v0.3.28', 'v0.3.29', 'v0.4.0', 'v0.4.1', 'v0.4.2', 'v0.4.3', 'v0.4.4', 'v0.4.5', 'v0.4.6', 'v0.4.7', 'v0.4.8', 'v0.4.9', 'v0.4.10', 'v0.4.11', 'v0.4.12', 'v0.4.13', 'v0.4.14', 'v0.4.15', 'v0.4.16', 'v0.4.17', 'v0.4.18', 'v0.4.19', 'v0.4.20', 'v0.4.21', 'v0.4.22', 'v0.4.23', 'v0.5.2', 'v0.5.3', 'v0.5.4', 'v0.5.5', 'v0.6.1', 'v0.6.2', 'v0.6.3', 'v0.6.4', 'v0.6.5', 'v0.6.6', 'v0.6.7', 'v0.7.0', 'v0.7.1', 'v0.7.2', 'v0.7.3', 'v0.9.0', 'v0.9.1', 'v0.9.2', 'v0.9.3', 'v0.9.4', 'v0.9.5', 'v0.9.6', 'v0.9.7'])
 supportedVersions.add('v0.9.8')
 supportedVersions.add('v0.10.2')
+supportedVersions.add('v0.10.3')
 let activeNpmCacheDirectory = null
 const configuredNpmCacheDirectory = process.env.ARCHIVE_NPM_CACHE ?? null
 const skipArchiveRebuild = process.env.ARCHIVE_SKIP_REBUILD === '1'
@@ -601,7 +602,34 @@ async function prepareV0313(stageDirectory) {
 }
 
 function releaseNotes(version) {
-  if (version === 'v0.10.2') {
+  if (version === 'v0.10.3') {
+    return `# v0.10.3 響應式連線頁驗證流程修訂版
+
+完整驗證 ZIP：releases/kids-board-game-kingdom-v0.10.3.zip
+SHA-256：以同名 .sha256 檔案為準；封包內 MANIFEST.sha256 記錄內容雜湊。
+
+## 本次修正
+
+- 版面驗證腳本改用現行「建立邀請連結」流程，不再等待已移除的自動建立邀請狀態。
+- 版面驗證從逐字注音 DOM 的漢字節點讀取按鍵名稱，正確驗證分享、複製與返回按鍵。
+- 六種正式尺寸與 iPhone 直向／橫向回歸均確認頁面、按鍵與注音不溢位。
+- 不改熟人 WebRTC 連線行為，不新增 TURN、Cloudflare、付費服務、帳號、聊天、姓名、位置或兒童個資；Firebase 隨機配對仍是獨立外部設定工作。
+
+## Machine Gate
+
+- npm.cmd run check：36 個測試檔／197 項測試全部通過。
+- WebRTC 專項 src/online/webrtc.test.tsx：15/15 通過。
+- npm.cmd run build：內容、注音、型別、Vite 與 PWA 建置通過。
+- npm.cmd run verify:jump-chess-webrtc：甲建立邀請、乙開啟、乙一鍵回覆、甲開啟回覆、雙方自動連線與棋步同步通過。
+- npm.cmd run verify:jump-chess-online-layout：390×844、844×390、768×1024、1024×768、430×932、932×430 全部通過。
+- 既有 v0.10.2 及更早正式封存不修改。
+
+## 外部限制
+
+- STUN-only WebRTC 不保證兩支電信商網路在 CGNAT／嚴格 NAT 下直連；本版只改善失敗後操作與驗證可靠性，不宣稱所有行動網路都能成功。
+- Firebase Realtime Database 規則、匿名配對公開設定與 GitHub Pages Variables 仍需外部主控台完成後，才能進行陌生人配對實機驗證。
+`
+  }  if (version === 'v0.10.2') {
     return `# v0.10.2 WebRTC 失敗後重新開始連線修訂版
 
 完整驗證 ZIP：releases/kids-board-game-kingdom-v0.10.2.zip

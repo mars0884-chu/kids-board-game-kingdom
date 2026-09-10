@@ -22,6 +22,7 @@ function assert(condition, message) {
 async function inspectViewport(page, viewport) {
   await page.setViewportSize({ width: viewport.width, height: viewport.height })
   await page.goto(`${baseUrl}?preview=jump-chess-online`, { waitUntil: 'domcontentloaded' })
+  await page.getByRole('button', { name: '建立邀請連結' }).click()
   await page.waitForSelector('#webrtc-pairing-link')
 
   const metrics = await page.evaluate(() => {
@@ -45,7 +46,7 @@ async function inspectViewport(page, viewport) {
         const buttonStyle = getComputedStyle(button)
         const labelStyle = label ? getComputedStyle(label) : null
         return {
-          name: button.getAttribute('aria-label') ?? button.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+          name: button.getAttribute('aria-label') ?? (Array.from(button.querySelectorAll('.bopomofo-pair__hanzi')).map((element) => element.textContent ?? '').join('') || (button.textContent?.replace(/\s+/g, ' ').trim() ?? '')) ,
           rect: rect(button),
           clientWidth: button.clientWidth,
           scrollWidth: button.scrollWidth,
@@ -65,8 +66,9 @@ async function inspectViewport(page, viewport) {
   assert(metrics.document.scrollHeight <= viewport.height, `${viewport.name} 發生垂直溢出：${metrics.document.scrollHeight}px。`)
   assert(metrics.root?.left >= -1 && metrics.root?.right <= viewport.width + 1, `${viewport.name} 連線頁超出左右安全邊界。`)
   assert(metrics.card?.left >= -1 && metrics.card?.right <= viewport.width + 1, `${viewport.name} 連線卡片超出左右安全邊界。`)
-  assert(metrics.buttons.length === 4, `${viewport.name} 按鍵數量異常，預期分享、複製、隨機配對、返回共 4 個。`)
-  assert(metrics.buttons.some((button) => button.name.includes('隨') && button.name.includes('配')), `${viewport.name} 缺少「隨機配對」按鍵。`)
+  assert(metrics.buttons.length === 3, `${viewport.name} 按鍵數量異常，建立邀請後預期分享、複製、返回共 3 個。`)
+  assert(metrics.buttons.some((button) => button.name.includes('分享')), `${viewport.name} 缺少「分享連結」按鍵。`)
+  assert(metrics.buttons.some((button) => button.name.includes('複製')), `${viewport.name} 缺少「複製連結」按鍵。`)
   assert(!metrics.hasPauseVoiceButton, `${viewport.name} 不應顯示「暫停語音」按鍵。`)
 
   for (const button of metrics.buttons) {
