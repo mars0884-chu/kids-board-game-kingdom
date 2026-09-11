@@ -94,7 +94,7 @@ async function main() {
   })
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
   const page = await context.newPage()
-  page.setDefaultTimeout(8_000)
+  page.setDefaultTimeout(30_000)
 
   try {
     const results = []

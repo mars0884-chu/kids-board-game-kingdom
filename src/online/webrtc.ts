@@ -34,6 +34,8 @@ export const WEBRTC_CHANNEL_NAME = 'kids-board-game-webrtc'
 export const WEBRTC_ICE_SERVERS: RTCIceServer[] = [{ urls: 'stun:stun.l.google.com:19302' }]
 export const WEBRTC_ICE_GATHERING_TIMEOUT_MS = 15_000
 export const WEBRTC_CONNECTION_TIMEOUT_MS = 5 * 60 * 1000
+// 回覆已套用後，這段只等待實際的資料通道建立；不包含乙把回覆連結交回甲的時間。
+export const WEBRTC_ESTABLISHMENT_TIMEOUT_MS = 45_000
 export const WEBRTC_PEER_READY_TIMEOUT_MS = WEBRTC_CONNECTION_TIMEOUT_MS
 export const WEBRTC_PEER_READY_RETRY_MS = 250
 const SIGNAL_PREFIX = 'kids-board-game-webrtc-answer:'

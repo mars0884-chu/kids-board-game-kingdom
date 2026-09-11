@@ -15,6 +15,7 @@ import {
   publishWebRtcAnswerToHost,
   readWebRtcSignal,
   subscribeWebRtcAnswer,
+  WEBRTC_ESTABLISHMENT_TIMEOUT_MS,
   waitForWebRtcChannel,
   waitForWebRtcPeerReady,
   type WebRtcPeerSession,
@@ -190,7 +191,8 @@ export function WebRtcPairing({ onBack, onConnected }: WebRtcPairingProps) {
         .then(async () => {
           const channel = channelRef.current
           if (channel === null) throw new Error('找不到甲的資料通道。')
-          await waitForWebRtcChannel(channel, undefined, connection)
+          // 甲已經套用乙的回覆；此後只等待直連建立，不再保留交回連結的五分鐘寬限。
+          await waitForWebRtcChannel(channel, WEBRTC_ESTABLISHMENT_TIMEOUT_MS, connection)
           if (!active) return
           setStatus('waiting-for-peer')
           await waitForWebRtcPeerReady(channel, sessionId, 'host', undefined, connection)

@@ -3116,9 +3116,9 @@
     "audience": "child"
   },  {
     "id": "online.waiting_for_answer",
-    "text_zh_tw": "請等甲回覆連結",
-    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "等", "bopomofo": "ㄉㄥˇ" }, { "text": "甲", "bopomofo": "ㄐㄧㄚˇ" }, { "text": "回", "bopomofo": "ㄏㄨㄟˊ" }, { "text": "覆", "bopomofo": "ㄈㄨˋ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "結", "bopomofo": "ㄐㄧㄝˊ" }],
-    "speech_zh_tw": "請等甲回覆連結",
+    "text_zh_tw": "請等乙回覆連結",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "等", "bopomofo": "ㄉㄥˇ" }, { "text": "乙", "bopomofo": "ㄧˇ" }, { "text": "回", "bopomofo": "ㄏㄨㄟˊ" }, { "text": "覆", "bopomofo": "ㄈㄨˋ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "結", "bopomofo": "ㄐㄧㄝˊ" }],
+    "speech_zh_tw": "請等乙回覆連結",
     "audio_asset": "tts:zh-TW",
     "audience": "child"
   },

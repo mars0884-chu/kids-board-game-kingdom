@@ -3,7 +3,9 @@
 > 文件編號：`P09-ONLINE-r13`
 > 對應規劃：`v0.10.0`
 > 目前狀態：`BLOCKED`（等待 Firebase 試驗專案與 Pages Variables 設定）
-> 更新日期：2026-09-07
+> 更新日期：2026-09-11
+
+v0.10.4 實作修訂：甲端套用乙的回覆後，資料通道建立等待採 45 秒專用逾時；手動交換回覆連結前仍保留原本 5 分鐘寬限。失敗頁提供重新開始連線，並修正甲端等待文案的角色標示。此修訂不新增 TURN、Cloudflare、後端、帳號或兒童個資；雙電信網路在 CGNAT／嚴格 NAT 下仍不保證 STUN-only 直連。v0.10.4 完整封存 ZIP 為 `releases/kids-board-game-kingdom-v0.10.4.zip`，SHA-256：`B264C96A5CAD1D6D4FF6078091898DDE12A79E0EEF19ABEFB9394B2755CD9FB0`。
 
 ## 1. 製作人已確認的方向
 
@@ -149,3 +151,4 @@ npm.cmd run verify:jump-chess-online-layout
 - [MDN：Web Share API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Share_API)
 - [Firebase Pricing](https://firebase.google.com/pricing)
 - [Firebase Realtime Database Security Rules](https://firebase.google.com/docs/database/security)
+

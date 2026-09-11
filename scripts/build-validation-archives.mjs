@@ -12,6 +12,7 @@ const supportedVersions = new Set(['v0.3.13', 'v0.3.14', 'v0.3.15', 'v0.3.16', '
 supportedVersions.add('v0.9.8')
 supportedVersions.add('v0.10.2')
 supportedVersions.add('v0.10.3')
+supportedVersions.add('v0.10.4')
 let activeNpmCacheDirectory = null
 const configuredNpmCacheDirectory = process.env.ARCHIVE_NPM_CACHE ?? null
 const skipArchiveRebuild = process.env.ARCHIVE_SKIP_REBUILD === '1'
@@ -602,6 +603,35 @@ async function prepareV0313(stageDirectory) {
 }
 
 function releaseNotes(version) {
+  if (version === 'v0.10.4') {
+    return `# v0.10.4 WebRTC 直連失敗回報與角色文案修訂版
+
+完整驗證 ZIP：releases/kids-board-game-kingdom-v0.10.4.zip
+SHA-256：以同名 .sha256 檔案為準；封包內 MANIFEST.sha256 記錄內容雜湊。
+
+## 本次修正
+
+- 甲端套用乙的回覆後，資料通道建立等待改用 45 秒專用逾時；未能直連時會明確顯示失敗並可重新建立邀請，不再讓甲端長時間停在等待狀態。
+- 修正甲端等待文案誤寫為「請等甲回覆連結」的角色錯誤，改為「請等乙回覆連結」。
+- 連線流程仍維持甲分享、乙一鍵回覆、甲開啟回覆；不新增後端、TURN、Cloudflare、付費服務、帳號、聊天、姓名、位置或兒童個資。
+- 六尺寸連線頁驗證等待上限調整為 30 秒，涵蓋產品 15 秒 ICE 收集上限，避免本機環境誤報。
+
+## Machine Gate
+
+- npm.cmd run check：36 個測試檔／197 項測試全部通過。
+- WebRTC 專項 src/online/webrtc.test.tsx：15/15 通過。
+- npm.cmd run build：內容、注音、型別、Vite 與 PWA 建置通過。
+- npm.cmd run verify:jump-chess-webrtc：甲建立邀請、乙開啟、乙一鍵回覆、甲開啟回覆、雙方自動連線與棋步同步通過。
+- npm.cmd run verify:jump-chess-online-layout：390×844、844×390、768×1024、1024×768、430×932、932×430 全部通過。
+- npm.cmd run verify:game-picker-layout：六種指定尺寸全部通過。
+- 既有 v0.10.2／v0.10.3 及更早正式封存不修改。
+
+## 外部限制
+
+- 熟人連線仍是 STUN-only WebRTC；兩支電信商網路若位於 CGNAT／嚴格 NAT，沒有 TURN 就不能保證建立直連。本版改善等待逾時與可恢復操作，但不宣稱所有行動網路都能成功。
+- Firebase 仍是獨立的匿名隨機配對信令試驗，不參與熟人私人連線，也不轉送棋步。
+`
+  }
   if (version === 'v0.10.3') {
     return `# v0.10.3 響應式連線頁驗證流程修訂版
 
