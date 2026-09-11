@@ -227,6 +227,13 @@ function signalPath(matchId: string, kind: 'offer' | 'answer'): string {
   return `pairing/matches/${matchId}/signals/${kind}`
 }
 
+// 同一對玩家可能在幾乎同一時間看到彼此。配對票號是隨機且唯一的，
+// 只讓排序較前的一端主動宣告甲，避免兩端同時建立兩個不同的 match，
+// 讓雙方都等待不存在的乙端回覆。
+export function shouldClaimPairingCandidate(ownTicketId: string, candidateTicketId: string): boolean {
+  return ownTicketId.localeCompare(candidateTicketId) < 0
+}
+
 async function publishSignal(database: Database, matchId: string, signal: WebRtcSignal): Promise<void> {
   await set(ref(database, signalPath(matchId, signal.kind)), signal)
 }
@@ -334,6 +341,7 @@ export async function joinFirebasePairing(
           || blockedUids.has(candidate.uid)
           || candidate.state !== 'waiting'
           || candidate.expiresAt <= Date.now()
+          || !shouldClaimPairingCandidate(ticketId, child.key)
           || claimedCandidates.has(child.key)
         ) return false
         claimedCandidates.add(child.key)
