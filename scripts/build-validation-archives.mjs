@@ -13,6 +13,7 @@ supportedVersions.add('v0.9.8')
 supportedVersions.add('v0.10.2')
 supportedVersions.add('v0.10.3')
 supportedVersions.add('v0.10.4')
+supportedVersions.add('v0.10.5')
 let activeNpmCacheDirectory = null
 const configuredNpmCacheDirectory = process.env.ARCHIVE_NPM_CACHE ?? null
 const skipArchiveRebuild = process.env.ARCHIVE_SKIP_REBUILD === '1'
@@ -603,6 +604,29 @@ async function prepareV0313(stageDirectory) {
 }
 
 function releaseNotes(version) {
+  if (version === 'v0.10.5') {
+    return `# v0.10.5 Firebase 匿名配對佇列規則修訂版
+
+完整驗證 ZIP：releases/kids-board-game-kingdom-v0.10.5.zip
+SHA-256：以同名 .sha256 檔案為準；封包內 MANIFEST.sha256 記錄內容雜湊。
+
+## 本次修正
+
+- Firebase Realtime Database 的 pairing/queue 新增已匿名登入玩家可讀取佇列的規則，讓客戶端能依建立時間查找陌生人配對候選。
+- 保留每張匿名票券的寫入者限制、逾時清理、檢舉資料不可讀，以及不收集姓名、位置、聊天或兒童個資。
+- 熟人私人邀請仍使用獨立的 STUN-only WebRTC；Firebase 不轉送熟人棋步，也不新增 TURN、Cloudflare、付費服務或棋局伺服器。
+
+## Machine Gate
+
+- Firebase 規則回歸測試：2/2 通過。
+- 既有內容、注音、型別與全部測試、建置、WebRTC 專項、六尺寸連線頁、棋種選擇版面均須通過。
+- 既有 v0.10.4 及更早正式封存不修改。
+
+## 外部設定
+
+- 套用規則後仍須在 Firebase 主控台啟用 Anonymous、建立 Realtime Database，並在 GitHub Actions Variables 填入七個 VITE_FIREBASE_* 值；公開 Pages 未帶入設定時會明確顯示隨機配對尚未設定。
+`
+  }
   if (version === 'v0.10.4') {
     return `# v0.10.4 WebRTC 直連失敗回報與角色文案修訂版
 

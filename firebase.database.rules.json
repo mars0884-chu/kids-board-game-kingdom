@@ -2,6 +2,7 @@
   "rules": {
     "pairing": {
       "queue": {
+        ".read": "auth != null",
         ".indexOn": ["createdAt"],
         "$ticketId": {
           ".read": "auth != null",

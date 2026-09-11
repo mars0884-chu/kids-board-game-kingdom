@@ -17,6 +17,7 @@
 2. 專案維持 Spark 免費方案，不連結 Cloud Billing。這是零費用試驗的必要保護；Firebase 服務與免費額度仍以官方目前公告為準。
 3. 在 Authentication → Sign-in method 啟用 Anonymous。
 4. 在 Realtime Database 建立資料庫，先選鎖定模式，再套用專案根目錄的 `firebase.database.rules.json`。
+   規則中的 pairing/queue 會允許已匿名登入玩家查詢短期匿名票券，這是客戶端尋找配對候選所需；不包含姓名、位置、聊天、棋局或兒童個資。
 5. 將 Web App 設定中的七個值填入本機 `.env.local`；可從 `.env.example` 複製欄位名稱。
 6. 在 GitHub 儲存庫的 Settings → Secrets and variables → Actions → Variables 新增同名的七個 `VITE_FIREBASE_*` Variables。Firebase Web config 不是私密金鑰，但仍只填入自己的試驗專案。
 7. 觸發 GitHub Actions 的 Pages workflow。若 Variables 尚未設定，公開網站仍可建置，但隨機配對會明確顯示「隨機配對尚未設定」，不會偷偷使用未設定服務。
