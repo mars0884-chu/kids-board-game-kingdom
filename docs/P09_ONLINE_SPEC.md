@@ -5,7 +5,7 @@
 > 目前狀態：`BLOCKED`（等待 Firebase 試驗專案與 Pages Variables 設定）
 > 更新日期：2026-09-11
 
-v0.10.4 實作修訂：甲端套用乙的回覆後，資料通道建立等待採 45 秒專用逾時；手動交換回覆連結前仍保留原本 5 分鐘寬限。失敗頁提供重新開始連線，並修正甲端等待文案的角色標示。此修訂不新增 TURN、Cloudflare、後端、帳號或兒童個資；雙電信網路在 CGNAT／嚴格 NAT 下仍不保證 STUN-only 直連。v0.10.4 完整封存 ZIP 為 `releases/kids-board-game-kingdom-v0.10.4.zip`，SHA-256：`B264C96A5CAD1D6D4FF6078091898DDE12A79E0EEF19ABEFB9394B2755CD9FB0`。 v0.10.5 另補上 Firebase `pairing/queue` 的匿名登入讀取規則與規則回歸測試；熟人 WebRTC 架構不變。
+v0.10.4 實作修訂：甲端套用乙的回覆後，資料通道建立等待採 45 秒專用逾時；手動交換回覆連結前仍保留原本 5 分鐘寬限。失敗頁提供重新開始連線，並修正甲端等待文案的角色標示。此修訂不新增 TURN、Cloudflare、後端、帳號或兒童個資；雙電信網路在 CGNAT／嚴格 NAT 下仍不保證 STUN-only 直連。v0.10.4 完整封存 ZIP 為 `releases/kids-board-game-kingdom-v0.10.4.zip`，SHA-256：`B264C96A5CAD1D6D4FF6078091898DDE12A79E0EEF19ABEFB9394B2755CD9FB0`。 v0.10.5 另補上 Firebase `pairing/queue` 的匿名登入讀取規則與規則回歸測試；v0.10.6 修正 `pairing/matches/$matchId` 尚未建立時乙端等待讀取被拒絕的規則；熟人 WebRTC 架構不變。
 
 ## 1. 製作人已確認的方向
 

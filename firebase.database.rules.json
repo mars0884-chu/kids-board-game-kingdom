@@ -28,7 +28,7 @@
       },
       "matches": {
         "$matchId": {
-          ".read": "auth != null && (data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid)",
+          ".read": "auth != null && (!data.exists() || data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid)",
           ".write": "auth != null && ((!data.exists() && newData.child('hostUid').val() == auth.uid) || (data.exists() && data.child('hostUid').val() == auth.uid && newData.child('hostUid').val() == data.child('hostUid').val() && newData.child('guestUid').val() == data.child('guestUid').val()) || (!newData.exists() && (data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid || data.child('expiresAt').val() < now)))",
           ".validate": "newData.hasChildren(['hostUid', 'guestUid', 'hostTicketId', 'guestTicketId', 'createdAt', 'expiresAt']) && newData.child('hostUid').isString() && newData.child('guestUid').isString() && newData.child('hostTicketId').isString() && newData.child('guestTicketId').isString() && newData.child('createdAt').isNumber() && newData.child('expiresAt').isNumber()",
           "signals": {

@@ -14,6 +14,7 @@ supportedVersions.add('v0.10.2')
 supportedVersions.add('v0.10.3')
 supportedVersions.add('v0.10.4')
 supportedVersions.add('v0.10.5')
+supportedVersions.add('v0.10.6')
 let activeNpmCacheDirectory = null
 const configuredNpmCacheDirectory = process.env.ARCHIVE_NPM_CACHE ?? null
 const skipArchiveRebuild = process.env.ARCHIVE_SKIP_REBUILD === '1'
@@ -604,6 +605,31 @@ async function prepareV0313(stageDirectory) {
 }
 
 function releaseNotes(version) {
+  if (version === 'v0.10.6') {
+    return `# v0.10.6 Firebase 匿名配對 match 等待讀取修正版
+
+完整驗證 ZIP：releases/kids-board-game-kingdom-v0.10.6.zip
+SHA-256：以同名 .sha256 檔案為準；封包內 MANIFEST.sha256 記錄內容雜湊。
+
+## 本次修正
+
+- Firebase Realtime Database 的 pairing/matches/$matchId 在資料尚未建立時允許已匿名登入玩家等待讀取；match 建立後仍只允許 hostUid 或 guestUid 讀取。
+- 修正乙端已看見配對成功、但甲端尚未建立 match 時，因讀取規則拒絕而持續等待的跨端競速。
+- 保留匿名票券、短期 match、逾時清理、檢舉不可讀，以及不收集姓名、位置、聊天或兒童個資。
+- 熟人私人邀請仍使用獨立的 STUN-only WebRTC；Firebase 不轉送熟人棋步，也不新增 TURN、Cloudflare、付費服務或棋局伺服器。
+
+## Machine Gate
+
+- Firebase 規則回歸測試：匿名登入、佇列讀寫、match 建立前讀取條件已完成驗證。
+- npm.cmd run check：37 個測試檔／199 個測試全部通過。
+- 既有內容、注音、型別、建置、WebRTC 專項、六尺寸連線頁與棋種選擇版面均須通過。
+- 既有 v0.10.5 及更早正式封存不修改。
+
+## 外部設定
+
+- Firebase 規則更新仍須在控制台發布；GitHub Pages 的七個 VITE_FIREBASE_* Variables 尚未完成前，公開 Pages 不宣稱陌生人配對已上線。
+`
+  }
   if (version === 'v0.10.5') {
     return `# v0.10.5 Firebase 匿名配對佇列規則修訂版
 
