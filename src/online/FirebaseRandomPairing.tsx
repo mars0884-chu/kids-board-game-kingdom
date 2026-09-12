@@ -25,7 +25,7 @@ interface FirebaseRandomPairingProps {
   readonly onConnected: (session: WebRtcPeerSession) => void
 }
 
-type RandomPairingStatus = 'consent' | 'preparing' | 'waiting' | 'matched' | 'unsupported' | 'unavailable' | 'timeout' | 'error'
+type RandomPairingStatus = 'consent' | 'preparing' | 'waiting' | 'matched' | 'unsupported' | 'unavailable' | 'timeout' | 'connection-failed' | 'error'
 
 function statusEntry(status: RandomPairingStatus): string {
   switch (status) {
@@ -36,12 +36,26 @@ function statusEntry(status: RandomPairingStatus): string {
     case 'unsupported': return 'online.unsupported'
     case 'unavailable': return 'online.random_unavailable'
     case 'timeout': return 'online.random_timeout'
+    case 'connection-failed': return 'online.random_connection_failed'
     case 'error': return 'online.random_error'
   }
 }
 
 function isTimeoutError(error: unknown): boolean {
   return error instanceof Error && error.message.includes('等待時間到了')
+}
+
+function isWebRtcConnectionError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  return [
+    '兩台裝置的網路連線失敗',
+    '兩台裝置尚未連線成功',
+    '連線在完成前中斷',
+    '資料通道已關閉',
+    '資料通道尚未開啟',
+    '另一台裝置尚未完成連線',
+    '等待另一台裝置完成連線逾時',
+  ].some((message) => error.message.includes(message))
 }
 
 export function FirebaseRandomPairing({ onBack, onConnected }: FirebaseRandomPairingProps) {
@@ -146,8 +160,9 @@ export function FirebaseRandomPairing({ onBack, onConnected }: FirebaseRandomPai
         })
       } catch (error) {
         if (!active) return
-        setStatus(isTimeoutError(error) ? 'timeout' : 'error')
-        setDetail('online.random_error_detail')
+        const connectionFailed = isWebRtcConnectionError(error)
+        setStatus(isTimeoutError(error) ? 'timeout' : connectionFailed ? 'connection-failed' : 'error')
+        setDetail(connectionFailed ? 'online.random_connection_failed_detail' : 'online.random_error_detail')
         channelRef.current?.close()
         connectionRef.current?.close()
         await pairingRef.current?.cancel().catch(() => undefined)
@@ -172,7 +187,7 @@ export function FirebaseRandomPairing({ onBack, onConnected }: FirebaseRandomPai
   }
 
   const statusText = getChildText(statusEntry(status))
-  const isTerminal = status === 'unsupported' || status === 'unavailable' || status === 'timeout' || status === 'error'
+  const isTerminal = status === 'unsupported' || status === 'unavailable' || status === 'timeout' || status === 'connection-failed' || status === 'error'
 
   return (
     <main className="webrtc-pairing">

@@ -3419,6 +3419,22 @@
     "audience": "child"
   },
   {
+    "id": "online.random_connection_failed",
+    "text_zh_tw": "兩台裝置沒有連上",
+    "segments": [{ "text": "兩", "bopomofo": "ㄌㄧㄤˇ" }, { "text": "台", "bopomofo": "ㄊㄞˊ" }, { "text": "裝", "bopomofo": "ㄓㄨㄤ" }, { "text": "置", "bopomofo": "ㄓˋ" }, { "text": "沒", "bopomofo": "ㄇㄟˊ" }, { "text": "有", "bopomofo": "ㄧㄡˇ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "上", "bopomofo": "ㄕㄤˋ" }],
+    "speech_zh_tw": "兩台裝置沒有連上",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "online.random_connection_failed_detail",
+    "text_zh_tw": "已找到玩家，但兩台裝置連線沒有成功，請再試一次",
+    "segments": [{ "text": "已", "bopomofo": "ㄧˇ" }, { "text": "找", "bopomofo": "ㄓㄠˇ" }, { "text": "到", "bopomofo": "ㄉㄠˋ" }, { "text": "玩", "bopomofo": "ㄨㄢˊ" }, { "text": "家", "bopomofo": "ㄐㄧㄚ" }, { "text": "，", "bopomofo": null }, { "text": "但", "bopomofo": "ㄉㄢˋ" }, { "text": "兩", "bopomofo": "ㄌㄧㄤˇ" }, { "text": "台", "bopomofo": "ㄊㄞˊ" }, { "text": "裝", "bopomofo": "ㄓㄨㄤ" }, { "text": "置", "bopomofo": "ㄓˋ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "線", "bopomofo": "ㄒㄧㄢˋ" }, { "text": "沒", "bopomofo": "ㄇㄟˊ" }, { "text": "有", "bopomofo": "ㄧㄡˇ" }, { "text": "成", "bopomofo": "ㄔㄥˊ" }, { "text": "功", "bopomofo": "ㄍㄨㄥ" }, { "text": "，", "bopomofo": null }, { "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "再", "bopomofo": "ㄗㄞˋ" }, { "text": "試", "bopomofo": "ㄕˋ" }, { "text": "一", "bopomofo": "ㄧ" }, { "text": "次", "bopomofo": "ㄘˋ" }],
+    "speech_zh_tw": "已找到玩家，但兩台裝置連線沒有成功，請再試一次",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
     "id": "online.random_error",
     "text_zh_tw": "隨機配對沒有完成",
     "segments": [{ "text": "隨", "bopomofo": "ㄙㄨㄟˊ" }, { "text": "機", "bopomofo": "ㄐㄧ" }, { "text": "配", "bopomofo": "ㄆㄟˋ" }, { "text": "對", "bopomofo": "ㄉㄨㄟˋ" }, { "text": "沒", "bopomofo": "ㄇㄟˊ" }, { "text": "有", "bopomofo": "ㄧㄡˇ" }, { "text": "完", "bopomofo": "ㄨㄢˊ" }, { "text": "成", "bopomofo": "ㄔㄥˊ" }],

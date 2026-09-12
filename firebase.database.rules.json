@@ -19,6 +19,13 @@
           }
         }
       },
+      "locks": {
+        "$ticketId": {
+          ".read": "auth != null && (!data.exists() || data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid)",
+          ".write": "auth != null && ((!data.exists() && newData.child('hostUid').val() == auth.uid && (newData.child('hostTicketId').val() == $ticketId || newData.child('guestTicketId').val() == $ticketId)) || (data.exists() && (data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid) && newData.child('matchId').val() == data.child('matchId').val()) || (!newData.exists() && (data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid || data.child('expiresAt').val() < now)))",
+          ".validate": "newData.hasChildren(['hostUid', 'guestUid', 'hostTicketId', 'guestTicketId', 'matchId', 'createdAt', 'expiresAt']) && newData.child('hostUid').isString() && newData.child('guestUid').isString() && newData.child('hostTicketId').isString() && newData.child('guestTicketId').isString() && newData.child('hostTicketId').val() != newData.child('guestTicketId').val() && newData.child('hostUid').val() != newData.child('guestUid').val() && newData.child('matchId').isString() && newData.child('createdAt').isNumber() && newData.child('expiresAt').isNumber() && root.child('pairing/queue').child(newData.child('hostTicketId').val()).child('uid').val() == newData.child('hostUid').val() && root.child('pairing/queue').child(newData.child('guestTicketId').val()).child('uid').val() == newData.child('guestUid').val() && root.child('pairing/queue').child(newData.child('hostTicketId').val()).child('state').val() == 'waiting' && root.child('pairing/queue').child(newData.child('guestTicketId').val()).child('state').val() == 'waiting'"
+        }
+      },
       "reports": {
         "$reportId": {
           ".read": false,
