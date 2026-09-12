@@ -341,7 +341,6 @@ export async function joinFirebasePairing(
           || blockedUids.has(candidate.uid)
           || candidate.state !== 'waiting'
           || candidate.expiresAt <= Date.now()
-          || !shouldClaimPairingCandidate(ticketId, child.key)
           || claimedCandidates.has(child.key)
         ) return false
         claimedCandidates.add(child.key)
@@ -353,9 +352,11 @@ export async function joinFirebasePairing(
           }
         }, fail)
         candidateSubscriptions.set(child.key, candidateUnsubscribe)
-        const claimPath = `pairing/claims/${child.key}/${ticketId}`
-        claimPaths.add(claimPath)
-        void claimCandidate(database, child.key, ticketId, user.uid, expiresAt).catch(fail)
+        if (shouldClaimPairingCandidate(ticketId, child.key)) {
+          const claimPath = `pairing/claims/${child.key}/${ticketId}`
+          claimPaths.add(claimPath)
+          void claimCandidate(database, child.key, ticketId, user.uid, expiresAt).catch(fail)
+        }
         return false
       })
     },
