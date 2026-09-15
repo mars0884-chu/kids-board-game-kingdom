@@ -3340,9 +3340,9 @@
   },
   {
     "id": "online.random_privacy_notice",
-    "text_zh_tw": "不使用姓名聊天位置或個人資料",
-    "segments": [{ "text": "不", "bopomofo": "ㄅㄨˋ" }, { "text": "使", "bopomofo": "ㄕˇ" }, { "text": "用", "bopomofo": "ㄩㄥˋ" }, { "text": "姓", "bopomofo": "ㄒㄧㄥˋ" }, { "text": "名", "bopomofo": "ㄇㄧㄥˊ" }, { "text": "聊", "bopomofo": "ㄌㄧㄠˊ" }, { "text": "天", "bopomofo": "ㄊㄧㄢ" }, { "text": "位", "bopomofo": "ㄨㄟˋ" }, { "text": "置", "bopomofo": "ㄓˋ" }, { "text": "或", "bopomofo": "ㄏㄨㄛˋ" }, { "text": "個", "bopomofo": "ㄍㄜˋ" }, { "text": "人", "bopomofo": "ㄖㄣˊ" }, { "text": "資", "bopomofo": "ㄗ" }, { "text": "料", "bopomofo": "ㄌㄧㄠˋ" }],
-    "speech_zh_tw": "不使用姓名、聊天、位置或個人資料",
+    "text_zh_tw": "匿名連線，暫存棋局",
+    "segments": [{ "text": "匿", "bopomofo": "ㄋㄧˋ" }, { "text": "名", "bopomofo": "ㄇㄧㄥˊ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "線", "bopomofo": "ㄒㄧㄢˋ" }, { "text": "，", "bopomofo": null }, { "text": "暫", "bopomofo": "ㄓㄢˋ" }, { "text": "存", "bopomofo": "ㄘㄨㄣˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "局", "bopomofo": "ㄐㄩˊ" }],
+    "speech_zh_tw": "匿名連線，暫存棋局",
     "audio_asset": "tts:zh-TW",
     "audience": "child"
   },
