@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FirebaseRandomPairing } from './FirebaseRandomPairing'
+import type { OnlineSession } from './online-session'
 import { BopomofoText } from '../components/BopomofoText'
 import { ChildActionButton, ToolButton } from '../components/common-ui'
 import { getChildText } from '../content/child-text'
@@ -18,14 +19,13 @@ import {
   WEBRTC_ESTABLISHMENT_TIMEOUT_MS,
   waitForWebRtcChannel,
   waitForWebRtcPeerReady,
-  type WebRtcPeerSession,
   type WebRtcSignal,
 } from './webrtc'
 import './webrtc-pairing.css'
 
 interface WebRtcPairingProps {
   readonly onBack: () => void
-  readonly onConnected: (session: WebRtcPeerSession) => void
+  readonly onConnected: (session: OnlineSession) => void
 }
 
 type PairingStatus =

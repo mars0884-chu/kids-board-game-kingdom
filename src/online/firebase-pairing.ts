@@ -2,6 +2,7 @@ import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app'
 import { getAuth, signInAnonymously, type User } from 'firebase/auth'
 import {
   getDatabase,
+  get,
   limitToFirst,
   onDisconnect,
   onValue,
@@ -12,10 +13,12 @@ import {
   remove,
   runTransaction,
   set,
+  startAt,
   type Database,
   type DataSnapshot,
 } from 'firebase/database'
 import type { WebRtcSignal } from './webrtc'
+import { createFirebaseGameSession, type FirebaseGameSession } from './firebase-game'
 import { acquirePairingLocks, createPairingMatchId, pairingLockPath, parsePairingLock, releasePairingLocks } from './pairing-locks'
 
 export const FIREBASE_PAIRING_WAIT_TIMEOUT_MS = 2 * 60 * 1000
@@ -58,6 +61,7 @@ interface FirebaseServices {
 }
 
 interface PairingTicket {
+  readonly transport?: 'firebase-board-v1'
   readonly uid: string
   readonly state: 'waiting' | 'matched'
   readonly createdAt: number
@@ -87,6 +91,7 @@ export interface FirebasePairingSession {
   readonly ticketId: string
   readonly matchId: string
   readonly role: 'host' | 'guest'
+  createGame(signal: AbortSignal): Promise<FirebaseGameSession>
   publishOffer(signal: WebRtcSignal): Promise<void>
   publishAnswer(signal: WebRtcSignal): Promise<void>
   waitForOffer(timeoutMs?: number): Promise<WebRtcSignal>
@@ -134,7 +139,7 @@ function getFirebaseServices(): Promise<FirebaseServices> {
     const auth = getAuth(app)
     const user = auth.currentUser ?? (await signInAnonymously(auth)).user
     return { app, database: getDatabase(app), user }
-  })()
+  })().catch((error) => { servicesPromise = null; throw error })
   return servicesPromise
 }
 
@@ -186,30 +191,37 @@ function waitForSnapshot<T>(
   path: string,
   parse: (snapshot: DataSnapshot) => T | null,
   timeoutMs: number,
+  signal?: AbortSignal,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     const target = ref(database, path)
     let settled = false
+    let unsubscribe = () => {}
+    const abort = () => finish(new Error('配對已取消。'))
     const finish = (error: Error | null, value?: T) => {
       if (settled) return
       settled = true
       window.clearTimeout(timeout)
+      signal?.removeEventListener('abort', abort)
       unsubscribe()
       if (error !== null) reject(error)
       else resolve(value as T)
     }
-    const unsubscribe = onValue(target, (snapshot) => {
-      const parsed = parse(snapshot)
-      if (parsed !== null) finish(null, parsed)
-    }, (error) => finish(error))
     const timeout = window.setTimeout(() => {
       finish(new Error('等待隨機配對資料逾時。'))
     }, timeoutMs)
+    signal?.addEventListener('abort', abort, { once: true })
+    if (signal?.aborted) { abort(); return }
+    unsubscribe = onValue(target, (snapshot) => {
+      const parsed = parse(snapshot)
+      if (parsed !== null) finish(null, parsed)
+    }, (error) => finish(error))
+    if (settled) unsubscribe()
   })
 }
 
-function waitForMatch(database: Database, matchId: string, timeoutMs: number): Promise<PairingMatch> {
-  return waitForSnapshot(database, `pairing/matches/${matchId}`, parseMatch, timeoutMs)
+function waitForMatch(database: Database, matchId: string, timeoutMs: number, signal?: AbortSignal): Promise<PairingMatch> {
+  return waitForSnapshot(database, `pairing/matches/${matchId}`, parseMatch, timeoutMs, signal)
 }
 
 async function claimCandidate(
@@ -250,8 +262,10 @@ function waitForSignal(
 
 export async function joinFirebasePairing(
   onStatus?: (status: 'signing-in' | 'waiting' | 'matched') => void,
+  signal?: AbortSignal,
+  services?: FirebaseServices,
 ): Promise<FirebasePairingSession> {
-  const { database, user } = await getFirebaseServices()
+  const { database, user } = services ?? await getFirebaseServices()
   const blockedUids = readBlockedUids()
   onStatus?.('signing-in')
 
@@ -260,7 +274,8 @@ export async function joinFirebasePairing(
   if (ticketId === null) throw new Error('無法建立隨機配對識別碼。')
   const createdAt = Date.now()
   const expiresAt = createdAt + FIREBASE_PAIRING_WAIT_TIMEOUT_MS
-  await set(ticketRef, { uid: user.uid, state: 'waiting', createdAt, expiresAt } satisfies PairingTicket)
+  if (signal?.aborted) throw new Error('配對已取消。')
+  await set(ticketRef, { uid: user.uid, state: 'waiting', createdAt, expiresAt, transport: 'firebase-board-v1' } satisfies PairingTicket)
   await onDisconnect(ticketRef).remove()
   onStatus?.('waiting')
 
@@ -299,7 +314,7 @@ export async function joinFirebasePairing(
       return
     }
     if (ticket.state === 'matched' && ticket.matchedTicketId !== undefined && ticket.matchId !== undefined) {
-      resolveMatch('host', ticket.matchId)
+      // 甲等待交易由伺服器確認，不以樂觀事件交接。
     }
   }, fail)
   unsubscribeQueue.add(ownTicketUnsubscribe)
@@ -309,19 +324,23 @@ export async function joinFirebasePairing(
     if (lock?.guestTicketId === ticketId && lock.guestUid === user.uid) {
       lockPaths.add(pairingLockPath(lock.hostTicketId))
       lockPaths.add(pairingLockPath(lock.guestTicketId))
-      resolveMatch('guest', lock.matchId)
+      // 單張鎖不代表兩張鎖完成；等待甲票 matched 的正式通知。
     }
   }, fail)
   unsubscribeQueue.add(ownLockUnsubscribe)
 
   let claimsInProgress = false
+  let latestClaims: readonly PairingClaim[] = []
+  let pendingClaims: readonly PairingClaim[] | null = null
 
   const processClaims = async (claims: readonly PairingClaim[]) => {
-    if (claimsInProgress) return
+    if (claimsInProgress) { pendingClaims = claims; return }
     claimsInProgress = true
     try {
       for (const claim of claims) {
         if (!active || matched !== null) return
+        const candidateTicket = parseTicket(await get(ref(database, `pairing/queue/${claim.ticketId}`)))
+        if (candidateTicket?.transport !== 'firebase-board-v1' || candidateTicket.uid !== claim.uid || candidateTicket.state !== 'waiting') continue
         const matchId = createPairingMatchId(ticketId, claim.ticketId)
         const acquiredPaths = await acquirePairingLocks(database, {
           hostUid: user.uid,
@@ -333,17 +352,21 @@ export async function joinFirebasePairing(
           expiresAt: Date.now() + FIREBASE_PAIRING_MATCH_TIMEOUT_MS,
         })
         if (acquiredPaths.length === 0) continue
+        if (!active || matched !== null) {
+          await releasePairingLocks(database, acquiredPaths, matchId)
+          return
+        }
         acquiredPaths.forEach((path) => lockPaths.add(path))
         const result = await runTransaction(ticketRef, (current) => {
           const currentTicket = current as PairingTicket | null
-          if (currentTicket === null || currentTicket.uid !== user.uid || currentTicket.state !== 'waiting' || currentTicket.expiresAt <= Date.now()) return current
+          if (currentTicket === null || currentTicket.uid !== user.uid || currentTicket.state !== 'waiting' || currentTicket.expiresAt <= Date.now()) return
           return {
             ...currentTicket,
             state: 'matched',
             matchedTicketId: claim.ticketId,
             matchId,
           } satisfies PairingTicket
-        })
+        }, { applyLocally: false })
         if (!result.committed) {
           await releasePairingLocks(database, acquiredPaths, matchId)
           acquiredPaths.forEach((path) => lockPaths.delete(path))
@@ -356,6 +379,9 @@ export async function joinFirebasePairing(
       fail(error instanceof Error ? error : new Error('隨機配對資料處理失敗。'))
     } finally {
       claimsInProgress = false
+      const queued = pendingClaims
+      pendingClaims = null
+      if (queued !== null && active && matched === null) void processClaims(queued)
     }
   }
 
@@ -367,18 +393,20 @@ export async function joinFirebasePairing(
       if (claim !== null && claim.expiresAt > Date.now() && claim.uid !== user.uid && !blockedUids.has(claim.uid)) claims.push(claim)
       return false
     })
+    latestClaims = claims
     void processClaims(claims)
   }, fail)
   unsubscribeQueue.add(ownClaimsUnsubscribe)
 
   const queueUnsubscribe = onValue(
-    query(ref(database, 'pairing/queue'), orderByChild('createdAt'), limitToFirst(20)),
+    query(ref(database, 'pairing/queue'), orderByChild('createdAt'), startAt(Date.now() - FIREBASE_PAIRING_WAIT_TIMEOUT_MS), limitToFirst(100)),
     (snapshot) => {
       if (!active || matched !== null) return
       snapshot.forEach((child) => {
         const candidate = parseTicket(child)
         if (
           candidate === null
+          || candidate.transport !== 'firebase-board-v1'
           || child.key === null
           || child.key === ticketId
           || candidate.uid === user.uid
@@ -409,8 +437,16 @@ export async function joinFirebasePairing(
   unsubscribeQueue.add(queueUnsubscribe)
 
   const timeout = window.setTimeout(() => fail(new Error('等待時間到了，配對已離開。')), FIREBASE_PAIRING_WAIT_TIMEOUT_MS)
+  const retryClaims = window.setInterval(() => {
+    if (active && matched === null && latestClaims.length > 0) void processClaims(latestClaims)
+  }, 1500)
+  const abort = () => fail(new Error('配對已取消。'))
+  signal?.addEventListener('abort', abort, { once: true })
+  if (signal?.aborted) abort()
 
   const stopQueueListeners = () => {
+    window.clearInterval(retryClaims)
+    signal?.removeEventListener('abort', abort)
     window.clearTimeout(timeout)
     unsubscribeQueue.forEach((unsubscribe) => unsubscribe())
     candidateSubscriptions.forEach((unsubscribe) => unsubscribe())
@@ -422,6 +458,7 @@ export async function joinFirebasePairing(
     matchInfo = await matchedPromise
   } catch (error) {
     stopQueueListeners()
+    await Promise.all([...claimPaths].map((path) => remove(ref(database, path)).catch(() => undefined)))
     await remove(ticketRef).catch(() => undefined)
     throw error
   }
@@ -435,7 +472,7 @@ export async function joinFirebasePairing(
     if (role === 'host') {
       const ticket = parseTicket(await new Promise<DataSnapshot>((resolve) => onValue(ticketRef, resolve, { onlyOnce: true })))
       if (ticket === null || ticket.matchedTicketId === undefined) throw new Error('隨機配對資料不完整。')
-      const guestSnapshot = await new Promise<DataSnapshot>((resolve) => onValue(ref(database, `pairing/queue/${ticket.matchedTicketId}`), resolve, { onlyOnce: true }))
+      const guestSnapshot = await new Promise<DataSnapshot>((resolve, reject) => onValue(ref(database, `pairing/queue/${ticket.matchedTicketId}`), resolve, reject, { onlyOnce: true }))
       const guestTicket = parseTicket(guestSnapshot)
       if (guestTicket === null || guestTicket.uid === user.uid) throw new Error('找不到另一位玩家。')
       const completeMatch: PairingMatch = {
@@ -444,12 +481,12 @@ export async function joinFirebasePairing(
         hostTicketId: ticketId,
         guestTicketId: ticket.matchedTicketId,
         createdAt: Date.now(),
-        expiresAt: Date.now() + FIREBASE_PAIRING_MATCH_TIMEOUT_MS,
+        expiresAt: Date.now() + 2 * 60 * 60 * 1000,
       }
       await runTransaction(matchRef, (current) => current ?? completeMatch)
-      finalMatch = await waitForMatch(database, matchId, FIREBASE_PAIRING_MATCH_TIMEOUT_MS)
+      finalMatch = await waitForMatch(database, matchId, 30_000, signal)
     } else {
-      finalMatch = await waitForMatch(database, matchId, FIREBASE_PAIRING_MATCH_TIMEOUT_MS)
+      finalMatch = await waitForMatch(database, matchId, 30_000, signal)
     }
   } catch (error) {
     await onDisconnect(ticketRef).cancel().catch(() => undefined)
@@ -457,7 +494,7 @@ export async function joinFirebasePairing(
     await remove(ticketRef).catch(() => undefined)
     throw error
   }
-  await onDisconnect(matchRef).remove()
+  // 短暫斷線不刪除整局；由 presence 表示斷線，恢復後讀回局面。
   const peerUid = role === 'host' ? finalMatch.guestUid : finalMatch.hostUid
   if (blockedUids.has(peerUid)) {
     await remove(matchRef).catch(() => undefined)
@@ -465,7 +502,10 @@ export async function joinFirebasePairing(
     throw new Error('已封鎖的玩家不能加入配對。')
   }
 
+  let cancelled = false
   const cancel = async () => {
+    if (cancelled) return
+    cancelled = true
     await onDisconnect(ticketRef).cancel().catch(() => undefined)
     await remove(ticketRef).catch(() => undefined)
     await Promise.all([...claimPaths].map((path) => remove(ref(database, path)).catch(() => undefined)))
@@ -478,6 +518,7 @@ export async function joinFirebasePairing(
     ticketId,
     matchId,
     role,
+    createGame: (signal) => createFirebaseGameSession(database, session, finalMatch.hostUid, finalMatch.guestUid, signal, finalMatch.expiresAt),
     publishOffer: async (signal) => {
       if (role !== 'host' || signal.kind !== 'offer') throw new Error('隨機配對邀請資料角色不正確。')
       await publishSignal(database, matchId, signal)

@@ -1,6 +1,6 @@
 {
   "name": "kids-board-game-kingdom",
-  "version": "0.10.9",
+  "version": "0.11.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -15,6 +15,7 @@
     "verify:jump-chess-online-layout": "node scripts/verify-jump-chess-online-layout-playwright.mjs",
     "verify:game-picker-layout": "node scripts/verify-game-picker-layout-playwright.mjs",
     "test:watch": "vitest",
+    "test:firebase": "vitest run --config firebase-test.config.ts",
     "capture:reversi:firefox": "node scripts/capture-reversi-art-proposal-firefox.mjs",
     "capture:dark-chess:edge": "node scripts/capture-dark-chess-art-proposal.mjs",
     "check": "npm run validate && npm run typecheck && npm run test",

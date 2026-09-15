@@ -7,22 +7,13 @@ import {
   joinFirebasePairing,
   type FirebasePairingSession,
 } from './firebase-pairing'
-import {
-  acceptWebRtcOffer,
-  applyWebRtcAnswer,
-  canUseWebRtc,
-  createWebRtcOffer,
-  createWebRtcSessionId,
-  waitForWebRtcChannel,
-  waitForWebRtcPeerReady,
-  type WebRtcPeerSession,
-  type WebRtcSignal,
-} from './webrtc'
+import type { OnlineSession } from './online-session'
+import type { FirebaseGameSession } from './firebase-game'
 import './webrtc-pairing.css'
 
 interface FirebaseRandomPairingProps {
   readonly onBack: () => void
-  readonly onConnected: (session: WebRtcPeerSession) => void
+  readonly onConnected: (session: OnlineSession) => void
 }
 
 type RandomPairingStatus = 'consent' | 'preparing' | 'waiting' | 'matched' | 'unsupported' | 'unavailable' | 'timeout' | 'connection-failed' | 'error'
@@ -45,126 +36,47 @@ function isTimeoutError(error: unknown): boolean {
   return error instanceof Error && error.message.includes('等待時間到了')
 }
 
-function isWebRtcConnectionError(error: unknown): boolean {
-  if (!(error instanceof Error)) return false
-  return [
-    '兩台裝置的網路連線失敗',
-    '兩台裝置尚未連線成功',
-    '連線在完成前中斷',
-    '資料通道已關閉',
-    '資料通道尚未開啟',
-    '另一台裝置尚未完成連線',
-    '等待另一台裝置完成連線逾時',
-  ].some((message) => error.message.includes(message))
-}
 
 export function FirebaseRandomPairing({ onBack, onConnected }: FirebaseRandomPairingProps) {
   const [consentGranted, setConsentGranted] = useState(false)
   const [status, setStatus] = useState<RandomPairingStatus>('consent')
   const [detail, setDetail] = useState('')
   const pairingRef = useRef<FirebasePairingSession | null>(null)
-  const connectionRef = useRef<RTCPeerConnection | null>(null)
-  const channelRef = useRef<RTCDataChannel | null>(null)
+  const gameRef = useRef<FirebaseGameSession | null>(null)
   const handedOffRef = useRef(false)
 
   useEffect(() => {
     if (!consentGranted || status === 'unsupported' || status === 'unavailable') return
-    if (!canUseWebRtc()) {
-      setStatus('unsupported')
-      return
-    }
+
     if (!isFirebasePairingConfigured()) {
       setStatus('unavailable')
       return
     }
 
     let active = true
+    const controller = new AbortController()
     const start = async () => {
       try {
         const pairing = await joinFirebasePairing((nextStatus) => {
           if (!active) return
           setStatus(nextStatus === 'waiting' ? 'waiting' : nextStatus === 'matched' ? 'matched' : 'preparing')
-        })
+        }, controller.signal)
         if (!active) {
           await pairing.cancel()
           return
         }
         pairingRef.current = pairing
-        if (pairing.role === 'host') {
-          const result = await createWebRtcOffer()
-          if (!active) {
-            result.channel.close()
-            result.connection.close()
-            await pairing.cancel()
-            return
-          }
-          connectionRef.current = result.connection
-          channelRef.current = result.channel
-          const offer: WebRtcSignal = {
-            protocol: 'kids-board-game-webrtc',
-            version: 1,
-            sessionId: createWebRtcSessionId(),
-            kind: 'offer',
-            createdAt: Date.now(),
-            description: result.description,
-          }
-          await pairing.publishOffer(offer)
-          setStatus('matched')
-          const answer = await pairing.waitForAnswer()
-          await applyWebRtcAnswer(result.connection, answer)
-          await waitForWebRtcChannel(result.channel, undefined, result.connection)
-          await waitForWebRtcPeerReady(result.channel, offer.sessionId, 'host', undefined, result.connection)
-          if (!active) return
-          handedOffRef.current = true
-          onConnected({
-            sessionId: offer.sessionId,
-            role: 'host',
-            connection: result.connection,
-            channel: result.channel,
-            pairingCleanup: () => void pairing.cancel(),
-            pairingControls: { report: pairing.report, block: pairing.block },
-          })
-          return
-        }
-
-        const offer = await pairing.waitForOffer()
-        const result = await acceptWebRtcOffer(offer)
-        if (!active) {
-          result.connection.close()
-          await pairing.cancel()
-          return
-        }
-        connectionRef.current = result.connection
-        const answer: WebRtcSignal = {
-          protocol: 'kids-board-game-webrtc',
-          version: 1,
-          sessionId: offer.sessionId,
-          kind: 'answer',
-          createdAt: Date.now(),
-          description: result.description,
-        }
-        await pairing.publishAnswer(answer)
-        const channel = await result.channel
-        channelRef.current = channel
-        await waitForWebRtcChannel(channel, undefined, result.connection)
-        await waitForWebRtcPeerReady(channel, offer.sessionId, 'guest', undefined, result.connection)
-        if (!active) return
+        const game = await pairing.createGame(controller.signal)
+        gameRef.current = game
+        if (!active) { game.close(); return }
         handedOffRef.current = true
-        onConnected({
-          sessionId: offer.sessionId,
-          role: 'guest',
-          connection: result.connection,
-          channel,
-          pairingCleanup: () => void pairing.cancel(),
-          pairingControls: { report: pairing.report, block: pairing.block },
-        })
+        onConnected(game)
       } catch (error) {
         if (!active) return
-        const connectionFailed = isWebRtcConnectionError(error)
+        const connectionFailed = error instanceof Error && error.message.includes('完成連線逾時')
         setStatus(isTimeoutError(error) ? 'timeout' : connectionFailed ? 'connection-failed' : 'error')
         setDetail(connectionFailed ? 'online.random_connection_failed_detail' : 'online.random_error_detail')
-        channelRef.current?.close()
-        connectionRef.current?.close()
+        gameRef.current?.close()
         await pairingRef.current?.cancel().catch(() => undefined)
       }
     }
@@ -173,8 +85,8 @@ export function FirebaseRandomPairing({ onBack, onConnected }: FirebaseRandomPai
     return () => {
       active = false
       if (!handedOffRef.current) {
-        channelRef.current?.close()
-        connectionRef.current?.close()
+        controller.abort()
+        gameRef.current?.close()
         void pairingRef.current?.cancel()
       }
     }

@@ -84,6 +84,8 @@ export async function acquirePairingLocks(
     return acquiredPaths
   } catch (error) {
     await releasePairingLocks(database, acquiredPaths, lock.matchId)
+    // 其他配對已持有候選鎖時，規則刻意不讓第三者讀取；這是競爭失敗，不是整個服務故障。
+    if (error instanceof Error && /permission[_-]denied/i.test(error.message)) return []
     throw error
   }
 }

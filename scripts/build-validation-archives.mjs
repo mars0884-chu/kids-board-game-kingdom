@@ -15,6 +15,7 @@ supportedVersions.add('v0.10.3')
 supportedVersions.add('v0.10.4')
 supportedVersions.add('v0.10.5')
 supportedVersions.add('v0.10.6')
+supportedVersions.add('v0.11.0')
 let activeNpmCacheDirectory = null
 const configuredNpmCacheDirectory = process.env.ARCHIVE_NPM_CACHE ?? null
 const skipArchiveRebuild = process.env.ARCHIVE_SKIP_REBUILD === '1'
@@ -47,6 +48,10 @@ function normalisedRelative(root, target) {
 function shouldCopy(source) {
   const path = normalisedRelative(workspaceDirectory, source)
   if (path === '') return true
+  if (path === 'handoff' || path.startsWith('handoff/')) return false
+  if (['test-results', 'playwright-report', '.firebase', '.vite', '.vitest', 'coverage'].some((folder) => path === folder || path.startsWith(folder + '/'))) return false
+  if (/(^|\/).*\.(log|tmp|bak|old)$/i.test(path)) return false
+  if (path === '.env' || (path.startsWith('.env.') && path !== '.env.example')) return false
   if (path === 'node_modules' || path.startsWith('node_modules/')) return false
   if (path === 'dist' || path.startsWith('dist/')) return false
   if (path === 'releases' || path.startsWith('releases/')) return false
@@ -2513,7 +2518,7 @@ async function makeArchive(version) {
     if (version === 'v0.4.21') await prepareV0421(stageDirectory)
     if (version === 'v0.4.22') await prepareV0422(stageDirectory)
     if (version === 'v0.4.23') await prepareV0423(stageDirectory)
-    await writeFile(join(stageDirectory, 'RELEASE_NOTES.md'), releaseNotes(version), 'utf8')
+    await writeFile(join(stageDirectory, 'RELEASE_NOTES.md'), version === 'v0.11.0' ? await readFile(join(workspaceDirectory, 'RELEASE_NOTES.md'), 'utf8') : releaseNotes(version), 'utf8')
     await assertStageIsClean(stageDirectory)
     if (!skipArchiveRebuild) {
       runNpm(['ci', '--ignore-scripts'], stageDirectory)

@@ -1,0 +1,31 @@
+name: Firebase 匿名棋局回歸
+
+on:
+  push:
+    branches: [main, codex/firebase-game-v0.11.0]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - name: 內容與完整回歸
+        run: npm run check
+      - name: 四人配對、棋步同步、權限與斷線
+        run: npx --yes firebase-tools@15.30.0 emulators:exec --only auth,database --project demo-kids-board "npm run test:firebase"
+      - name: 建置驗證
+        run: npm run build

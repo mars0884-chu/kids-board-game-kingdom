@@ -3,7 +3,9 @@
     "pairing": {
       "queue": {
         ".read": "auth != null",
-        ".indexOn": ["createdAt"],
+        ".indexOn": [
+          "createdAt"
+        ],
         "$ticketId": {
           ".read": "auth != null",
           ".write": "auth != null && ((!data.exists() && newData.child('uid').val() == auth.uid) || (data.child('uid').val() == auth.uid && newData.child('uid').val() == data.child('uid').val()) || (!newData.exists() && (data.child('uid').val() == auth.uid || data.child('expiresAt').val() < now)))",
@@ -36,7 +38,7 @@
       "matches": {
         "$matchId": {
           ".read": "auth != null && (!data.exists() || data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid)",
-          ".write": "auth != null && ((!data.exists() && newData.child('hostUid').val() == auth.uid) || (data.exists() && data.child('hostUid').val() == auth.uid && newData.child('hostUid').val() == data.child('hostUid').val() && newData.child('guestUid').val() == data.child('guestUid').val()) || (!newData.exists() && (data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid || data.child('expiresAt').val() < now)))",
+          ".write": "auth != null && ((!data.exists() && newData.child('hostUid').val() == auth.uid) || (!newData.exists() && (data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid || data.child('expiresAt').val() < now)))",
           ".validate": "newData.hasChildren(['hostUid', 'guestUid', 'hostTicketId', 'guestTicketId', 'createdAt', 'expiresAt']) && newData.child('hostUid').isString() && newData.child('guestUid').isString() && newData.child('hostTicketId').isString() && newData.child('guestTicketId').isString() && newData.child('createdAt').isNumber() && newData.child('expiresAt').isNumber()",
           "signals": {
             "offer": {
@@ -47,6 +49,23 @@
               ".write": "auth != null && data.parent().parent().child('guestUid').val() == auth.uid",
               ".validate": "newData.child('protocol').val() == 'kids-board-game-webrtc' && newData.child('kind').val() == 'answer'"
             }
+          },
+          "presence": {
+            "$uid": {
+              ".write": "auth != null && auth.uid == $uid && (data.parent().parent().child('hostUid').val() == auth.uid || data.parent().parent().child('guestUid').val() == auth.uid) && data.parent().parent().child('expiresAt').val() > now",
+              ".validate": "newData.isBoolean()"
+            }
+          },
+          "board": {
+            "nextUid": {},
+            "revision": {},
+            ".validate": "newData.hasChildren(['revision','serialized','nextUid','initial']) && newData.child('initial').isString() && ((!data.exists() && newData.child('initial').val() == newData.child('serialized').val() && newData.child('nextUid').val() == data.parent().child('hostUid').val()) || (data.exists() && newData.child('initial').val() == data.child('initial').val())) && newData.child('revision').isNumber() && ((!data.exists() && newData.child('revision').val() == 0) || newData.child('revision').val() == data.child('revision').val() + 1) && newData.child('serialized').isString() && newData.child('serialized').val().length <= 131072 && (newData.child('nextUid').val() == data.parent().child('hostUid').val() || newData.child('nextUid').val() == data.parent().child('guestUid').val())",
+            "initial": {},
+            "serialized": {},
+            "$other": {
+              ".validate": false
+            },
+            ".write": "auth != null && newData.exists() && data.parent().child('expiresAt').val() > now && ((!data.exists() && data.parent().child('hostUid').val() == auth.uid) || (data.exists() && (data.child('nextUid').val() == auth.uid || (data.parent().child('hostUid').val() == auth.uid && newData.child('serialized').val() == data.child('initial').val()))))"
           }
         }
       }

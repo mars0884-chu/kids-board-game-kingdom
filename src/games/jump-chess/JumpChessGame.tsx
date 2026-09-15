@@ -31,7 +31,8 @@ import {
 import { chooseJumpChessTurn } from './ai'
 import { indexedDbJumpChessStorage, type JumpChessMode, type JumpChessStorage } from './storage'
 import { WebRtcPairing } from '../../online/WebRtcPairing'
-import { closeWebRtcPeerSession, type WebRtcPeerSession } from '../../online/webrtc'
+import { closeWebRtcPeerSession } from '../../online/webrtc'
+import { isFirebaseGameSession, type OnlineSession } from '../../online/online-session'
 
 const ONLINE_DISCONNECT_GRACE_MS = 5_000
 
@@ -96,7 +97,8 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
   const [feedbackId, setFeedbackId] = useState('jump_chess.turn_one')
   const [isPaused, setIsPaused] = useState(false)
   const [isHydrated, setIsHydrated] = useState(mode === 'online')
-  const [onlineSession, setOnlineSession] = useState<WebRtcPeerSession | null>(null)
+  const [onlineSession, setOnlineSession] = useState<OnlineSession | null>(null)
+  const [onlineSending, setOnlineSending] = useState(false)
   const [onlineDisconnected, setOnlineDisconnected] = useState(false)
   const [onlineSafetyMessage, setOnlineSafetyMessage] = useState('')
   const holeRefs = useRef(new Map<number, HTMLButtonElement>())
@@ -123,7 +125,7 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
   const isNpcThinking = mode === 'npc' && state.phase === 'playing' && state.currentPlayer === 'player2'
   const localPlayer = onlineSession?.role === 'host' ? 'player1' : 'player2'
   const isOnlineWaiting = mode === 'online' && (onlineSession === null || onlineDisconnected || state.currentPlayer !== localPlayer)
-  const locked = isPaused || isFinished || isNpcThinking || isOnlineWaiting || (mode === 'adventure' && tutorialComplete)
+  const locked = onlineSending || isPaused || isFinished || isNpcThinking || isOnlineWaiting || (mode === 'adventure' && tutorialComplete)
   const boardStyle = {
     '--jump-board-ratio': `${JUMP_CHESS_LAYOUT_SPAN_WIDTH} / ${JUMP_CHESS_LAYOUT_SPAN_HEIGHT}`,
   } as CSSProperties
@@ -163,6 +165,18 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
 
   useEffect(() => {
     if (mode !== 'online' || onlineSession === null) return
+    if (isFirebaseGameSession(onlineSession)) {
+      return onlineSession.subscribe((next) => {
+        stateRef.current = next
+        setState(next)
+        setSelectedCell(next.activeJump?.path.at(-1) ?? null)
+        setFeedbackId(next.phase === 'playing' ? next.currentPlayer === localPlayer ? 'jump_chess.turn_one' : 'jump_chess.turn_two' : resultTextId(next))
+        spokenFeedback.current = null
+      }, (connected) => {
+        setOnlineDisconnected(!connected)
+        if (!connected) setFeedbackId('online.disconnected')
+      })
+    }
     const { channel, connection, role, sessionId } = onlineSession
     let active = true
     let disconnectTimer: number | null = null
@@ -241,7 +255,10 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
   }, [localPlayer, mode, onlineSession])
 
   useEffect(() => () => {
-    if (onlineSession !== null) closeWebRtcPeerSession(onlineSession)
+    if (onlineSession !== null) {
+      if (isFirebaseGameSession(onlineSession)) onlineSession.close()
+      else closeWebRtcPeerSession(onlineSession)
+    }
   }, [onlineSession])
 
   useEffect(() => {
@@ -286,9 +303,17 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
   }
 
   function commitState(next: JumpChessState) {
+    if (mode === 'online' && onlineSession !== null && isFirebaseGameSession(onlineSession)) {
+      if (onlineSending || onlineDisconnected) return
+      setOnlineSending(true)
+      void onlineSession.submit(next).catch((error: unknown) => {
+        setFeedbackId(error instanceof Error && /局面已更新|不合法/.test(error.message) ? 'jump_chess.invalid' : 'online.disconnected')
+      }).finally(() => setOnlineSending(false))
+      return
+    }
     stateRef.current = next
     setState(next)
-    if (mode === 'online' && onlineSession?.channel.readyState === 'open') {
+    if (mode === 'online' && onlineSession !== null && !isFirebaseGameSession(onlineSession) && onlineSession.channel.readyState === 'open') {
       onlineSession.channel.send(JSON.stringify({
         type: 'state',
         sessionId: onlineSession.sessionId,
@@ -489,7 +514,7 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
     return getChildText('jump_chess.empty').text_zh_tw
   }
 
-  const handleOnlineConnected = useCallback((session: WebRtcPeerSession) => {
+  const handleOnlineConnected = useCallback((session: OnlineSession) => {
     setOnlineSession(session)
     setOnlineDisconnected(false)
     setFeedbackId(session.role === 'host' ? 'jump_chess.turn_one' : 'jump_chess.turn_one')

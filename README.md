@@ -1,4 +1,16 @@
-# 綜合兒童棋藝大冒險 v0.10.6
+# 綜合兒童棋藝大冒險 v0.11.0
+
+v0.11.0 將跳棋隨機配對的棋局傳輸改為 Firebase Realtime Database，不再等待手機 WebRTC 直連。玩家使用自己的匿名 UID，不需要製作人的管理帳號密碼。熟人邀請仍保留 WebRTC；離線遊戲不受影響。
+
+新版 Firebase 規則須先發布，才可更新前端。使用既有 Spark 免費方案，不啟用帳單。詳見 docs/P09_ONLINE_SPEC.md 的 v0.11.0 範圍、隱私與限制。完整棋規在兩端引擎驗證，伺服器規則負責權限、回合及序號；不是完整防作弊伺服器。
+
+本機模擬器驗證（Node.js 24、Java 21 以上）：
+
+```powershell
+npx.cmd firebase-tools@latest emulators:exec --only auth,database --project demo-kids-board "npm run test:firebase"
+```
+
+以下為既有遊戲與熟人邀請的操作說明；舊版修訂敘述保留為歷史紀錄，不代表 v0.11.0 已完成實機或線上發布驗收。
 
 這是提供 7 歲兒童使用的離線優先 PWA 棋藝遊戲。v0.10.6 承接跳棋 v0.9.8 的 WebRTC 斷線操作鎖定，以及 v0.10.0／P09-ONLINE-r13 的 Firebase 匿名隨機配對試驗程式；本版修正各模式選擇棋類時頁面無法滑動、返回鍵與教學下方按鍵超出畫面，以及暗棋正式新局每次使用相同固定排列的問題。固定種子仍保留給教學、測試與回放，正式自由練習／雙人新局會使用新的隨機種子。本版修正 Firebase 匿名配對 match 尚未建立時的等待讀取權限，避免乙端在甲端建立 match 前被規則拒絕。
 
