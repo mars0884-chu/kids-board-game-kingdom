@@ -12,6 +12,10 @@ npx.cmd firebase-tools@latest emulators:exec --only auth,database --project demo
 
 以下為既有遊戲與熟人邀請的操作說明；舊版修訂敘述保留為歷史紀錄，不代表 v0.11.0 已完成實機或線上發布驗收。
 
+2026-09-17：v0.11.0 已完成 Firebase 規則發布與 Pages 部署。正式服務的隔離雙端測試已通過匿名登入、雙方就緒、雙向棋步同步與測試資料清理；尚未取代兩支手機的實機驗收。
+
+正式服務驗證工具：先在程序環境提供 VITE_FIREBASE_API_KEY、VITE_FIREBASE_AUTH_DOMAIN、VITE_FIREBASE_DATABASE_URL、VITE_FIREBASE_PROJECT_ID，明確設定 FIREBASE_LIVE_SMOKE=1，再執行 `npx vitest run --config firebase-live.config.ts`。工具僅使用自建棋局，不加入公開配對，結束後刪除測試棋局與臨時匿名帳號；一般 check 與模擬器測試不會執行它。完整離線封包不內嵌正式服務設定；手機連線驗收請使用公開網站。
+
 這是提供 7 歲兒童使用的離線優先 PWA 棋藝遊戲。v0.10.6 承接跳棋 v0.9.8 的 WebRTC 斷線操作鎖定，以及 v0.10.0／P09-ONLINE-r13 的 Firebase 匿名隨機配對試驗程式；本版修正各模式選擇棋類時頁面無法滑動、返回鍵與教學下方按鍵超出畫面，以及暗棋正式新局每次使用相同固定排列的問題。固定種子仍保留給教學、測試與回放，正式自由練習／雙人新局會使用新的隨機種子。本版修正 Firebase 匿名配對 match 尚未建立時的等待讀取權限，避免乙端在甲端建立 match 前被規則拒絕。
 
 所有兒童文案維持台灣繁體中文、每個中文字右側直排台灣注音與語音欄位；不新增後端、帳號、聊天、姓名、位置或兒童個資。熟人雙裝置仍使用私人邀請／回覆連結；陌生人匿名隨機配對僅在 Firebase 專案與 GitHub Pages Variables 完成設定後啟用，尚未把外部 Firebase 實機配對宣稱為完成。
