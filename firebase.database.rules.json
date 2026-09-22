@@ -1,5 +1,15 @@
 {
   "rules": {
+    "privateInvites": {
+      "$inviteId": {
+        ".read": "auth != null",
+        ".write": "auth != null && ((!data.exists() && newData.child('hostUid').val() == auth.uid && root.child('pairing/matches').child($inviteId).child('hostUid').val() == auth.uid && root.child('pairing/matches').child($inviteId).child('guestUid').val() == '') || (!newData.exists() && (data.child('hostUid').val() == auth.uid || root.child('pairing/matches').child($inviteId).child('guestUid').val() == auth.uid)))",
+        ".validate": "newData.hasChildren(['hostUid', 'expiresAt']) && newData.child('hostUid').isString() && newData.child('expiresAt').isNumber() && newData.child('expiresAt').val() > now && newData.child('expiresAt').val() <= now + 600000",
+        "hostUid": {},
+        "expiresAt": {},
+        "$other": { ".validate": false }
+      }
+    },
     "pairing": {
       "queue": {
         ".read": "auth != null",
@@ -37,6 +47,10 @@
       },
       "matches": {
         "$matchId": {
+          "guestUid": {
+            ".read": "auth != null && (data.val() == auth.uid || data.parent().child('hostUid').val() == auth.uid || (data.val() == '' && root.child('privateInvites').child($matchId).child('expiresAt').val() > now))",
+            ".write": "auth != null && data.val() == '' && newData.val() == auth.uid && data.parent().child('hostUid').val() != auth.uid && root.child('privateInvites').child($matchId).child('hostUid').val() == data.parent().child('hostUid').val() && root.child('privateInvites').child($matchId).child('expiresAt').val() > now && data.parent().child('expiresAt').val() > now"
+          },
           ".read": "auth != null && (!data.exists() || data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid)",
           ".write": "auth != null && ((!data.exists() && newData.child('hostUid').val() == auth.uid) || (!newData.exists() && (data.child('hostUid').val() == auth.uid || data.child('guestUid').val() == auth.uid || data.child('expiresAt').val() < now)))",
           ".validate": "newData.hasChildren(['hostUid', 'guestUid', 'hostTicketId', 'guestTicketId', 'createdAt', 'expiresAt']) && newData.child('hostUid').isString() && newData.child('guestUid').isString() && newData.child('hostTicketId').isString() && newData.child('guestTicketId').isString() && newData.child('createdAt').isNumber() && newData.child('expiresAt').isNumber()",

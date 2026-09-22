@@ -13,8 +13,8 @@ const mocks = vi.hoisted(() => {
   return { connection, channel }
 })
 
-vi.mock('../../online/WebRtcPairing', () => ({
-  WebRtcPairing: ({ onConnected }: { onConnected: (session: unknown) => void }) => {
+vi.mock('../../online/FirebaseFriendPairing', () => ({
+  FirebaseFriendPairing: ({ onConnected }: { onConnected: (session: unknown) => void }) => {
     useEffect(() => {
       onConnected({ sessionId: 'disconnect-test-session', role: 'host', connection: mocks.connection, channel: mocks.channel })
     }, [onConnected])

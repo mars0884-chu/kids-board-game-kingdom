@@ -6,7 +6,7 @@ export interface FirebaseGameSession {
   readonly transport: 'firebase'
   readonly sessionId: string
   readonly role: 'host' | 'guest'
-  readonly pairingControls: { report: () => Promise<void>; block: () => Promise<void> }
+  readonly pairingControls?: { report: () => Promise<void>; block: () => Promise<void> }
   subscribe(state: (next: JumpChessState) => void, connected: (value: boolean) => void): () => void
   submit(next: JumpChessState): Promise<void>
   close(): void

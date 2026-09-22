@@ -1,4 +1,14 @@
 [
+{"id":"online.friend_enter_code","text_zh_tw":"輸入房號","segments":[{"text":"輸","bopomofo":"ㄕㄨ"},{"text":"入","bopomofo":"ㄖㄨˋ"},{"text":"房","bopomofo":"ㄈㄤˊ"},{"text":"號","bopomofo":"ㄏㄠˋ"}],"speech_zh_tw":"輸入朋友的十二位數房號","audio_asset":"tts:zh-TW","audience":"child"},
+{"id":"online.friend_code","text_zh_tw":"房號","segments":[{"text":"房","bopomofo":"ㄈㄤˊ"},{"text":"號","bopomofo":"ㄏㄠˋ"}],"speech_zh_tw":"房號","audio_asset":"tts:zh-TW","audience":"child"},
+{"id":"online.friend_ready","text_zh_tw":"邀請朋友","segments":[{"text":"邀","bopomofo":"ㄧㄠ"},{"text":"請","bopomofo":"ㄑㄧㄥˇ"},{"text":"朋","bopomofo":"ㄆㄥˊ"},{"text":"友","bopomofo":"ㄧㄡˇ"}],"speech_zh_tw":"邀請朋友","audio_asset":"tts:zh-TW","audience":"child"},
+{"id":"online.friend_join","text_zh_tw":"加入遊戲","segments":[{"text":"加","bopomofo":"ㄐㄧㄚ"},{"text":"入","bopomofo":"ㄖㄨˋ"},{"text":"遊","bopomofo":"ㄧㄡˊ"},{"text":"戲","bopomofo":"ㄒㄧˋ"}],"speech_zh_tw":"加入遊戲","audio_asset":"tts:zh-TW","audience":"child"},
+{"id":"online.friend_waiting","text_zh_tw":"等待朋友加入","segments":[{"text":"等","bopomofo":"ㄉㄥˇ"},{"text":"待","bopomofo":"ㄉㄞˋ"},{"text":"朋","bopomofo":"ㄆㄥˊ"},{"text":"友","bopomofo":"ㄧㄡˇ"},{"text":"加","bopomofo":"ㄐㄧㄚ"},{"text":"入","bopomofo":"ㄖㄨˋ"}],"speech_zh_tw":"等待朋友加入","audio_asset":"tts:zh-TW","audience":"child"},
+{"id":"online.friend_connecting","text_zh_tw":"正在連線","segments":[{"text":"正","bopomofo":"ㄓㄥˋ"},{"text":"在","bopomofo":"ㄗㄞˋ"},{"text":"連","bopomofo":"ㄌㄧㄢˊ"},{"text":"線","bopomofo":"ㄒㄧㄢˋ"}],"speech_zh_tw":"正在連線","audio_asset":"tts:zh-TW","audience":"child"},
+{"id":"online.friend_expired","text_zh_tw":"邀請已過期","segments":[{"text":"邀","bopomofo":"ㄧㄠ"},{"text":"請","bopomofo":"ㄑㄧㄥˇ"},{"text":"已","bopomofo":"ㄧˇ"},{"text":"過","bopomofo":"ㄍㄨㄛˋ"},{"text":"期","bopomofo":"ㄑㄧˊ"}],"speech_zh_tw":"邀請已過期","audio_asset":"tts:zh-TW","audience":"child"},
+{"id":"online.friend_unavailable","text_zh_tw":"邀請已使用或失效","segments":[{"text":"邀","bopomofo":"ㄧㄠ"},{"text":"請","bopomofo":"ㄑㄧㄥˇ"},{"text":"已","bopomofo":"ㄧˇ"},{"text":"使","bopomofo":"ㄕˇ"},{"text":"用","bopomofo":"ㄩㄥˋ"},{"text":"或","bopomofo":"ㄏㄨㄛˋ"},{"text":"失","bopomofo":"ㄕ"},{"text":"效","bopomofo":"ㄒㄧㄠˋ"}],"speech_zh_tw":"邀請已使用或失效","audio_asset":"tts:zh-TW","audience":"child"},
+{"id":"online.friend_self","text_zh_tw":"請讓朋友開啟邀請","segments":[{"text":"請","bopomofo":"ㄑㄧㄥˇ"},{"text":"讓","bopomofo":"ㄖㄤˋ"},{"text":"朋","bopomofo":"ㄆㄥˊ"},{"text":"友","bopomofo":"ㄧㄡˇ"},{"text":"開","bopomofo":"ㄎㄞ"},{"text":"啟","bopomofo":"ㄑㄧˇ"},{"text":"邀","bopomofo":"ㄧㄠ"},{"text":"請","bopomofo":"ㄑㄧㄥˇ"}],"speech_zh_tw":"請讓朋友開啟邀請","audio_asset":"tts:zh-TW","audience":"child"},
+{"id":"online.friend_retry","text_zh_tw":"重新邀請","segments":[{"text":"重","bopomofo":"ㄔㄨㄥˊ"},{"text":"新","bopomofo":"ㄒㄧㄣ"},{"text":"邀","bopomofo":"ㄧㄠ"},{"text":"請","bopomofo":"ㄑㄧㄥˇ"}],"speech_zh_tw":"重新邀請","audio_asset":"tts:zh-TW","audience":"child"},
   {
     "id": "app.title",
     "text_zh_tw": "棋藝大冒險",

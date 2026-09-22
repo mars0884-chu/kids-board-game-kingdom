@@ -47,6 +47,7 @@ const gameOptions: readonly { id: GameId; textId: 'tictactoe.title' | 'gomoku.ti
 export default function App() {
   const preview = new URLSearchParams(window.location.search).get('preview')
   const hasWebRtcSignal = new URLSearchParams(window.location.search).has('webrtc')
+    || new URLSearchParams(window.location.hash.slice(1)).has('friend')
   const [showCommonUi, setShowCommonUi] = useState(
     () => preview === 'common-ui',
   )

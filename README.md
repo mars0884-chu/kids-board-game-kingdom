@@ -1,6 +1,16 @@
-# 綜合兒童棋藝大冒險 v0.11.0
+# 綜合兒童棋藝大冒險 v0.12.0
 
-v0.11.0 將跳棋隨機配對的棋局傳輸改為 Firebase Realtime Database，不再等待手機 WebRTC 直連。玩家使用自己的匿名 UID，不需要製作人的管理帳號密碼。熟人邀請仍保留 WebRTC；離線遊戲不受影響。
+v0.12.0 將跳棋熟人邀請也改為 Firebase Realtime Database。兩人皆可從主畫面 PWA 操作：甲按「邀請朋友」取得十二位數房號，乙按「輸入房號」後「加入遊戲」。不必離開遊戲或交換回覆連結；分享一次連結仍為選用方式。雙方就緒後進入棋盤。玩家使用自己的匿名 UID，不需要製作人的管理帳號密碼；離線遊戲不受影響。
+
+邀請十分鐘內有效、最多一位朋友加入；已使用或過期可重新邀請。沿用 Spark 免費方案，不啟用帳單；免費額度不是無限容量保證。關閉整個分頁後續局仍不支援。
+
+完整熟人瀏覽器驗證（本機 Edge，僅模擬器）：
+
+```powershell
+npx.cmd firebase-tools@15.30.0 emulators:exec --only auth,database --project demo-kids-board "npm run verify:firebase-friend"
+```
+
+此驗證包含獨立匿名身分、單次分享、雙向走棋、第三人拒絕及六尺寸版面。舊 verify:jump-chess-webrtc 與 verify:jump-chess-online-layout 指令轉至同一完整驗證，需在模擬器中執行；不再測試已退役的回覆連結操作。
 
 新版 Firebase 規則須先發布，才可更新前端。使用既有 Spark 免費方案，不啟用帳單。詳見 docs/P09_ONLINE_SPEC.md 的 v0.11.0 範圍、隱私與限制。完整棋規在兩端引擎驗證，伺服器規則負責權限、回合及序號；不是完整防作弊伺服器。
 

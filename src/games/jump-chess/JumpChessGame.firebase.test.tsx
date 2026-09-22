@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { JumpChessGame } from './JumpChessGame'
+import { getChildText } from '../../content/child-text'
 import { createJumpChessState, getLegalJumpMoves, applyJumpChessMove, type JumpChessState } from './rules'
 
 const mocks = vi.hoisted(() => ({
@@ -11,8 +12,8 @@ const mocks = vi.hoisted(() => ({
   close: vi.fn(),
 }))
 
-vi.mock('../../online/WebRtcPairing', () => ({
-  WebRtcPairing: ({ onConnected }: { onConnected: (session: unknown) => void }) => {
+vi.mock('../../online/FirebaseFriendPairing', () => ({
+  FirebaseFriendPairing: ({ onConnected }: { onConnected: (session: unknown) => void }) => {
     useEffect(() => {
       onConnected({
         transport: 'firebase', sessionId: 'firebase-ui', role: 'host',
@@ -48,12 +49,13 @@ describe('跳棋 Firebase 畫面整合', () => {
     expect(mocks.close).toHaveBeenCalled()
   })
   it('離線鎖定棋盤且不判負，恢復時重新開放當前玩家', async () => {
-    const { container } = render(<JumpChessGame mode="online" onBack={vi.fn()} />)
+    const { container, queryByLabelText } = render(<JumpChessGame mode="online" onBack={vi.fn()} />)
     await waitFor(() => expect(container.querySelector('.jump-chess-board')).toBeInTheDocument())
     act(() => mocks.connection?.(false))
     expect([...container.querySelectorAll<HTMLButtonElement>('.jump-chess-hole')].every((hole) => hole.disabled)).toBe(true)
     expect(container.querySelectorAll('.jump-chess-piece')).toHaveLength(20)
     act(() => mocks.connection?.(true))
+    expect(queryByLabelText(getChildText('online.disconnected').text_zh_tw)).toBeNull()
     expect([...container.querySelectorAll<HTMLButtonElement>('.jump-chess-hole')].some((hole) => !hole.disabled)).toBe(true)
   })
 })

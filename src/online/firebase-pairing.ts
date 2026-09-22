@@ -1,7 +1,8 @@
 import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app'
-import { getAuth, signInAnonymously, type User } from 'firebase/auth'
+import { connectAuthEmulator, getAuth, signInAnonymously, type User } from 'firebase/auth'
 import {
   getDatabase,
+  connectDatabaseEmulator,
   get,
   limitToFirst,
   onDisconnect,
@@ -54,7 +55,7 @@ const configKeys: readonly (keyof FirebaseConfig)[] = [
   'appId',
 ]
 
-interface FirebaseServices {
+export interface FirebaseServices {
   readonly app: FirebaseApp
   readonly database: Database
   readonly user: User
@@ -128,7 +129,7 @@ export function isFirebasePairingConfigured(): boolean {
   return configKeys.every((key) => firebaseConfig[key].trim().length > 0)
 }
 
-function getFirebaseServices(): Promise<FirebaseServices> {
+export function getFirebaseServices(): Promise<FirebaseServices> {
   if (!isFirebasePairingConfigured()) {
     return Promise.reject(new Error('隨機配對尚未設定 Firebase。'))
   }
@@ -137,8 +138,14 @@ function getFirebaseServices(): Promise<FirebaseServices> {
   servicesPromise = (async () => {
     const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
     const auth = getAuth(app)
+    const database = getDatabase(app)
+    // 僅開發模式且使用保留的 demo 專案才允許本機模擬器，正式建置不可啟用。
+    if (import.meta.env.DEV && import.meta.env.VITE_FIREBASE_EMULATOR === '1' && firebaseConfig.projectId === 'demo-kids-board') {
+      connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
+      connectDatabaseEmulator(database, '127.0.0.1', 9000)
+    }
     const user = auth.currentUser ?? (await signInAnonymously(auth)).user
-    return { app, database: getDatabase(app), user }
+    return { app, database, user }
   })().catch((error) => { servicesPromise = null; throw error })
   return servicesPromise
 }

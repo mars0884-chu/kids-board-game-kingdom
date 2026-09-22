@@ -25,7 +25,9 @@ jobs:
       - run: npm ci
       - name: 內容與完整回歸
         run: npm run check
-      - name: 四人配對、棋步同步、權限與斷線
-        run: npx --yes firebase-tools@15.30.0 emulators:exec --only auth,database --project demo-kids-board "npm run test:firebase"
+      - name: 安裝瀏覽器驗證環境
+        run: npx playwright install --with-deps chromium
+      - name: 四人配對、熟人邀請、棋步同步、權限與斷線
+        run: npx --yes firebase-tools@15.30.0 emulators:exec --only auth,database --project demo-kids-board "npm run test:firebase && npm run verify:firebase-friend"
       - name: 建置驗證
         run: npm run build

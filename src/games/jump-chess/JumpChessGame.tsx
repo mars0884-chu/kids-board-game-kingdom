@@ -30,7 +30,7 @@ import {
 } from './rules'
 import { chooseJumpChessTurn } from './ai'
 import { indexedDbJumpChessStorage, type JumpChessMode, type JumpChessStorage } from './storage'
-import { WebRtcPairing } from '../../online/WebRtcPairing'
+import { FirebaseFriendPairing as WebRtcPairing } from '../../online/FirebaseFriendPairing'
 import { closeWebRtcPeerSession } from '../../online/webrtc'
 import { isFirebaseGameSession, type OnlineSession } from '../../online/online-session'
 
@@ -175,6 +175,11 @@ export function JumpChessGame({ mode = 'npc', onBack, storage = indexedDbJumpChe
       }, (connected) => {
         setOnlineDisconnected(!connected)
         if (!connected) setFeedbackId('online.disconnected')
+        else setFeedbackId((current) => current === 'online.disconnected'
+          ? stateRef.current.phase === 'playing'
+            ? stateRef.current.currentPlayer === localPlayer ? 'jump_chess.turn_one' : 'jump_chess.turn_two'
+            : resultTextId(stateRef.current)
+          : current)
       })
     }
     const { channel, connection, role, sessionId } = onlineSession
