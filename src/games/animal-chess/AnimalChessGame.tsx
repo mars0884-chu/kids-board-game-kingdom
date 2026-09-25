@@ -22,6 +22,14 @@ import {
   type AnimalPlayer,
 } from './rules'
 import { indexedDbAnimalChessStorage, type AnimalChessMode, type AnimalChessStorage } from './storage'
+import { FirebaseFriendPairing } from '../../online/FirebaseFriendPairing'
+import { createFirebaseAuthoritativeTurnSession, type AuthoritativeTurnSession } from '../../online/firebase-authoritative-turn-game'
+import { animalChessOnlineRules } from '../../online/turn-rules'
+import type { FirebaseRoomFactory } from '../../online/firebase-friend'
+
+const createOnlineAnimalChess: FirebaseRoomFactory<AuthoritativeTurnSession<AnimalChessState>> =
+  (database, pairing, hostUid, guestUid, signal, expiresAt) =>
+    createFirebaseAuthoritativeTurnSession(database, pairing, 'animal-chess', hostUid, guestUid, signal, animalChessOnlineRules, expiresAt)
 
 const TUTORIAL_ENTRIES = [
   'animal_chess.tutorial_1',
@@ -52,7 +60,7 @@ const ANIMAL_KIND_ENTRIES: Record<AnimalKind, string> = {
 }
 
 interface AnimalChessGameProps {
-  mode?: AnimalChessMode
+  mode?: AnimalChessMode | 'online'
   onBack: () => void
   storage?: AnimalChessStorage
 }
@@ -101,6 +109,8 @@ export function AnimalChessGame({ mode = 'npc', onBack, storage = indexedDbAnima
   const [feedbackId, setFeedbackId] = useState<string>(mode === 'adventure' ? tutorialActionId(0, 0) : mode === 'local' ? 'animal_chess.turn_one' : 'animal_chess.choose')
   const [isPaused, setIsPaused] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [onlineSession, setOnlineSession] = useState<AuthoritativeTurnSession<AnimalChessState> | null>(null)
+  const [onlineConnected, setOnlineConnected] = useState(false)
   const cellRefs = useRef<Array<HTMLButtonElement | null>>([])
   const lastAutomaticSpeechId = useRef<string | null>(null)
   const { isPaused: isSpeechPaused, isSupported, speak, togglePause } = useSpeech()
@@ -117,9 +127,12 @@ export function AnimalChessGame({ mode = 'npc', onBack, storage = indexedDbAnima
   const selectedMoves = selectedCell === null ? [] : legalMoves.filter((move) => move.from === selectedCell)
   const selectedTargets = new Set(selectedMoves.map((move) => move.to))
   const isFinished = state.phase !== 'playing'
-  const locked = isPaused || isFinished || (mode === 'npc' && state.currentPlayer === 'player2') || (mode === 'adventure' && tutorialComplete)
+  const locked = isPaused || isFinished || (mode === 'npc' && state.currentPlayer === 'player2') || (mode === 'adventure' && tutorialComplete) ||
+    (mode === 'online' && (!onlineConnected || onlineSession === null ||
+      (state.currentPlayer === 'player1' ? 'host' : 'guest') !== onlineSession.role))
 
   useEffect(() => {
+    if (mode === 'online') { setIsHydrated(true); return }
     let active = true
     void storage.load(mode).then((session) => {
       if (!active || session === null) return
@@ -148,9 +161,19 @@ export function AnimalChessGame({ mode = 'npc', onBack, storage = indexedDbAnima
   }, [mode, storage])
 
   useEffect(() => {
-    if (!isHydrated) return
+    if (!isHydrated || mode === 'online') return
     void storage.save(mode, { difficulty, tutorialStep, tutorialSubstep, tutorialComplete, state })
   }, [difficulty, isHydrated, mode, state, storage, tutorialComplete, tutorialStep, tutorialSubstep])
+
+  useEffect(() => {
+    if (onlineSession === null) return
+    const unsubscribe = onlineSession.subscribe((next) => {
+      setState(next)
+      setSelectedCell(null)
+      setFeedbackId(next.currentPlayer === 'player1' ? 'animal_chess.turn_one' : 'animal_chess.turn_two')
+    }, setOnlineConnected)
+    return () => { unsubscribe(); onlineSession.close() }
+  }, [onlineSession])
 
   useEffect(() => {
     if (mode !== 'npc' || state.phase !== 'playing' || state.currentPlayer !== 'player2' || isPaused) return
@@ -181,6 +204,10 @@ export function AnimalChessGame({ mode = 'npc', onBack, storage = indexedDbAnima
   }, [feedbackId, isHydrated, mode, speak, state.phase, tutorialComplete])
 
   function resetGame(nextTutorialStep = mode === 'adventure' ? tutorialStep : 0) {
+    if (mode === 'online') {
+      if (onlineSession?.role === 'host') void onlineSession.restart().catch(() => setFeedbackId('online.random_error'))
+      return
+    }
     const boundedStep = Math.max(0, Math.min(TUTORIAL_COUNT - 1, nextTutorialStep))
     setState(mode === 'adventure' ? createAnimalChessTutorialState(boundedStep as 0 | 1 | 2 | 3 | 4 | 5) : createAnimalChessState())
     setSelectedCell(null)
@@ -222,8 +249,9 @@ export function AnimalChessGame({ mode = 'npc', onBack, storage = indexedDbAnima
           setFeedbackId(tutorialStep === TUTORIAL_COUNT - 1 ? 'animal_chess.tutorial_done' : 'animal_chess.tutorial_success')
         }
       } else {
-        setState(nextState)
-        setFeedbackId(mode === 'local' ? state.currentPlayer === 'player1' ? 'animal_chess.turn_two' : 'animal_chess.turn_one' : mode === 'npc' ? 'animal_chess.npc_thinking' : TUTORIAL_ENTRIES[tutorialStep] ?? TUTORIAL_ENTRIES[0])
+        if (mode === 'online') void onlineSession!.submit(nextState).catch(() => setFeedbackId('online.random_error'))
+        else setState(nextState)
+        setFeedbackId(mode === 'local' || mode === 'online' ? state.currentPlayer === 'player1' ? 'animal_chess.turn_two' : 'animal_chess.turn_one' : mode === 'npc' ? 'animal_chess.npc_thinking' : TUTORIAL_ENTRIES[tutorialStep] ?? TUTORIAL_ENTRIES[0])
       }
       setSelectedCell(null)
       return
@@ -275,6 +303,10 @@ export function AnimalChessGame({ mode = 'npc', onBack, storage = indexedDbAnima
   const tutorialInstruction = getChildText(tutorialComplete
     ? tutorialStep === TUTORIAL_COUNT - 1 ? 'animal_chess.tutorial_done' : 'animal_chess.tutorial_success'
     : TUTORIAL_ENTRIES[tutorialStep] ?? TUTORIAL_ENTRIES[0])
+
+  if (mode === 'online' && onlineSession === null) {
+    return <FirebaseFriendPairing<AuthoritativeTurnSession<AnimalChessState>> gameId="animal-chess" roomFactory={createOnlineAnimalChess} onBack={onBack} onConnected={setOnlineSession} />
+  }
 
   return (
     <main className={`animal-chess-game animal-chess-game--${mode}`}>

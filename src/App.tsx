@@ -14,11 +14,13 @@ import { ReversiArtProposal } from './games/reversi/ReversiArtProposal'
 import type { ReversiMode } from './games/reversi/storage'
 import { DarkChessVerification } from './games/dark-chess/DarkChessVerification'
 import { DarkChessGame } from './games/dark-chess/DarkChessGame'
+import { DarkChessOnlineGame } from './games/dark-chess/DarkChessOnlineGame'
 import type { DarkChessMode } from './games/dark-chess/storage'
 import { NumberGemConnection } from './games/number-gem-connection/NumberGemConnection'
 import type { NumberGemMode } from './games/number-gem-connection/storage'
 import { AnimalChessGame } from './games/animal-chess/AnimalChessGame'
 import type { AnimalChessMode } from './games/animal-chess/storage'
+import { isOnlineGameId } from './online/game-id'
 import { JumpChessGame } from './games/jump-chess/JumpChessGame'
 import type { JumpChessMode } from './games/jump-chess/storage'
 import { InstallButton } from './pwa/InstallButton'
@@ -46,15 +48,17 @@ const gameOptions: readonly { id: GameId; textId: 'tictactoe.title' | 'gomoku.ti
 
 export default function App() {
   const preview = new URLSearchParams(window.location.search).get('preview')
+  const inviteParams = new URLSearchParams(window.location.hash.slice(1))
+  const inviteGame = isOnlineGameId(inviteParams.get('game')) ? inviteParams.get('game') : 'jump-chess'
   const hasWebRtcSignal = new URLSearchParams(window.location.search).has('webrtc')
-    || new URLSearchParams(window.location.hash.slice(1)).has('friend')
+    || (inviteParams.has('friend') && inviteGame === 'jump-chess')
   const [showCommonUi, setShowCommonUi] = useState(
     () => preview === 'common-ui',
   )
   const [showDarkChessVerification, setShowDarkChessVerification] = useState(
     () => preview === 'dark-chess-verification',
   )
-  const [darkChessMode, setDarkChessMode] = useState<DarkChessMode | null>(() => preview === 'dark-chess-adventure'
+  const [darkChessMode, setDarkChessMode] = useState<DarkChessMode | 'online' | null>(() => inviteParams.has('friend') && inviteGame === 'dark-chess' ? 'online' : preview === 'dark-chess-adventure'
     ? 'adventure'
     : preview === 'dark-chess-art-proposal'
       ? 'adventure'
@@ -63,17 +67,17 @@ export default function App() {
       : preview === 'dark-chess' || preview === 'dark-chess-child'
         ? 'npc'
         : null)
-  const [reversiMode, setReversiMode] = useState<ReversiMode | null>(
-    () => preview === 'reversi-art-proposal' ? 'local' : null,
+  const [reversiMode, setReversiMode] = useState<ReversiMode | 'online' | null>(
+    () => inviteParams.has('friend') && inviteGame === 'reversi' ? 'online' : preview === 'reversi-art-proposal' ? 'local' : null,
   )
-  const [numberGemMode, setNumberGemMode] = useState<NumberGemMode | null>(() => preview === 'number-gem-tutorial'
+  const [numberGemMode, setNumberGemMode] = useState<NumberGemMode | 'online' | null>(() => inviteParams.has('friend') && inviteGame === 'number-gem' ? 'online' : preview === 'number-gem-tutorial'
     ? 'adventure'
     : preview === 'number-gem-local'
       ? 'local'
       : preview === 'number-gem'
         ? 'npc'
         : null)
-  const [animalChessMode, setAnimalChessMode] = useState<AnimalChessMode | null>(() => preview === 'animal-chess-tutorial'
+  const [animalChessMode, setAnimalChessMode] = useState<AnimalChessMode | 'online' | null>(() => inviteParams.has('friend') && inviteGame === 'animal-chess' ? 'online' : preview === 'animal-chess-tutorial'
     ? 'adventure'
     : preview === 'animal-chess-local'
       ? 'local'
@@ -90,8 +94,8 @@ export default function App() {
         ? 'npc'
       : null)
   const [selectedHomeMode, setSelectedHomeMode] = useState<HomeModeId | null>(null)
-  const [ticTacToeMode, setTicTacToeMode] = useState<TicTacToeMode | null>(() => preview === 'tic-tac-toe' ? 'npc' : null)
-  const [gomokuMode, setGomokuMode] = useState<GomokuMode | null>(() => preview === 'gomoku'
+  const [ticTacToeMode, setTicTacToeMode] = useState<TicTacToeMode | 'online' | null>(() => inviteParams.has('friend') && inviteGame === 'tic-tac-toe' ? 'online' : preview === 'tic-tac-toe' ? 'npc' : null)
+  const [gomokuMode, setGomokuMode] = useState<GomokuMode | 'online' | null>(() => inviteParams.has('friend') && inviteGame === 'gomoku' ? 'online' : preview === 'gomoku'
     ? 'npc'
     : preview === 'gomoku-art-proposal'
       ? 'npc'
@@ -119,37 +123,37 @@ export default function App() {
         ? 'adventure'
         : selectedHomeMode === 'practice'
           ? 'npc'
-          : 'local')
+          : selectedHomeMode === 'online' ? 'online' : 'local')
     } else if (gameId === 'animal-chess') {
       setAnimalChessMode(selectedHomeMode === 'adventure'
         ? 'adventure'
         : selectedHomeMode === 'practice'
           ? 'npc'
-          : 'local')
+          : selectedHomeMode === 'online' ? 'online' : 'local')
     } else if (gameId === 'reversi') {
       setReversiMode(selectedHomeMode === 'adventure'
         ? 'adventure'
         : selectedHomeMode === 'practice'
           ? 'npc'
-          : 'local')
+          : selectedHomeMode === 'online' ? 'online' : 'local')
     } else if (gameId === 'gomoku') {
       setGomokuMode(selectedHomeMode === 'adventure'
         ? 'adventure'
         : selectedHomeMode === 'practice'
           ? 'npc'
-          : 'local')
+          : selectedHomeMode === 'online' ? 'online' : 'local')
     } else if (gameId === 'tic-tac-toe') {
       setTicTacToeMode(selectedHomeMode === 'adventure'
         ? 'tutorial'
         : selectedHomeMode === 'practice'
           ? 'npc'
-          : 'local')
+          : selectedHomeMode === 'online' ? 'online' : 'local')
     } else {
       setDarkChessMode(selectedHomeMode === 'adventure'
         ? 'adventure'
         : selectedHomeMode === 'practice'
           ? 'npc'
-          : 'local')
+          : selectedHomeMode === 'online' ? 'online' : 'local')
     }
     if (isSupported) {
       const textId = gameId === 'number-gem'
@@ -190,6 +194,7 @@ export default function App() {
   }
 
   if (darkChessMode !== null) {
+    if (darkChessMode === 'online') return <DarkChessOnlineGame onBack={() => setDarkChessMode(null)} />
     return (
       <>
         <DarkChessGame mode={darkChessMode} artProposal={preview === 'dark-chess-art-proposal'} onBack={() => setDarkChessMode(null)} />
@@ -248,7 +253,11 @@ export default function App() {
               <BopomofoText entry={getChildText('ui.choose_game')} />
             </div>
             <div className="game-picker-actions">
-              {(selectedHomeMode === 'online' ? gameOptions.filter((game) => game.id === 'jump-chess') : gameOptions).map((game) => (
+              {(selectedHomeMode === 'online' ? gameOptions.filter((game) => {
+                if (game.id === 'dark-chess') return Boolean(import.meta.env.VITE_DARK_CHESS_WORKER_URL)
+                if (game.id === 'jump-chess') return true
+                return Boolean(import.meta.env.VITE_TURN_GAME_WORKER_URL)
+              }) : gameOptions).map((game) => (
                 <button
                   key={game.id}
                   className={`mode-button mode-button--${game.tone}`}

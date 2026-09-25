@@ -56,6 +56,8 @@ jobs:
           VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
+          VITE_DARK_CHESS_WORKER_URL: https://kids-board-dark-chess.kids-board-game-kingdom.workers.dev
+          VITE_TURN_GAME_WORKER_URL: https://kids-board-turn-games.kids-board-game-kingdom.workers.dev
         run: npm run build
 
       - name: 上傳 GitHub Pages 產物

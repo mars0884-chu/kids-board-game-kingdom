@@ -23,6 +23,14 @@ import {
   type TicTacToeStorage,
 } from './storage'
 import { TicTacToeCandidate, TicTacToePiece } from './TicTacToePiece'
+import { FirebaseFriendPairing } from '../../online/FirebaseFriendPairing'
+import { createFirebaseAuthoritativeTurnSession, type AuthoritativeTurnSession } from '../../online/firebase-authoritative-turn-game'
+import { ticTacToeOnlineRules } from '../../online/turn-rules'
+import type { FirebaseRoomFactory } from '../../online/firebase-friend'
+
+const createOnlineTicTacToe: FirebaseRoomFactory<AuthoritativeTurnSession<TicTacToeState>> =
+  (database, pairing, hostUid, guestUid, signal, expiresAt) =>
+    createFirebaseAuthoritativeTurnSession(database, pairing, 'tic-tac-toe', hostUid, guestUid, signal, ticTacToeOnlineRules, expiresAt)
 
 const TUTORIAL_TARGETS: readonly TicTacToeMove[] = [8, 2, 6]
 const TUTORIAL_REPLIES: readonly (TicTacToeMove | null)[] = [1, 3, null]
@@ -38,14 +46,14 @@ const HINT_ENTRIES = [
   'tictactoe.hint_demo',
 ] as const
 
-function createModeState(mode: TicTacToeMode): TicTacToeState {
+function createModeState(mode: TicTacToeMode | 'online'): TicTacToeState {
   return mode === 'tutorial'
     ? replayTicTacToeMoves([4, 0])
     : createTicTacToeState()
 }
 
 interface TicTacToeProposalProps {
-  mode?: TicTacToeMode
+  mode?: TicTacToeMode | 'online'
   onBack: () => void
   storage?: TicTacToeStorage
 }
@@ -61,6 +69,8 @@ export function TicTacToeProposal({
   const [hintLevel, setHintLevel] = useState(0)
   const [isGamePaused, setIsGamePaused] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [onlineSession, setOnlineSession] = useState<AuthoritativeTurnSession<TicTacToeState> | null>(null)
+  const [onlineConnected, setOnlineConnected] = useState(false)
   const [feedbackOverrideId, setFeedbackOverrideId] = useState<string | null>(
     mode === 'tutorial' ? 'tictactoe.tutorial_turns' : null,
   )
@@ -68,6 +78,7 @@ export function TicTacToeProposal({
   const lastAutomaticSpeechId = useRef<string | null>(null)
 
   useEffect(() => {
+    if (mode === 'online') { setIsHydrated(true); return }
     let active = true
 
     void storage.load(mode).then((session) => {
@@ -92,12 +103,21 @@ export function TicTacToeProposal({
   }, [mode, storage])
 
   useEffect(() => {
-    if (!isHydrated) {
+    if (!isHydrated || mode === 'online') {
       return
     }
 
     void storage.save(mode, { difficulty, hintLevel, state, tutorialStep })
   }, [difficulty, hintLevel, isHydrated, mode, state, storage, tutorialStep])
+
+  useEffect(() => {
+    if (onlineSession === null) return
+    const unsubscribe = onlineSession.subscribe((next) => {
+      setState(next)
+      setFeedbackOverrideId(null)
+    }, setOnlineConnected)
+    return () => { unsubscribe(); onlineSession.close() }
+  }, [onlineSession])
 
   useEffect(() => {
     if (mode !== 'npc' || isGamePaused || state.phase !== 'playing' || state.currentPlayer !== 'o') {
@@ -136,7 +156,7 @@ export function TicTacToeProposal({
     if (mode === 'npc' && state.currentPlayer === 'o') {
       return getChildText('tictactoe.npc_thinking')
     }
-    if (mode === 'local') {
+    if (mode === 'local' || mode === 'online') {
       return getChildText(state.currentPlayer === 'x' ? 'tictactoe.local_star' : 'tictactoe.local_moon')
     }
     return getChildText(state.currentPlayer === 'x' ? 'tictactoe.star_turn' : 'tictactoe.moon_turn')
@@ -204,6 +224,11 @@ export function TicTacToeProposal({
     if (mode === 'npc' && state.currentPlayer === 'o') {
       return
     }
+    if (mode === 'online') {
+      if (onlineSession === null || !onlineConnected || (state.currentPlayer === 'x' ? 'host' : 'guest') !== onlineSession.role) return
+      void onlineSession.submit(playTicTacToeMove(state, move)).catch(() => setFeedbackOverrideId('online.random_error'))
+      return
+    }
 
     if (mode === 'tutorial') {
       const expectedMove = TUTORIAL_TARGETS[tutorialStep]
@@ -242,6 +267,10 @@ export function TicTacToeProposal({
   }
 
   const restart = () => {
+    if (mode === 'online') {
+      if (onlineSession?.role === 'host') void onlineSession.restart().catch(() => setFeedbackOverrideId('online.random_error'))
+      return
+    }
     void storage.clear(mode).then(() => {
       setState(createModeState(mode))
       setTutorialStep(0)
@@ -268,7 +297,12 @@ export function TicTacToeProposal({
 
   const boardIsLocked = isGamePaused ||
     state.phase !== 'playing' ||
-    (mode === 'npc' && state.currentPlayer === 'o')
+    (mode === 'npc' && state.currentPlayer === 'o') ||
+    (mode === 'online' && (!onlineConnected || onlineSession === null || (state.currentPlayer === 'x' ? 'host' : 'guest') !== onlineSession.role))
+
+  if (mode === 'online' && onlineSession === null) {
+    return <FirebaseFriendPairing<AuthoritativeTurnSession<TicTacToeState>> gameId="tic-tac-toe" roomFactory={createOnlineTicTacToe} onBack={onBack} onConnected={setOnlineSession} />
+  }
 
   return (
     <main className={`tictactoe-proposal tictactoe-proposal--${mode}`}>
@@ -313,10 +347,7 @@ export function TicTacToeProposal({
               entry={feedbackEntry}
               tone={state.phase === 'playing' && !isGamePaused ? 'hint' : 'positive'}
             />
-            <DifficultySelector
-              selected={difficulty}
-              onChange={changeDifficulty}
-            />
+            {mode !== 'online' && <DifficultySelector selected={difficulty} onChange={changeDifficulty} />}
             <div className="tictactoe-actions">
               <ChildActionButton
                 entry={getChildText('common.hint')}
@@ -329,6 +360,7 @@ export function TicTacToeProposal({
                 entry={getChildText('tictactoe.play_again')}
                 icon="retry"
                 tone="secondary"
+                disabled={mode === 'online' && (onlineSession?.role !== 'host' || !onlineConnected)}
                 onClick={restart}
               />
             </div>

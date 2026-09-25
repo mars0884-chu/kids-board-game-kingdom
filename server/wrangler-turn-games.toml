@@ -1,0 +1,13 @@
+name = "kids-board-turn-games"
+main = "turn-game-worker.ts"
+compatibility_date = "2026-09-23"
+workers_dev = true
+preview_urls = false
+
+[[durable_objects.bindings]]
+name = "TURN_GAME_ROOMS"
+class_name = "TurnGameRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TurnGameRoom"]

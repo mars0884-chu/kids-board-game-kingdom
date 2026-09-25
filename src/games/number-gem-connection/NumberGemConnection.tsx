@@ -36,6 +36,14 @@ import {
   recordNumberGemCompletion,
   type NumberGemScore,
 } from './score'
+import { FirebaseFriendPairing } from '../../online/FirebaseFriendPairing'
+import { createFirebaseAuthoritativeTurnSession, type AuthoritativeTurnSession } from '../../online/firebase-authoritative-turn-game'
+import { advanceOnlineNumberGemRound, chooseOnlineNumberGemCell, createNumberGemOnlineMatch, numberGemOnlineRules, undoOnlineNumberGemCell, type NumberGemOnlineMatch } from '../../online/number-gem-turn-rules'
+import type { FirebaseRoomFactory } from '../../online/firebase-friend'
+
+const createOnlineNumberGem: FirebaseRoomFactory<AuthoritativeTurnSession<NumberGemOnlineMatch>> =
+  (database, pairing, hostUid, guestUid, signal, expiresAt) =>
+    createFirebaseAuthoritativeTurnSession(database, pairing, 'number-gem', hostUid, guestUid, signal, numberGemOnlineRules, expiresAt)
 
 const TUTORIAL_ENTRIES = [
   'number_gem.tutorial_1',
@@ -51,7 +59,7 @@ const HINT_ENTRIES = [
   'number_gem.hint_demo',
 ] as const
 
-function initialState(mode: NumberGemMode, difficulty: DifficultyLevel, tutorialStep: number, roundSeed: number): NumberGemState {
+function initialState(mode: NumberGemMode | 'online', difficulty: DifficultyLevel, tutorialStep: number, roundSeed: number): NumberGemState {
   if (mode === 'adventure') {
     return createNumberGemState(createNumberGemTutorialPuzzle(tutorialStep))
   }
@@ -66,7 +74,7 @@ function invalidFeedback(evaluation: NumberGemPathEvaluation): string {
 }
 
 interface NumberGemConnectionProps {
-  mode?: NumberGemMode
+  mode?: NumberGemMode | 'online'
   onBack: () => void
   storage?: NumberGemStorage
 }
@@ -85,6 +93,9 @@ export function NumberGemConnection({
   const [hintLevel, setHintLevel] = useState(0)
   const [isGamePaused, setIsGamePaused] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [onlineMatch, setOnlineMatch] = useState<NumberGemOnlineMatch>(createNumberGemOnlineMatch)
+  const [onlineSession, setOnlineSession] = useState<AuthoritativeTurnSession<NumberGemOnlineMatch> | null>(null)
+  const [onlineConnected, setOnlineConnected] = useState(false)
   const [feedbackOverrideId, setFeedbackOverrideId] = useState<string | null>(
     mode === 'adventure' ? TUTORIAL_ENTRIES[0] : mode === 'local' ? 'number_gem.local_one' : null,
   )
@@ -94,6 +105,7 @@ export function NumberGemConnection({
   const { isPaused: isSpeechPaused, isSupported, speak, togglePause } = useSpeech()
 
   useEffect(() => {
+    if (mode === 'online') { setIsHydrated(true); return }
     let active = true
     void storage.load(mode).then((session) => {
       if (!active || session === null) return
@@ -120,22 +132,35 @@ export function NumberGemConnection({
   }, [mode, storage])
 
   useEffect(() => {
-    if (!isHydrated) return
+    if (!isHydrated || mode === 'online') return
     const session: NumberGemSession = { difficulty, hintLevel, state, tutorialStep, roundSeed, localPlayer, score }
     void storage.save(mode, session)
   }, [difficulty, hintLevel, isHydrated, localPlayer, mode, roundSeed, score, state, storage, tutorialStep])
+
+  useEffect(() => {
+    if (onlineSession === null) return
+    const unsubscribe = onlineSession.subscribe((next) => {
+      setOnlineMatch(next)
+      setState(next.state)
+      setScore(next.score)
+      setRoundSeed(next.roundSeed)
+      setLocalPlayer(next.player)
+      setFeedbackOverrideId(null)
+    }, setOnlineConnected)
+    return () => { unsubscribe(); onlineSession.close() }
+  }, [onlineSession])
 
   const pathEvaluation = useMemo(
     () => evaluateNumberGemPath(state.puzzle, state.path),
     [state.path, state.puzzle],
   )
 
-  const localMatchComplete = mode === 'local' && isNumberGemLocalMatchComplete(score)
+  const localMatchComplete = (mode === 'local' || mode === 'online') && isNumberGemLocalMatchComplete(score)
 
   const turnEntry = useMemo(() => {
     if (isGamePaused) return getChildText('number_gem.paused')
     if (localMatchComplete) return getChildText('number_gem.local_match_done')
-    if (mode === 'local') return getChildText(localPlayer === 1 ? 'number_gem.local_one' : 'number_gem.local_two')
+    if (mode === 'local' || mode === 'online') return getChildText(localPlayer === 1 ? 'number_gem.local_one' : 'number_gem.local_two')
     if (state.phase === 'completed') return getChildText('number_gem.done')
     return getChildText('number_gem.choose')
   }, [isGamePaused, localPlayer, mode, state.phase])
@@ -189,6 +214,10 @@ export function NumberGemConnection({
   }
 
   const restart = () => {
+    if (mode === 'online') {
+      if (onlineSession?.role === 'host') void onlineSession.restart().catch(() => setFeedbackOverrideId('online.random_error'))
+      return
+    }
     void storage.clear(mode).finally(() => {
       setScore(createInitialNumberGemScore())
       resetRound(mode === 'adventure' ? 'beginner' : difficulty, roundSeed, mode === 'local' ? 1 : localPlayer, mode === 'adventure' ? 0 : tutorialStep)
@@ -197,6 +226,11 @@ export function NumberGemConnection({
 
   const advanceRound = () => {
     if (state.phase !== 'completed') return
+    if (mode === 'online') {
+      if (!onlineConnected || onlineSession === null || (localPlayer === 1 ? 'host' : 'guest') !== onlineSession.role) return
+      void onlineSession.submit(advanceOnlineNumberGemRound(onlineMatch)).catch(() => setFeedbackOverrideId('online.random_error'))
+      return
+    }
     if (mode === 'adventure') {
       if (tutorialStep + 1 < NUMBER_GEM_TUTORIAL_COUNT) {
         resetRound('beginner', roundSeed, 1, tutorialStep + 1)
@@ -215,7 +249,7 @@ export function NumberGemConnection({
   }
 
   const chooseCell = (cellIndex: number) => {
-    if (isGamePaused || state.phase === 'completed' || localMatchComplete) return
+    if (boardIsLocked || localMatchComplete) return
     setFocusIndex(cellIndex)
     const result = chooseNumberGemCell(state, cellIndex)
     if (result.state === state) {
@@ -224,9 +258,10 @@ export function NumberGemConnection({
       speak(entry)
       return
     }
-    setState(result.state)
+    if (mode === 'online') void onlineSession!.submit(chooseOnlineNumberGemCell(onlineMatch, cellIndex)).catch(() => setFeedbackOverrideId('online.random_error'))
+    else setState(result.state)
     if (result.state.phase === 'completed') {
-      setScore((current) => recordNumberGemCompletion(current, mode, localPlayer))
+      if (mode !== 'online') setScore((current) => recordNumberGemCompletion(current, mode, localPlayer))
     }
     setFeedbackOverrideId(null)
     setHintLevel(0)
@@ -262,6 +297,7 @@ export function NumberGemConnection({
   }
 
   const changeDifficulty = (level: DifficultyLevel) => {
+    if (mode === 'online') return
     setFeedbackOverrideId(null)
     speak(getChildText(`difficulty.${level}`))
     setScore(createInitialNumberGemScore())
@@ -274,7 +310,8 @@ export function NumberGemConnection({
     else if (!isGamePaused) togglePause()
   }
 
-  const boardIsLocked = isGamePaused || state.phase === 'completed'
+  const boardIsLocked = isGamePaused || state.phase === 'completed' ||
+    (mode === 'online' && (!onlineConnected || onlineSession === null || (localPlayer === 1 ? 'host' : 'guest') !== onlineSession.role))
   const targetEntry = getChildText('number_gem.target')
   const currentTotalEntry = getChildText('number_gem.current_total')
   const selectedEntry = getChildText('number_gem.selected')
@@ -283,6 +320,10 @@ export function NumberGemConnection({
   const playerOneEntry = getChildText('number_gem.player_one')
   const playerTwoEntry = getChildText('number_gem.player_two')
   const boardStyle = { '--number-gem-columns': state.puzzle.boardSize } as CSSProperties
+
+  if (mode === 'online' && onlineSession === null) {
+    return <FirebaseFriendPairing<AuthoritativeTurnSession<NumberGemOnlineMatch>> gameId="number-gem" roomFactory={createOnlineNumberGem} onBack={onBack} onConnected={setOnlineSession} />
+  }
 
   return (
     <main className={`number-gem-connection number-gem-connection--${mode}`}>
@@ -296,7 +337,7 @@ export function NumberGemConnection({
                 <span aria-hidden="true">★</span>
                 <BopomofoText entry={scoreboardEntry} />
               </div>
-              {mode === 'local' ? (
+              {mode === 'local' || mode === 'online' ? (
                 <div className="number-gem-scoreboard__players">
                   <div className={`number-gem-scoreboard__player ${localPlayer === 1 && !localMatchComplete ? 'number-gem-scoreboard__player--active' : ''}`.trim()}>
                     <BopomofoText entry={playerOneEntry} />
@@ -385,14 +426,18 @@ export function NumberGemConnection({
 
           <aside className="number-gem-controls">
             <FeedbackCard entry={feedbackEntry} tone={state.phase === 'completed' ? 'positive' : 'hint'} />
-            {mode !== 'adventure' ? (
+            {mode !== 'adventure' && mode !== 'online' ? (
               <DifficultySelector selected={difficulty} onChange={changeDifficulty} disabled={isGamePaused} />
             ) : null}
             <div className="number-gem-actions">
               <ChildActionButton entry={getChildText('common.hint')} icon="hint" tone="hint" disabled={boardIsLocked} onClick={showNextHint} />
-              <ChildActionButton entry={getChildText('number_gem.undo')} icon="retry" tone="secondary" disabled={boardIsLocked || state.path.length === 0} onClick={() => { setState(undoNumberGemCell(state)); setFeedbackOverrideId(null) }} />
+              <ChildActionButton entry={getChildText('number_gem.undo')} icon="retry" tone="secondary" disabled={boardIsLocked || state.path.length === 0} onClick={() => {
+                if (mode === 'online') void onlineSession!.submit(undoOnlineNumberGemCell(onlineMatch)).catch(() => setFeedbackOverrideId('online.random_error'))
+                else setState(undoNumberGemCell(state))
+                setFeedbackOverrideId(null)
+              }} />
               {state.phase === 'completed' && !localMatchComplete ? (
-                <ChildActionButton entry={mode === 'adventure' && tutorialStep < NUMBER_GEM_TUTORIAL_COUNT - 1 ? getChildText('number_gem.next_stage') : getChildText('number_gem.next_puzzle')} icon="target" tone="primary" onClick={advanceRound} />
+                <ChildActionButton entry={mode === 'adventure' && tutorialStep < NUMBER_GEM_TUTORIAL_COUNT - 1 ? getChildText('number_gem.next_stage') : getChildText('number_gem.next_puzzle')} icon="target" tone="primary" disabled={mode === 'online' && (!onlineConnected || onlineSession === null || (localPlayer === 1 ? 'host' : 'guest') !== onlineSession.role)} onClick={advanceRound} />
               ) : (
                 <ChildActionButton entry={getChildText('common.try_again')} icon="retry" tone="secondary" onClick={restart} />
               )}

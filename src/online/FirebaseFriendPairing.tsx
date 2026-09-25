@@ -1,18 +1,32 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { BopomofoText } from '../components/BopomofoText'
 import { ChildActionButton, ToolButton } from '../components/common-ui'
 import { getChildText } from '../content/child-text'
 import { FirebaseRandomPairing } from './FirebaseRandomPairing'
-import { createFriendInvitation, joinFriendInvitation, readFriendInvite, isFriendRoomCode } from './firebase-friend'
+import { createFriendInvitation, joinFriendInvitation, readFriendInvite, isFriendRoomCode, type FirebaseRoomFactory } from './firebase-friend'
 import type { OnlineSession } from './online-session'
-import type { FirebaseGameSession } from './firebase-game'
+import { createFirebaseGameSession } from './firebase-game'
+import { getFirebaseServices, type FirebasePairingSession } from './firebase-pairing'
+import type { OnlineGameId } from './game-id'
 import { useSpeech } from '../hooks/useSpeech'
 import './webrtc-pairing.css'
 
-export function FirebaseFriendPairing({ onBack, onConnected }: {
+function closeSession(value: unknown) {
+  if (value !== null && typeof value === 'object' && 'close' in value && typeof value.close === 'function') value.close()
+}
+
+export function FirebaseFriendPairing<Session = OnlineSession>({ onBack, onConnected, gameId = 'jump-chess', roomFactory }: {
   readonly onBack: () => void
-  readonly onConnected: (session: OnlineSession) => void
+  readonly onConnected: (session: Session) => void
+  readonly gameId?: OnlineGameId
+  readonly roomFactory?: FirebaseRoomFactory<Session>
 }) {
+  const factory = roomFactory ?? createFirebaseGameSession as FirebaseRoomFactory<Session>
+  const randomFactory = useCallback(async (pairing: FirebasePairingSession, signal: AbortSignal): Promise<Session> => {
+    if (roomFactory === undefined) return pairing.createGame(signal) as unknown as Session
+    const { database } = await getFirebaseServices()
+    return roomFactory(database, pairing, pairing.hostUid, pairing.guestUid, signal, pairing.expiresAt)
+  }, [roomFactory])
   const [inviteId, setInviteId] = useState(readFriendInvite)
   const [phase, setPhase] = useState<'ready' | 'join' | 'connecting' | 'waiting' | 'error' | 'random'>(() =>
     new URLSearchParams(window.location.search).has('webrtc') ? 'error' : 'ready')
@@ -56,18 +70,18 @@ export function FirebaseFriendPairing({ onBack, onConnected }: {
       }
     }, 45000)
     try {
-      let session: FirebaseGameSession
+      let session: Session
       if (code !== undefined || inviteId !== null) {
-        session = await joinFriendInvitation(code ?? inviteId!, attempt.signal)
+        session = await joinFriendInvitation<Session>(code ?? inviteId!, attempt.signal, undefined, gameId, factory)
       } else {
-        const invitation = await createFriendInvitation(attempt.signal)
+        const invitation = await createFriendInvitation<Session>(attempt.signal, undefined, gameId, factory)
         if (attempt.signal.aborted) { void invitation.cancel(); return }
         cancel.current = invitation.cancel
         window.clearTimeout(timer)
         setLink(invitation.link); setRoomCode(invitation.code); setPhase('waiting')
         session = await invitation.waitForGuest()
       }
-      if (attempt.signal.aborted) { session.close(); return }
+      if (attempt.signal.aborted) { closeSession(session); return }
       handedOff.current = true
       history.replaceState(null, '', window.location.pathname + window.location.search)
       onConnected(session)
@@ -98,7 +112,7 @@ export function FirebaseFriendPairing({ onBack, onConnected }: {
       setMessage(error instanceof DOMException && error.name === 'AbortError' ? 'online.share_cancelled' : 'online.copy_failed')
     }
   }
-  if (phase === 'random') return <FirebaseRandomPairing onBack={() => setPhase('ready')} onConnected={onConnected} />
+  if (phase === 'random') return <FirebaseRandomPairing<Session> gameId={gameId} createGame={randomFactory} onBack={() => setPhase('ready')} onConnected={onConnected} />
   return <main ref={main} className="webrtc-pairing firebase-friend">
     <section className="webrtc-pairing__card" aria-labelledby="friend-title">
       <header className="webrtc-pairing__header">

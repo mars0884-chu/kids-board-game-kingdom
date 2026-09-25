@@ -16,6 +16,7 @@ supportedVersions.add('v0.10.4')
 supportedVersions.add('v0.10.5')
 supportedVersions.add('v0.10.6')
 supportedVersions.add('v0.11.0')
+supportedVersions.add('v0.13.0')
 let activeNpmCacheDirectory = null
 const configuredNpmCacheDirectory = process.env.ARCHIVE_NPM_CACHE ?? null
 const skipArchiveRebuild = process.env.ARCHIVE_SKIP_REBUILD === '1'
@@ -55,6 +56,8 @@ function shouldCopy(source) {
   if (path === 'node_modules' || path.startsWith('node_modules/')) return false
   if (path === 'dist' || path.startsWith('dist/')) return false
   if (path === 'releases' || path.startsWith('releases/')) return false
+  // 象棋仍在獨立規格 Gate，不屬於本次六款線上遊戲封包。
+  if (path === 'docs/games/XIANGQI_SPEC.md' || path === 'src/games/xiangqi' || path.startsWith('src/games/xiangqi/')) return false
   if (path === '.git' || path.startsWith('.git/')) return false
   if (path === '.codex' || path.startsWith('.codex/')) return false
   if (path === '.agents' || path.startsWith('.agents/')) return false
@@ -2518,7 +2521,7 @@ async function makeArchive(version) {
     if (version === 'v0.4.21') await prepareV0421(stageDirectory)
     if (version === 'v0.4.22') await prepareV0422(stageDirectory)
     if (version === 'v0.4.23') await prepareV0423(stageDirectory)
-    await writeFile(join(stageDirectory, 'RELEASE_NOTES.md'), version === 'v0.11.0' ? await readFile(join(workspaceDirectory, 'RELEASE_NOTES.md'), 'utf8') : releaseNotes(version), 'utf8')
+    await writeFile(join(stageDirectory, 'RELEASE_NOTES.md'), version === 'v0.11.0' || version === 'v0.13.0' ? await readFile(join(workspaceDirectory, 'RELEASE_NOTES.md'), 'utf8') : releaseNotes(version), 'utf8')
     await assertStageIsClean(stageDirectory)
     if (!skipArchiveRebuild) {
       runNpm(['ci', '--ignore-scripts'], stageDirectory)

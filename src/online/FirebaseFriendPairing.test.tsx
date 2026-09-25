@@ -14,6 +14,18 @@ beforeEach(() => {
   mocks.cancel.mockResolvedValue(undefined)
 })
 describe('熟人單次邀請介面', () => {
+  it('井字棋房號傳入棋種與對應棋局工廠，不會誤接跳棋', async () => {
+    const factory = vi.fn()
+    mocks.join.mockResolvedValue({ transport: 'firebase-turn', gameId: 'tic-tac-toe', close: vi.fn() })
+    const connected = vi.fn()
+    render(<FirebaseFriendPairing gameId="tic-tac-toe" roomFactory={factory} onBack={vi.fn()} onConnected={connected} />)
+    fireEvent.click(screen.getByRole('button', { name: '輸入房號' }))
+    fireEvent.change(screen.getByRole('textbox', { name: '房號' }), { target: { value: '123456789012' } })
+    fireEvent.click(screen.getByRole('button', { name: '加入遊戲' }))
+    await waitFor(() => expect(connected).toHaveBeenCalledOnce())
+    expect(mocks.join.mock.calls[0]![3]).toBe('tic-tac-toe')
+    expect(mocks.join.mock.calls[0]![4]).toBe(factory)
+  })
   it('在遊戲內輸入房號即可加入，不需要開啟外部連結', async () => {
     mocks.join.mockResolvedValue({ transport: 'firebase', close: vi.fn() })
     const connected = vi.fn()

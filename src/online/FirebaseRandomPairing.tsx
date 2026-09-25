@@ -8,12 +8,14 @@ import {
   type FirebasePairingSession,
 } from './firebase-pairing'
 import type { OnlineSession } from './online-session'
-import type { FirebaseGameSession } from './firebase-game'
+import type { OnlineGameId } from './game-id'
 import './webrtc-pairing.css'
 
-interface FirebaseRandomPairingProps {
+interface FirebaseRandomPairingProps<Session> {
   readonly onBack: () => void
-  readonly onConnected: (session: OnlineSession) => void
+  readonly gameId?: OnlineGameId
+  readonly createGame?: (pairing: FirebasePairingSession, signal: AbortSignal) => Promise<Session>
+  readonly onConnected: (session: Session) => void
 }
 
 type RandomPairingStatus = 'consent' | 'preparing' | 'waiting' | 'matched' | 'unsupported' | 'unavailable' | 'timeout' | 'connection-failed' | 'error'
@@ -37,12 +39,16 @@ function isTimeoutError(error: unknown): boolean {
 }
 
 
-export function FirebaseRandomPairing({ onBack, onConnected }: FirebaseRandomPairingProps) {
+function closeSession(value: unknown) {
+  if (value !== null && typeof value === 'object' && 'close' in value && typeof value.close === 'function') value.close()
+}
+
+export function FirebaseRandomPairing<Session = OnlineSession>({ onBack, onConnected, gameId = 'jump-chess', createGame }: FirebaseRandomPairingProps<Session>) {
   const [consentGranted, setConsentGranted] = useState(false)
   const [status, setStatus] = useState<RandomPairingStatus>('consent')
   const [detail, setDetail] = useState('')
   const pairingRef = useRef<FirebasePairingSession | null>(null)
-  const gameRef = useRef<FirebaseGameSession | null>(null)
+  const gameRef = useRef<Session | null>(null)
   const handedOffRef = useRef(false)
 
   useEffect(() => {
@@ -60,15 +66,15 @@ export function FirebaseRandomPairing({ onBack, onConnected }: FirebaseRandomPai
         const pairing = await joinFirebasePairing((nextStatus) => {
           if (!active) return
           setStatus(nextStatus === 'waiting' ? 'waiting' : nextStatus === 'matched' ? 'matched' : 'preparing')
-        }, controller.signal)
+        }, controller.signal, undefined, gameId)
         if (!active) {
           await pairing.cancel()
           return
         }
         pairingRef.current = pairing
-        const game = await pairing.createGame(controller.signal)
+        const game = createGame ? await createGame(pairing, controller.signal) : await pairing.createGame(controller.signal) as unknown as Session
         gameRef.current = game
-        if (!active) { game.close(); return }
+        if (!active) { closeSession(game); return }
         handedOffRef.current = true
         onConnected(game)
       } catch (error) {
@@ -76,7 +82,7 @@ export function FirebaseRandomPairing({ onBack, onConnected }: FirebaseRandomPai
         const connectionFailed = error instanceof Error && error.message.includes('完成連線逾時')
         setStatus(isTimeoutError(error) ? 'timeout' : connectionFailed ? 'connection-failed' : 'error')
         setDetail(connectionFailed ? 'online.random_connection_failed_detail' : 'online.random_error_detail')
-        gameRef.current?.close()
+        closeSession(gameRef.current)
         await pairingRef.current?.cancel().catch(() => undefined)
       }
     }
@@ -86,11 +92,11 @@ export function FirebaseRandomPairing({ onBack, onConnected }: FirebaseRandomPai
       active = false
       if (!handedOffRef.current) {
         controller.abort()
-        gameRef.current?.close()
+        closeSession(gameRef.current)
         void pairingRef.current?.cancel()
       }
     }
-  }, [consentGranted, onConnected])
+  }, [consentGranted, createGame, gameId, onConnected])
 
   const handleConsent = () => {
     setStatus('preparing')

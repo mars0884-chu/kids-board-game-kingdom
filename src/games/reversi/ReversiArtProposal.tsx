@@ -4,13 +4,21 @@ import { ChildActionButton, DifficultySelector, FeedbackCard, ToolButton, type D
 import { getChildText } from '../../content/child-text'
 import { useSpeech } from '../../hooks/useSpeech'
 import { chooseReversiMove } from './ai'
-import { applyReversiMove, createReversiState, getLegalReversiMoves, type ReversiMove } from './rules'
+import { applyReversiMove, createReversiState, getLegalReversiMoves, type ReversiMove, type ReversiState } from './rules'
 import type { ReversiMode } from './storage'
+import { FirebaseFriendPairing } from '../../online/FirebaseFriendPairing'
+import { createFirebaseAuthoritativeTurnSession, type AuthoritativeTurnSession } from '../../online/firebase-authoritative-turn-game'
+import { reversiOnlineRules } from '../../online/turn-rules'
+import type { FirebaseRoomFactory } from '../../online/firebase-friend'
+
+const createOnlineReversi: FirebaseRoomFactory<AuthoritativeTurnSession<ReversiState>> =
+  (database, pairing, hostUid, guestUid, signal, expiresAt) =>
+    createFirebaseAuthoritativeTurnSession(database, pairing, 'reversi', hostUid, guestUid, signal, reversiOnlineRules, expiresAt)
 
 interface ReversiArtProposalProps {
   onBack: () => void
   /** 預覽網址維持 local 預設；首頁入口會明確傳入三種兒童模式。 */
-  mode?: ReversiMode
+  mode?: ReversiMode | 'online'
 }
 
 const boardSize = 8
@@ -45,17 +53,28 @@ export function ReversiArtProposal({ onBack, mode = 'local' }: ReversiArtProposa
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('beginner')
   const [isGamePaused, setIsGamePaused] = useState(false)
   const [activeMove, setActiveMove] = useState<ReversiMove>(19)
+  const [onlineSession, setOnlineSession] = useState<AuthoritativeTurnSession<ReversiState> | null>(null)
+  const [onlineConnected, setOnlineConnected] = useState(false)
+  const [onlineError, setOnlineError] = useState(false)
   const cellRefs = useRef<Array<HTMLButtonElement | null>>([])
   const { isPaused: isSpeechPaused, isSupported, speak, togglePause } = useSpeech()
   const legalMoves = useMemo(() => getLegalReversiMoves(state), [state])
-  const isNpcTurn = mode !== 'local' && !isGamePaused && state.phase === 'playing' && state.currentPlayer === 'white'
-  const boardLocked = isGamePaused || state.phase !== 'playing' || isNpcTurn
+  const isNpcTurn = mode !== 'local' && mode !== 'online' && !isGamePaused && state.phase === 'playing' && state.currentPlayer === 'white'
+  const boardLocked = isGamePaused || state.phase !== 'playing' || isNpcTurn ||
+    (mode === 'online' && (!onlineConnected || onlineSession === null ||
+      (state.currentPlayer === 'black' ? 'host' : 'guest') !== onlineSession.role))
   const npcDifficulty: DifficultyLevel = mode === 'adventure' ? 'beginner' : difficulty
 
   useEffect(() => {
     if (legalMoves.includes(activeMove)) return
     setActiveMove(legalMoves[0] ?? 0)
   }, [activeMove, legalMoves])
+
+  useEffect(() => {
+    if (onlineSession === null) return
+    const unsubscribe = onlineSession.subscribe(setState, setOnlineConnected)
+    return () => { unsubscribe(); onlineSession.close() }
+  }, [onlineSession])
 
   useEffect(() => {
     if (!isNpcTurn) return
@@ -70,6 +89,10 @@ export function ReversiArtProposal({ onBack, mode = 'local' }: ReversiArtProposa
   }, [isNpcTurn, npcDifficulty, state])
 
   const restart = () => {
+    if (mode === 'online') {
+      if (onlineSession?.role === 'host') void onlineSession.restart().catch(() => setOnlineError(true))
+      return
+    }
     setState(createReversiState())
     setActiveMove(19)
     setIsGamePaused(false)
@@ -86,7 +109,9 @@ export function ReversiArtProposal({ onBack, mode = 'local' }: ReversiArtProposa
 
   const chooseCell = (move: ReversiMove) => {
     if (boardLocked || !legalMoves.includes(move)) return
-    setState((current) => applyReversiMove(current, move))
+    const next = applyReversiMove(state, move)
+    if (mode === 'online') void onlineSession!.submit(next).catch(() => setOnlineError(true))
+    else setState(next)
   }
 
   const onCellKeyDown = (move: ReversiMove, event: KeyboardEvent<HTMLButtonElement>) => {
@@ -108,7 +133,9 @@ export function ReversiArtProposal({ onBack, mode = 'local' }: ReversiArtProposa
     : state.winner === 'white'
       ? getChildText('reversi.result_white')
       : getChildText('reversi.result_draw')
-  const feedback = state.phase !== 'playing'
+  const feedback = onlineError
+    ? getChildText('online.random_error')
+    : state.phase !== 'playing'
     ? resultEntry
     : isGamePaused
       ? getChildText('common.pause')
@@ -132,11 +159,17 @@ export function ReversiArtProposal({ onBack, mode = 'local' }: ReversiArtProposa
       : state.currentPlayer === 'black' ? blackTurnEntry : whiteTurnEntry
   const feedbackTone = state.phase !== 'playing' || latestTurn?.kind === 'pass' ? 'positive' : 'hint'
   const activePlayer = state.phase === 'playing' ? state.currentPlayer : null
-  const modeEntry = getChildText(mode === 'adventure'
+  const modeEntry = getChildText(mode === 'online'
+    ? 'online.title'
+    : mode === 'adventure'
     ? 'reversi.mode_adventure'
     : mode === 'npc'
       ? 'reversi.mode_practice'
       : 'reversi.mode_local')
+
+  if (mode === 'online' && onlineSession === null) {
+    return <FirebaseFriendPairing<AuthoritativeTurnSession<ReversiState>> gameId="reversi" roomFactory={createOnlineReversi} onBack={onBack} onConnected={setOnlineSession} />
+  }
 
   return (
     <main className="reversi-art-proposal" aria-label={getChildText('reversi.title').text_zh_tw}>
@@ -190,7 +223,7 @@ export function ReversiArtProposal({ onBack, mode = 'local' }: ReversiArtProposa
             </span>
           </div>
           <BopomofoText className="reversi-turn" entry={turnEntry} role="status" />
-          <FeedbackCard entry={feedback} tone={feedbackTone} />
+          <FeedbackCard entry={feedback} tone={onlineError ? 'hint' : feedbackTone} />
           {mode === 'npc' ? <DifficultySelector selected={difficulty} onChange={setDifficulty} /> : null}
           <div className="reversi-art-proposal__actions">
             <ChildActionButton entry={getChildText('common.hint')} icon="hint" tone="hint" disabled={boardLocked} onClick={() => speak(feedback)} />

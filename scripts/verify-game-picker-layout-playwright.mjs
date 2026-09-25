@@ -59,6 +59,16 @@ try {
     assert(backButton.bottom <= viewport.height + 1, `${viewport.name} 捲到底後返回鍵仍超出畫面。`)
     assert(backButton.left >= -1 && backButton.right <= viewport.width + 1, `${viewport.name} 返回鍵水平超出畫面。`)
 
+    await page.locator('.game-picker-back').click()
+    await page.locator('.home-mode-panel .mode-button').nth(3).click()
+    await page.waitForSelector('.game-picker-content')
+    const online = await page.evaluate(() => ({
+      buttonCount: document.querySelectorAll('.game-picker-actions .mode-button').length,
+      scrollWidth: document.documentElement.scrollWidth,
+    }))
+    assert(online.buttonCount === 7, `${viewport.name} 線上棋種按鍵數量不是 7。`)
+    assert(online.scrollWidth <= viewport.width + 1, `${viewport.name} 線上選單水平溢出。`)
+
     results.push({
       viewport: viewport.name,
       scrollHeight: before.document.scrollHeight,

@@ -23,6 +23,14 @@ import {
   type GomokuState,
 } from './rules'
 import { indexedDbGomokuStorage, type GomokuMode, type GomokuStorage } from './storage'
+import { FirebaseFriendPairing } from '../../online/FirebaseFriendPairing'
+import { createFirebaseAuthoritativeTurnSession, type AuthoritativeTurnSession } from '../../online/firebase-authoritative-turn-game'
+import { gomokuOnlineRules } from '../../online/turn-rules'
+import type { FirebaseRoomFactory } from '../../online/firebase-friend'
+
+const createOnlineGomoku: FirebaseRoomFactory<AuthoritativeTurnSession<GomokuState>> =
+  (database, pairing, hostUid, guestUid, signal, expiresAt) =>
+    createFirebaseAuthoritativeTurnSession(database, pairing, 'gomoku', hostUid, guestUid, signal, gomokuOnlineRules, expiresAt)
 
 export type { GomokuMode } from './storage'
 
@@ -39,13 +47,13 @@ const formalArtStyle = {
 } as CSSProperties
 
 interface GomokuProposalProps {
-  mode: GomokuMode
+  mode: GomokuMode | 'online'
   onBack: () => void
   storage?: GomokuStorage
   artPreview?: boolean
 }
 
-function turnText(state: GomokuState, mode: Exclude<GomokuMode, 'adventure'>, paused: boolean) {
+function turnText(state: GomokuState, mode: Exclude<GomokuMode, 'adventure'> | 'online', paused: boolean) {
   if (paused) return getChildText('common.pause')
   if (state.phase === 'won') return getChildText(state.winner === 'black' ? 'gomoku.black_wins' : 'gomoku.white_wins')
   if (state.phase === 'draw') return getChildText('gomoku.draw')
@@ -69,7 +77,7 @@ export function GomokuProposal({ mode, onBack, storage = indexedDbGomokuStorage,
 }
 
 interface GomokuMatchProps {
-  mode: Exclude<GomokuMode, 'adventure'>
+  mode: Exclude<GomokuMode, 'adventure'> | 'online'
   onBack: () => void
   storage: GomokuStorage
   initialState?: GomokuState
@@ -81,10 +89,13 @@ function GomokuMatch({ mode, onBack, storage, initialState }: GomokuMatchProps) 
   const [hintLevel, setHintLevel] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [onlineSession, setOnlineSession] = useState<AuthoritativeTurnSession<GomokuState> | null>(null)
+  const [onlineConnected, setOnlineConnected] = useState(false)
   const [feedbackOverrideId, setFeedbackOverrideId] = useState<string | null>(null)
   const { isSupported, speak } = useSpeech()
 
   useEffect(() => {
+    if (mode === 'online') { setIsHydrated(true); return }
     let active = true
     void storage.load(mode).then((session) => {
       if (!active || session === null) return
@@ -96,9 +107,15 @@ function GomokuMatch({ mode, onBack, storage, initialState }: GomokuMatchProps) 
   }, [mode, storage])
 
   useEffect(() => {
-    if (!isHydrated) return
+    if (!isHydrated || mode === 'online') return
     void storage.save(mode, { difficulty, hintLevel, state, tutorialStep: 0 })
   }, [difficulty, hintLevel, isHydrated, mode, state, storage])
+
+  useEffect(() => {
+    if (onlineSession === null) return
+    const unsubscribe = onlineSession.subscribe((next) => { setState(next); setFeedbackOverrideId(null) }, setOnlineConnected)
+    return () => { unsubscribe(); onlineSession.close() }
+  }, [onlineSession])
 
   useEffect(() => {
     if (mode !== 'npc' || isPaused || state.phase !== 'playing' || state.currentPlayer !== 'white') return
@@ -130,6 +147,7 @@ function GomokuMatch({ mode, onBack, storage, initialState }: GomokuMatchProps) 
 
   const chooseCell = (move: GomokuMove) => {
     if (isPaused || state.phase !== 'playing' || (mode === 'npc' && state.currentPlayer === 'white')) return
+    if (mode === 'online' && (!onlineConnected || onlineSession === null || (state.currentPlayer === 'black' ? 'host' : 'guest') !== onlineSession.role)) return
     if (state.board[move] !== null) {
       const entry = getChildText('gomoku.forbidden')
       setFeedbackOverrideId(entry.id)
@@ -146,7 +164,9 @@ function GomokuMatch({ mode, onBack, storage, initialState }: GomokuMatchProps) 
     }
 
     try {
-      setState(playGomokuMove(state, move))
+      const next = playGomokuMove(state, move)
+      if (mode === 'online') void onlineSession!.submit(next).catch(() => setFeedbackOverrideId('online.random_error'))
+      else setState(next)
       setHintLevel(0)
       setFeedbackOverrideId(null)
     } catch {
@@ -157,6 +177,10 @@ function GomokuMatch({ mode, onBack, storage, initialState }: GomokuMatchProps) 
   }
 
   const restart = () => {
+    if (mode === 'online') {
+      if (onlineSession?.role === 'host') void onlineSession.restart().catch(() => setFeedbackOverrideId('online.random_error'))
+      return
+    }
     void storage.clear(mode).then(() => {
       setState(initialState ?? createGomokuState())
       setHintLevel(0)
@@ -173,9 +197,14 @@ function GomokuMatch({ mode, onBack, storage, initialState }: GomokuMatchProps) 
     speak(entry)
   }
 
-  const boardLocked = isPaused || state.phase !== 'playing' || (mode === 'npc' && state.currentPlayer === 'white')
+  const boardLocked = isPaused || state.phase !== 'playing' || (mode === 'npc' && state.currentPlayer === 'white') ||
+    (mode === 'online' && (!onlineConnected || onlineSession === null || (state.currentPlayer === 'black' ? 'host' : 'guest') !== onlineSession.role))
   const turnEntry = turnText(state, mode, isPaused)
   const { getCellNavigationProps } = useGomokuBoardKeyboardNavigation({ board: state.board, isLocked: boardLocked })
+
+  if (mode === 'online' && onlineSession === null) {
+    return <FirebaseFriendPairing<AuthoritativeTurnSession<GomokuState>> gameId="gomoku" roomFactory={createOnlineGomoku} onBack={onBack} onConnected={setOnlineSession} />
+  }
 
   return (
     <main className="gomoku-proposal gomoku-proposal--formal-r04" style={formalArtStyle}>
@@ -218,10 +247,10 @@ function GomokuMatch({ mode, onBack, storage, initialState }: GomokuMatchProps) 
           </section>
           <aside className="gomoku-controls">
             <FeedbackCard entry={feedbackEntry} tone={state.phase === 'playing' && !isPaused ? 'hint' : 'positive'} />
-            <DifficultySelector selected={difficulty} onChange={setDifficulty} />
+            {mode !== 'online' && <DifficultySelector selected={difficulty} onChange={setDifficulty} />}
             <div className="gomoku-actions">
               <ChildActionButton entry={getChildText('common.hint')} icon="hint" tone="hint" disabled={boardLocked} onClick={showHint} />
-              <ChildActionButton entry={getChildText('tictactoe.play_again')} icon="retry" tone="secondary" onClick={restart} />
+              <ChildActionButton entry={getChildText('tictactoe.play_again')} icon="retry" tone="secondary" disabled={mode === 'online' && (onlineSession?.role !== 'host' || !onlineConnected)} onClick={restart} />
             </div>
             <div className="gomoku-tools">
               <ToolButton entry={getChildText('common.back')} icon="back" onClick={onBack} />

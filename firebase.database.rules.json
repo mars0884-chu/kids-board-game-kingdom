@@ -47,6 +47,9 @@
       },
       "matches": {
         "$matchId": {
+          "gameId": {
+            ".read": "auth != null && (data.parent().child('hostUid').val() == auth.uid || data.parent().child('guestUid').val() == auth.uid || (data.parent().child('guestUid').val() == '' && root.child('privateInvites').child($matchId).child('expiresAt').val() > now))"
+          },
           "guestUid": {
             ".read": "auth != null && (data.val() == auth.uid || data.parent().child('hostUid').val() == auth.uid || (data.val() == '' && root.child('privateInvites').child($matchId).child('expiresAt').val() > now))",
             ".write": "auth != null && data.val() == '' && newData.val() == auth.uid && data.parent().child('hostUid').val() != auth.uid && root.child('privateInvites').child($matchId).child('hostUid').val() == data.parent().child('hostUid').val() && root.child('privateInvites').child($matchId).child('expiresAt').val() > now && data.parent().child('expiresAt').val() > now"

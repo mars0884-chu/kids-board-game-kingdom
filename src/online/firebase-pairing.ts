@@ -21,6 +21,7 @@ import {
 import type { WebRtcSignal } from './webrtc'
 import { createFirebaseGameSession, type FirebaseGameSession } from './firebase-game'
 import { acquirePairingLocks, createPairingMatchId, pairingLockPath, parsePairingLock, releasePairingLocks } from './pairing-locks'
+import { isOnlineGameId, matchesOnlineGame, type OnlineGameId } from './game-id'
 
 export const FIREBASE_PAIRING_WAIT_TIMEOUT_MS = 2 * 60 * 1000
 export const FIREBASE_PAIRING_MATCH_TIMEOUT_MS = 5 * 60 * 1000
@@ -63,6 +64,7 @@ export interface FirebaseServices {
 
 interface PairingTicket {
   readonly transport?: 'firebase-board-v1'
+  readonly gameId?: OnlineGameId
   readonly uid: string
   readonly state: 'waiting' | 'matched'
   readonly createdAt: number
@@ -79,6 +81,7 @@ interface PairingClaim {
 }
 
 interface PairingMatch {
+  readonly gameId?: OnlineGameId
   readonly hostUid: string
   readonly guestUid: string
   readonly hostTicketId: string
@@ -88,7 +91,11 @@ interface PairingMatch {
 }
 
 export interface FirebasePairingSession {
+  readonly gameId: OnlineGameId
   readonly uid: string
+  readonly hostUid: string
+  readonly guestUid: string
+  readonly expiresAt: number
   readonly ticketId: string
   readonly matchId: string
   readonly role: 'host' | 'guest'
@@ -156,6 +163,7 @@ function parseTicket(snapshot: DataSnapshot): PairingTicket | null {
   if (typeof value.uid !== 'string' || typeof value.state !== 'string') return null
   if (value.state !== 'waiting' && value.state !== 'matched') return null
   if (typeof value.createdAt !== 'number' || typeof value.expiresAt !== 'number') return null
+  if (value.gameId !== undefined && !isOnlineGameId(value.gameId)) return null
   return value as PairingTicket
 }
 
@@ -173,6 +181,7 @@ function parseMatch(snapshot: DataSnapshot): PairingMatch | null {
   if (typeof value.hostUid !== 'string' || typeof value.guestUid !== 'string') return null
   if (typeof value.hostTicketId !== 'string' || typeof value.guestTicketId !== 'string') return null
   if (typeof value.createdAt !== 'number' || typeof value.expiresAt !== 'number') return null
+  if (value.gameId !== undefined && !isOnlineGameId(value.gameId)) return null
   return value as PairingMatch
 }
 
@@ -271,6 +280,7 @@ export async function joinFirebasePairing(
   onStatus?: (status: 'signing-in' | 'waiting' | 'matched') => void,
   signal?: AbortSignal,
   services?: FirebaseServices,
+  gameId: OnlineGameId = 'jump-chess',
 ): Promise<FirebasePairingSession> {
   const { database, user } = services ?? await getFirebaseServices()
   const blockedUids = readBlockedUids()
@@ -282,7 +292,7 @@ export async function joinFirebasePairing(
   const createdAt = Date.now()
   const expiresAt = createdAt + FIREBASE_PAIRING_WAIT_TIMEOUT_MS
   if (signal?.aborted) throw new Error('配對已取消。')
-  await set(ticketRef, { uid: user.uid, state: 'waiting', createdAt, expiresAt, transport: 'firebase-board-v1' } satisfies PairingTicket)
+  await set(ticketRef, { uid: user.uid, state: 'waiting', createdAt, expiresAt, transport: 'firebase-board-v1', gameId } satisfies PairingTicket)
   await onDisconnect(ticketRef).remove()
   onStatus?.('waiting')
 
@@ -347,7 +357,7 @@ export async function joinFirebasePairing(
       for (const claim of claims) {
         if (!active || matched !== null) return
         const candidateTicket = parseTicket(await get(ref(database, `pairing/queue/${claim.ticketId}`)))
-        if (candidateTicket?.transport !== 'firebase-board-v1' || candidateTicket.uid !== claim.uid || candidateTicket.state !== 'waiting') continue
+        if (candidateTicket?.transport !== 'firebase-board-v1' || !matchesOnlineGame(candidateTicket.gameId, gameId) || candidateTicket.uid !== claim.uid || candidateTicket.state !== 'waiting') continue
         const matchId = createPairingMatchId(ticketId, claim.ticketId)
         const acquiredPaths = await acquirePairingLocks(database, {
           hostUid: user.uid,
@@ -414,6 +424,7 @@ export async function joinFirebasePairing(
         if (
           candidate === null
           || candidate.transport !== 'firebase-board-v1'
+          || !matchesOnlineGame(candidate.gameId, gameId)
           || child.key === null
           || child.key === ticketId
           || candidate.uid === user.uid
@@ -481,8 +492,9 @@ export async function joinFirebasePairing(
       if (ticket === null || ticket.matchedTicketId === undefined) throw new Error('隨機配對資料不完整。')
       const guestSnapshot = await new Promise<DataSnapshot>((resolve, reject) => onValue(ref(database, `pairing/queue/${ticket.matchedTicketId}`), resolve, reject, { onlyOnce: true }))
       const guestTicket = parseTicket(guestSnapshot)
-      if (guestTicket === null || guestTicket.uid === user.uid) throw new Error('找不到另一位玩家。')
+      if (guestTicket === null || !matchesOnlineGame(guestTicket.gameId, gameId) || guestTicket.uid === user.uid) throw new Error('找不到相同棋種的另一位玩家。')
       const completeMatch: PairingMatch = {
+        gameId,
         hostUid: user.uid,
         guestUid: guestTicket.uid,
         hostTicketId: ticketId,
@@ -503,6 +515,10 @@ export async function joinFirebasePairing(
   }
   // 短暫斷線不刪除整局；由 presence 表示斷線，恢復後讀回局面。
   const peerUid = role === 'host' ? finalMatch.guestUid : finalMatch.hostUid
+  if (!matchesOnlineGame(finalMatch.gameId, gameId)) {
+    await remove(ticketRef).catch(() => undefined)
+    throw new Error('配對的棋種不一致。')
+  }
   if (blockedUids.has(peerUid)) {
     await remove(matchRef).catch(() => undefined)
     await remove(ticketRef).catch(() => undefined)
@@ -521,7 +537,11 @@ export async function joinFirebasePairing(
   }
 
   const session: FirebasePairingSession = {
+    gameId,
     uid: user.uid,
+    hostUid: finalMatch.hostUid,
+    guestUid: finalMatch.guestUid,
+    expiresAt: finalMatch.expiresAt,
     ticketId,
     matchId,
     role,

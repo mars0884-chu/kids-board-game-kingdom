@@ -16,6 +16,7 @@ const base = `pairing/matches/${matchId}`
 const controllers = [new AbortController(), new AbortController()]
 const pairing = (index: number): FirebasePairingSession => ({
   uid: uids[index]!, ticketId: `ticket-${index}`, matchId, role: index === 0 ? 'host' : 'guest',
+  gameId: 'jump-chess', hostUid: uids[0]!, guestUid: uids[1]!, expiresAt: Date.now() + 600000,
   createGame: async () => { throw new Error('未使用') },
   publishOffer: async () => {}, publishAnswer: async () => {},
   waitForOffer: async () => { throw new Error('不應使用 WebRTC') },

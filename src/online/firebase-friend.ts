@@ -1,8 +1,17 @@
-import { get, onValue, ref, remove, runTransaction, set } from 'firebase/database'
+import { get, onValue, ref, remove, runTransaction, set, type Database } from 'firebase/database'
 import { getFirebaseServices, type FirebaseServices, type FirebasePairingSession } from './firebase-pairing'
 import { createFirebaseGameSession, type FirebaseGameSession } from './firebase-game'
+import { isOnlineGameId, matchesOnlineGame, type OnlineGameId } from './game-id'
 
 export const FRIEND_INVITE_TTL = 10 * 60 * 1000
+export type FirebaseRoomFactory<Session> = (
+  database: Database,
+  pairing: FirebasePairingSession,
+  hostUid: string,
+  guestUid: string,
+  signal: AbortSignal,
+  expiresAt: number,
+) => Promise<Session>
 export function normalizeFriendCode(value: string): string {
   return value.normalize('NFKC').replace(/[\s-]/g, '')
 }
@@ -23,10 +32,10 @@ export function isFriendInviteId(value: string): boolean {
 export function readFriendInvite(): string | null {
   return new URLSearchParams(window.location.hash.slice(1)).get('friend')
 }
-export function friendInviteLink(id: string): string {
+export function friendInviteLink(id: string, gameId: OnlineGameId = 'jump-chess'): string {
   const url = new URL(window.location.href)
   url.search = ''
-  url.hash = new URLSearchParams({ friend: id }).toString()
+  url.hash = new URLSearchParams({ friend: id, game: gameId }).toString()
   return url.toString()
 }
 function assertActive(signal: AbortSignal) {
@@ -54,9 +63,13 @@ export async function friendServerNow(services: FirebaseServices, signal: AbortS
   assertActive(signal)
   return Date.now() + offset
 }
-function pairing(services: FirebaseServices, id: string, role: 'host' | 'guest'): FirebasePairingSession {
+function pairing(services: FirebaseServices, id: string, role: 'host' | 'guest', gameId: OnlineGameId): FirebasePairingSession {
   let cancellation: Promise<void> | null = null
   return {
+    gameId,
+    hostUid: role === 'host' ? services.user.uid : '',
+    guestUid: role === 'guest' ? services.user.uid : '',
+    expiresAt: 0,
     uid: services.user.uid, ticketId: id, matchId: id, role,
     createGame: async () => { throw new Error('請使用熟人邀請流程。') },
     publishOffer: async () => { throw new Error('不使用 WebRTC。') },
@@ -74,16 +87,22 @@ function pairing(services: FirebaseServices, id: string, role: 'host' | 'guest')
     },
   }
 }
-async function game(services: FirebaseServices, session: FirebasePairingSession, signal: AbortSignal): Promise<FirebaseGameSession> {
+async function game<Session>(services: FirebaseServices, session: FirebasePairingSession, signal: AbortSignal, factory: FirebaseRoomFactory<Session>): Promise<Session> {
   assertActive(signal)
   const snapshot = await get(ref(services.database, 'pairing/matches/' + session.matchId))
   const match = snapshot.val()
   const serverNow = await friendServerNow(services, signal)
   if (!match || !match.guestUid || match.expiresAt <= serverNow) throw new Error('邀請已失效。')
-  const connected = await createFirebaseGameSession(services.database, session, match.hostUid, match.guestUid, signal, Date.now() + match.expiresAt - serverNow)
+  if (!matchesOnlineGame(match.gameId, session.gameId)) throw new Error('邀請的棋種不一致。')
+  const connected = await factory(services.database, session, match.hostUid, match.guestUid, signal, Date.now() + match.expiresAt - serverNow)
   return { ...connected, pairingControls: undefined }
 }
-export async function createFriendInvitation(signal: AbortSignal, supplied?: FirebaseServices) {
+export async function createFriendInvitation<Session = FirebaseGameSession>(
+  signal: AbortSignal,
+  supplied?: FirebaseServices,
+  gameId: OnlineGameId = 'jump-chess',
+  factory: FirebaseRoomFactory<Session> = createFirebaseGameSession as FirebaseRoomFactory<Session>,
+) {
   const services = supplied ?? await getFirebaseServices()
   assertActive(signal)
   let id = createFriendRoomCode()
@@ -93,12 +112,13 @@ export async function createFriendInvitation(signal: AbortSignal, supplied?: Fir
     if (attempt >= 4) throw new Error('暫時無法建立邀請。')
     id = createFriendRoomCode()
   }
-  const session = pairing(services, id, 'host')
+  const session = pairing(services, id, 'host', gameId)
   const createdAt = await friendServerNow(services, signal)
   const localDeadline = Date.now() + FRIEND_INVITE_TTL - 5000
   let created = false
   try {
     await set(ref(services.database, 'pairing/matches/' + id), {
+      gameId,
       hostUid: services.user.uid, guestUid: '', hostTicketId: id + '-host', guestTicketId: id + '-guest',
       createdAt, expiresAt: createdAt + 2 * 60 * 60 * 1000,
     })
@@ -109,8 +129,8 @@ export async function createFriendInvitation(signal: AbortSignal, supplied?: Fir
     assertActive(signal)
   } catch (error) { if (created) await session.cancel(); throw error }
   return {
-    id, code: id, link: friendInviteLink(id), cancel: session.cancel,
-    waitForGuest: async (): Promise<FirebaseGameSession> => {
+    id, code: id, link: friendInviteLink(id, gameId), cancel: session.cancel,
+    waitForGuest: async (): Promise<Session> => {
       try {
         await new Promise<void>((resolve, reject) => {
           let unsubscribe = () => {}
@@ -132,7 +152,7 @@ export async function createFriendInvitation(signal: AbortSignal, supplied?: Fir
           }, (error) => finish(error))
           if (done) unsubscribe()
         })
-        return await game(services, session, signal)
+        return await game(services, session, signal, factory)
       } catch (error) {
         // 斷網時刪除會排隊，不能讓清理阻擋過期／取消提示。
         void session.cancel()
@@ -141,7 +161,13 @@ export async function createFriendInvitation(signal: AbortSignal, supplied?: Fir
     },
   }
 }
-export async function joinFriendInvitation(id: string, signal: AbortSignal, supplied?: FirebaseServices): Promise<FirebaseGameSession> {
+export async function joinFriendInvitation<Session = FirebaseGameSession>(
+  id: string,
+  signal: AbortSignal,
+  supplied?: FirebaseServices,
+  expectedGameId: OnlineGameId = 'jump-chess',
+  factory: FirebaseRoomFactory<Session> = createFirebaseGameSession as FirebaseRoomFactory<Session>,
+): Promise<Session> {
   if (isFriendRoomCode(id)) id = normalizeFriendCode(id)
   if (!isFriendInviteId(id)) throw new Error('邀請格式不正確。')
   const services = supplied ?? await getFirebaseServices()
@@ -149,10 +175,13 @@ export async function joinFriendInvitation(id: string, signal: AbortSignal, supp
   const invitation = (await get(ref(services.database, 'privateInvites/' + id))).val()
   if (!invitation || invitation.expiresAt <= await friendServerNow(services, signal)) throw new Error('邀請已過期。')
   if (invitation.hostUid === services.user.uid) throw new Error('請讓朋友開啟邀請。')
+  // 加入前不可讀取整筆房間；只公開尚未被使用邀請的棋種，以免錯誤棋種先占用加入名額。
+  const matchGameId = (await get(ref(services.database, 'pairing/matches/' + id + '/gameId'))).val()
+  if (!isOnlineGameId(matchGameId) || !matchesOnlineGame(matchGameId, expectedGameId)) throw new Error('邀請的棋種不一致。')
   assertActive(signal)
   const result = await runTransaction(ref(services.database, 'pairing/matches/' + id + '/guestUid'), (uid) => uid === null || uid === '' ? services.user.uid : undefined, { applyLocally: false })
   if (!result.committed) throw new Error('邀請已有人加入。')
-  const session = pairing(services, id, 'guest')
-  try { return await game(services, session, signal) }
+  const session = pairing(services, id, 'guest', expectedGameId)
+  try { return await game(services, session, signal, factory) }
   catch (error) { await session.cancel(); throw error }
 }
