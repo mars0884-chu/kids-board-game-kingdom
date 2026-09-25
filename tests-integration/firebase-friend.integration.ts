@@ -38,7 +38,7 @@ describe('熟人私人邀請：名額、權限與棋局', () => {
     const invitation = await createFriendInvitation(controller.signal, services[0])
     try {
       expect(invitation.link).toContain('#friend=' + invitation.id)
-      expect(invitation.code).toMatch(/^\d{12}$/)
+      expect(invitation.code).toMatch(/^\d{8}$/)
       const [host, guest] = await Promise.all([invitation.waitForGuest(), joinFriendInvitation(invitation.code.match(/.{4}/g)!.join(' '), controller.signal, services[1])])
       expect(host.role).toBe('host'); expect(guest.role).toBe('guest')
       expect(host.pairingControls).toBeUndefined()

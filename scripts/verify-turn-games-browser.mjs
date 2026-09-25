@@ -75,7 +75,7 @@ try {
   }
   await host.getByRole('button', { name: '邀請朋友', exact: true }).click()
   const code = (await host.getByRole('status', { name: '房號', exact: true }).textContent()).replace(/\D/g, '')
-  assert(/^\d{12}$/.test(code), '熟人房號格式錯誤。')
+  assert(/^\d{8}$/.test(code), '熟人房號格式錯誤。')
   matchId = code
   matchIds.add(code)
   await guest.getByRole('button', { name: '輸入房號', exact: true }).click()
@@ -129,7 +129,7 @@ try {
     }
     await host.getByRole('button', { name: '邀請朋友', exact: true }).click()
     const nextCode = (await host.getByRole('status', { name: '房號', exact: true }).textContent()).replace(/\D/g, '')
-    assert(/^\d{12}$/.test(nextCode), `${label} 房號格式錯誤。`)
+    assert(/^\d{8}$/.test(nextCode), `${label} 房號格式錯誤。`)
     matchId = nextCode
     matchIds.add(nextCode)
     await guest.getByRole('button', { name: '輸入房號', exact: true }).click()
