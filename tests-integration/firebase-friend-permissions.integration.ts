@@ -24,7 +24,7 @@ it('有效邀請只公開棋種，加入後才允許讀取整筆配對房間', a
     expect((await get(ref(databases[1]!, `pairing/matches/${id}/gameId`))).val()).toBe('tic-tac-toe')
     await expect(get(ref(databases[1]!, `pairing/matches/${id}`))).rejects.toThrow()
     const joined = await runTransaction(ref(databases[1]!, `pairing/matches/${id}/guestUid`),
-      (uid) => uid === '' ? users[1]!.uid : undefined, { applyLocally: false })
+      (uid) => uid === null || uid === '' ? users[1]!.uid : undefined, { applyLocally: false })
     expect(joined.committed).toBe(true)
     expect((await get(ref(databases[1]!, `pairing/matches/${id}`))).val().guestUid).toBe(users[1]!.uid)
   } finally {
