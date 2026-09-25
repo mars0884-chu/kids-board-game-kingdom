@@ -17,6 +17,7 @@ import { DarkChessGame } from './games/dark-chess/DarkChessGame'
 import { DarkChessOnlineGame } from './games/dark-chess/DarkChessOnlineGame'
 import type { DarkChessMode } from './games/dark-chess/storage'
 import { NumberGemConnection } from './games/number-gem-connection/NumberGemConnection'
+import { NumberGemRaceOnline } from './games/number-gem-connection/NumberGemRaceOnline'
 import type { NumberGemMode } from './games/number-gem-connection/storage'
 import { AnimalChessGame } from './games/animal-chess/AnimalChessGame'
 import type { AnimalChessMode } from './games/animal-chess/storage'
@@ -182,6 +183,7 @@ export default function App() {
   }
 
   if (numberGemMode !== null) {
+    if (numberGemMode === 'online') return <NumberGemRaceOnline onBack={() => setNumberGemMode(null)} />
     return <NumberGemConnection key={numberGemMode} mode={numberGemMode} onBack={() => setNumberGemMode(null)} />
   }
 

@@ -37,6 +37,7 @@ export async function createFirebaseAuthoritativeTurnSession<State>(
   const endpoint = `${baseUrl}/rooms/${encodeURIComponent(pairing.matchId)}`
   const peerUid = pairing.role === 'host' ? guestUid : hostUid
   const presenceRef = ref(database, `pairing/matches/${pairing.matchId}/presence/${pairing.uid}`)
+  const revisionSignalRef = ref(database, `pairing/matches/${pairing.matchId}/revisionSignals/${pairing.uid}`)
   let closed = false
   let workerReachable = false
   let firebaseConnected = false
@@ -48,6 +49,7 @@ export async function createFirebaseAuthoritativeTurnSession<State>(
   const unsubscribe: (() => void)[] = []
   const aborter = new AbortController()
   let pollTimer = 0
+  let pollInFlight = false
   let expiryTimer = 0
   const isConnected = () => !closed && workerReachable && firebaseConnected && peerPresent
   const notifyConnection = () => connectionListeners.forEach((listener) => listener(isConnected()))
@@ -82,20 +84,24 @@ export async function createFirebaseAuthoritativeTurnSession<State>(
     return payload as RoomView
   }
   const update = (next: RoomView) => {
-    if (closed || (view !== null && next.revision < view.revision)) return
+    if (closed) return
+    workerReachable = true
+    notifyConnection()
+    if (view !== null && next.revision <= view.revision) return
     const state = rules.deserialize(next.serialized)
     if (rules.serialize(state) !== next.serialized) throw new Error('棋局資料不一致。')
     view = next
     current = state
-    workerReachable = true
     stateListeners.forEach((listener) => listener(state))
-    notifyConnection()
   }
   const poll = async () => {
-    if (closed) return
+    if (closed || pollInFlight) return
+    pollInFlight = true
     try { update(await request('')) }
     catch { workerReachable = false; notifyConnection() }
+    finally { pollInFlight = false }
   }
+  const announce = (revision: number) => { void set(revisionSignalRef, revision).catch(() => undefined) }
 
   try {
     await onDisconnect(presenceRef).set(false)
@@ -105,6 +111,10 @@ export async function createFirebaseAuthoritativeTurnSession<State>(
       peerPresent = snapshot.val() === true
       notifyConnection()
     }, () => { peerPresent = false; notifyConnection() }))
+    unsubscribe.push(onValue(ref(database, `pairing/matches/${pairing.matchId}/revisionSignals/${peerUid}`), (snapshot) => {
+      const revision: unknown = snapshot.val()
+      if (typeof revision === 'number' && Number.isSafeInteger(revision) && (view === null || revision > view.revision)) void poll()
+    }))
     unsubscribe.push(onValue(ref(database, '.info/connected'), (snapshot) => {
       firebaseConnected = snapshot.val() === true
       if (!firebaseConnected) { workerReachable = false; notifyConnection(); return }
@@ -126,13 +136,13 @@ export async function createFirebaseAuthoritativeTurnSession<State>(
         if (!isConnected() || view === null || current === null) throw new Error('連線中斷。')
         if (rules.currentRole(current) !== pairing.role || !rules.isLegalStep(current, next)) throw new Error('不合法的棋步。')
         const expectedRevision = view.revision
-        try { update(await request('/step', { expectedRevision, serialized: rules.serialize(next) })) }
+        try { const accepted = await request('/step', { expectedRevision, serialized: rules.serialize(next) }); update(accepted); announce(accepted.revision) }
         catch (error) { await poll(); throw error }
       },
       restart: async () => {
         if (pairing.role !== 'host' || !isConnected() || view === null) throw new Error('只有第一位玩家能重新開局。')
         const expectedRevision = view.revision
-        try { update(await request('/restart', { expectedRevision })) }
+        try { const accepted = await request('/restart', { expectedRevision }); update(accepted); announce(accepted.revision) }
         catch (error) { await poll(); throw error }
       },
       close,

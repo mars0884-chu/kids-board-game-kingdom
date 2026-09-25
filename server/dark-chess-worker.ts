@@ -125,7 +125,7 @@ export default {
     const cors = origin === env.ALLOWED_ORIGIN ? { 'access-control-allow-origin': origin, 'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-allow-headers': 'Authorization, Content-Type', vary: 'Origin' } : null
     if (request.method === 'OPTIONS') return new Response(null, { status: cors ? 204 : 403, headers: cors ?? undefined })
     if (!cors) return json({ error: '來源不允許。' }, 403)
-    const match = new URL(request.url).pathname.match(/^\/rooms\/([A-Za-z0-9_-]{12,80})(?:\/(action|restart))?$/)
+    const match = new URL(request.url).pathname.match(/^\/rooms\/((?:\d{8}|[A-Za-z0-9_-]{12,80}))(?:\/(action|restart))?$/)
     if (!match || !env.FIREBASE_API_KEY || !env.FIREBASE_DATABASE_URL || !env.DARK_CHESS_ROOMS) return new Response(JSON.stringify({ error: '暗棋服務尚未設定。' }), { status: 503, headers: cors })
     try {
       const member = await authenticatedMatch(request, env, match[1]!)

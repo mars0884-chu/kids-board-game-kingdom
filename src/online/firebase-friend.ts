@@ -15,13 +15,13 @@ export type FirebaseRoomFactory<Session> = (
 export function normalizeFriendCode(value: string): string {
   return value.normalize('NFKC').replace(/[\s-]/g, '')
 }
-export function isFriendRoomCode(value: string): boolean { return /^\d{12}$/.test(normalizeFriendCode(value)) }
+export function isFriendRoomCode(value: string): boolean { return /^(?:\d{8}|\d{12})$/.test(normalizeFriendCode(value)) }
 export function createFriendRoomCode(): string {
-  // 十二位數分三組呈現；拒絕抽樣避免模數偏差，不使用時間或連號。
+  // 新房號八位數；舊版十二位數仍可加入。拒絕抽樣避免模數偏差。
   let code = ''
-  while (code.length < 12) {
+  while (code.length < 8) {
     for (const value of crypto.getRandomValues(new Uint8Array(16))) {
-      if (value < 250 && code.length < 12) code += String(value % 10)
+      if (value < 250 && code.length < 8) code += String(value % 10)
     }
   }
   return code
@@ -105,24 +105,32 @@ export async function createFriendInvitation<Session = FirebaseGameSession>(
 ) {
   const services = supplied ?? await getFirebaseServices()
   assertActive(signal)
-  let id = createFriendRoomCode()
-  // 精確查詢不開放房間清單；撞號重新抽取，不能覆寫他人的房間。
-  for (let attempt = 0; ; attempt++) {
-    if (!(await get(ref(services.database, 'privateInvites/' + id))).exists()) break
-    if (attempt >= 4) throw new Error('暫時無法建立邀請。')
-    id = createFriendRoomCode()
-  }
-  const session = pairing(services, id, 'host', gameId)
   const createdAt = await friendServerNow(services, signal)
   const localDeadline = Date.now() + FRIEND_INVITE_TTL - 5000
+  let id = ''
   let created = false
+  // 八碼撞號時重新抽取；資料庫建立規則只允許 !data.exists()，並發建立不會覆寫。
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    assertActive(signal)
+    id = createFriendRoomCode()
+    if ((await get(ref(services.database, 'privateInvites/' + id))).exists()) continue
+    try {
+      await set(ref(services.database, 'pairing/matches/' + id), {
+        gameId,
+        hostUid: services.user.uid, guestUid: '', hostTicketId: id + '-host', guestTicketId: id + '-guest',
+        createdAt, expiresAt: createdAt + 2 * 60 * 60 * 1000,
+      })
+      created = true
+      break
+    } catch (error) {
+      // 已存在但不屬於自己的房間讀取會被 Firebase 規則拒絕，視為撞號。
+      if (typeof error !== 'object' || error === null || !('code' in error) ||
+        !String(error.code).toLowerCase().includes('permission-denied')) throw error
+    }
+  }
+  if (!created) throw new Error('暫時無法建立邀請。')
+  const session = pairing(services, id, 'host', gameId)
   try {
-    await set(ref(services.database, 'pairing/matches/' + id), {
-      gameId,
-      hostUid: services.user.uid, guestUid: '', hostTicketId: id + '-host', guestTicketId: id + '-guest',
-      createdAt, expiresAt: createdAt + 2 * 60 * 60 * 1000,
-    })
-    created = true
     assertActive(signal)
     // 保留五秒傳輸／時間估算餘裕；服務端仍嚴格限制十分鐘，不放寬權限。
     await set(ref(services.database, 'privateInvites/' + id), { hostUid: services.user.uid, expiresAt: createdAt + FRIEND_INVITE_TTL - 5000 })

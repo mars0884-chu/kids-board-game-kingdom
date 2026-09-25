@@ -73,6 +73,12 @@
               ".validate": "newData.isBoolean()"
             }
           },
+          "revisionSignals": {
+            "$uid": {
+              ".write": "auth != null && auth.uid == $uid && (data.parent().parent().child('hostUid').val() == auth.uid || data.parent().parent().child('guestUid').val() == auth.uid) && data.parent().parent().child('expiresAt').val() > now",
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000 && (!data.exists() || newData.val() > data.val())"
+            }
+          },
           "board": {
             "nextUid": {},
             "revision": {},

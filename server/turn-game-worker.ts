@@ -1,7 +1,9 @@
 import { applyTurnRoomStep, createTurnRoom, isTrustedTurnGameId, restartTurnRoom, type TrustedTurnGameId, type TurnRoomRecord } from './turn-game-authority'
+import { createNumberGemRaceState, expireNumberGemRace, readyNumberGemRace, solveNumberGemRace, type NumberGemRaceState } from '../src/online/number-gem-race-rules'
 
 interface RoomStore {
   readonly record: TurnRoomRecord
+  readonly race?: { readonly revision: number; readonly state: NumberGemRaceState }
   readonly hostUid: string
   readonly guestUid: string
   readonly expiresAt: number
@@ -22,6 +24,11 @@ interface WorkerEnvironment {
 
 function json(value: unknown, status = 200): Response {
   return new Response(JSON.stringify(value), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } })
+}
+
+function freshNumberGemRace(): NumberGemRaceState {
+  // 每個房間的新對局由服務端抽取種子；局內題目仍可由種子重現。
+  return { ...createNumberGemRaceState(), seed: crypto.getRandomValues(new Uint32Array(1))[0]! }
 }
 
 export class TurnGameRoom {
@@ -56,6 +63,41 @@ export class TurnGameRoom {
     } else if (stored.hostUid !== hostUid || stored.guestUid !== guestUid || stored.expiresAt !== expiresAt || stored.record.gameId !== gameId) {
       return json({ error: '房間成員或棋種不一致。' }, 403)
     }
+    const path = new URL(request.url).pathname
+    if (/^\/rooms\/(?:\d{8}|[A-Za-z0-9_-]{12,80})\/race(?:\/|$)/.test(path)) {
+      if (gameId !== 'number-gem' || !/^\/rooms\/(?:\d{8}|[A-Za-z0-9_-]{12,80})\/race(?:\/(?:ready|solve|restart))?$/.test(path)) return json({ error: '搶答房間棋種錯誤。' }, 403)
+      let race = stored.race ?? { revision: 0, state: freshNumberGemRace() }
+      if (stored.race === undefined) {
+        stored = { ...stored, race }
+        await this.state.storage.put('room', stored)
+      }
+      const expired = expireNumberGemRace(race.state, Date.now())
+      if (expired !== race.state) {
+        race = { revision: race.revision + 1, state: expired }
+        stored = { ...stored, race }
+        await this.state.storage.put('room', stored)
+      }
+      if (request.method === 'GET' && path.endsWith('/race')) return json({ gameId, ...race, serverNow: Date.now() })
+      if (request.method !== 'POST') return json({ error: '不支援此操作。' }, 405)
+      try {
+        if (path.endsWith('/restart')) {
+          if (role !== 'host') throw new Error('只有第一位玩家能重新開局。')
+          race = { revision: race.revision + 1, state: freshNumberGemRace() }
+        } else if (path.endsWith('/ready')) race = { revision: race.revision + 1, state: readyNumberGemRace(race.state, role, Date.now()) }
+        else if (path.endsWith('/solve')) {
+          const bodyText = await request.text()
+          if (bodyText.length > 512) throw new Error('答案資料過長。')
+          const input: unknown = JSON.parse(bodyText)
+          if (typeof input !== 'object' || input === null || !('path' in input) || !Array.isArray(input.path)) throw new Error('答案格式不正確。')
+          race = { revision: race.revision + 1, state: solveNumberGemRace(race.state, role, input.path, Date.now()) }
+        } else return json({ error: '不支援此操作。' }, 405)
+        stored = { ...stored, race }
+        await this.state.storage.put('room', stored)
+        return json({ gameId, ...race, serverNow: Date.now() })
+      } catch (error) {
+        return json({ error: error instanceof Error ? error.message : '搶答操作失敗。' }, 400)
+      }
+    }
     if (request.method === 'GET') return json(stored.record)
     if (request.method !== 'POST') return json({ error: '不支援此操作。' }, 405)
     try {
@@ -65,7 +107,6 @@ export class TurnGameRoom {
       if (typeof input !== 'object' || input === null || Array.isArray(input)) throw new Error('棋局格式不正確。')
       const body = input as Record<string, unknown>
       if (!Number.isSafeInteger(body.expectedRevision)) throw new Error('缺少正確的棋局版本。')
-      const path = new URL(request.url).pathname
       const record = path.endsWith('/step')
         ? typeof body.serialized === 'string' ? applyTurnRoomStep(stored.record, role, body.expectedRevision as number, body.serialized) : null
         : path.endsWith('/restart') ? restartTurnRoom(stored.record, role, body.expectedRevision as number) : null
@@ -107,7 +148,7 @@ export default {
     const cors = origin === env.ALLOWED_ORIGIN ? { 'access-control-allow-origin': origin, 'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-allow-headers': 'Authorization, Content-Type', vary: 'Origin' } : null
     if (request.method === 'OPTIONS') return new Response(null, { status: cors ? 204 : 403, headers: cors ?? undefined })
     if (!cors) return json({ error: '來源不允許。' }, 403)
-    const match = new URL(request.url).pathname.match(/^\/rooms\/([A-Za-z0-9_-]{12,80})(?:\/(step|restart))?$/)
+    const match = new URL(request.url).pathname.match(/^\/rooms\/((?:\d{8}|[A-Za-z0-9_-]{12,80}))(?:\/(step|restart|race(?:\/(?:ready|solve|restart))?))?$/)
     if (!match || !env.FIREBASE_API_KEY || !env.FIREBASE_DATABASE_URL || !env.TURN_GAME_ROOMS) return withCors(json({ error: '回合服務尚未設定。' }, 503), cors)
     try {
       const member = await authenticatedMatch(request, env, match[1]!)

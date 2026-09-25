@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FirebaseFriendPairing } from './FirebaseFriendPairing'
 const mocks = vi.hoisted(() => ({ create: vi.fn(), join: vi.fn(), cancel: vi.fn() }))
 vi.mock('./firebase-friend', () => ({
-  isFriendRoomCode: (value: string) => /^\d{12}$/.test(value.replace(/\s/g, '')),
+  isFriendRoomCode: (value: string) => /^(?:\d{8}|\d{12})$/.test(value.replace(/[\s-]/g, '')),
   readFriendInvite: () => new URLSearchParams(window.location.hash.slice(1)).get('friend'),
   createFriendInvitation: mocks.create, joinFriendInvitation: mocks.join,
 }))
@@ -32,10 +32,10 @@ describe('熟人單次邀請介面', () => {
     render(<FirebaseFriendPairing onBack={vi.fn()} onConnected={connected} />)
     fireEvent.click(screen.getByRole('button', { name: '輸入房號' }))
     expect(screen.getByRole('button', { name: '加入遊戲' })).toBeDisabled()
-    fireEvent.change(screen.getByRole('textbox', { name: '房號' }), { target: { value: '1234 5678 9012' } })
+    fireEvent.change(screen.getByRole('textbox', { name: '房號' }), { target: { value: '1234 5678' } })
     fireEvent.click(screen.getByRole('button', { name: '加入遊戲' }))
     await waitFor(() => expect(connected).toHaveBeenCalledOnce())
-    expect(mocks.join.mock.calls[0]![0]).toBe('1234 5678 9012')
+    expect(mocks.join.mock.calls[0]![0]).toBe('1234 5678')
     expect(window.location.hash).toBe('')
   })
   it('只分享一次，雙方就緒後交接棋局，卸載不取消成功棋局', async () => {

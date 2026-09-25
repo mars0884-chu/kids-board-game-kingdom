@@ -28,7 +28,8 @@ export function undoOnlineNumberGemCell(match: NumberGemOnlineMatch): NumberGemO
 
 export function advanceOnlineNumberGemRound(match: NumberGemOnlineMatch): NumberGemOnlineMatch {
   if (match.state.phase !== 'completed' || isNumberGemLocalMatchComplete(match.score)) return match
-  const player = match.player === 1 && match.score.localQuestions[1] >= 3 ? 2 : match.player
+  // 每完成一題即換手，兩人各完成三題後才結束對局。
+  const player = match.player === 1 ? 2 : 1
   const roundSeed = match.roundSeed + 1
   return { ...match, player, roundSeed, state: createNumberGemState(createNumberGemPuzzle(roundSeed, 'beginner')) }
 }

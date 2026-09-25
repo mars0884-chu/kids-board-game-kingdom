@@ -12,9 +12,9 @@ describe('數字寶石連線完整回合', () => {
     expect(numberGemOnlineRules.isLegalStep(initial, { ...initial, score: { ...initial.score, stars: 99 } })).toBe(false)
   })
 
-  it('完成三題後才換玩家，兩人分數與題目種子一同更新', () => {
+  it('每完成一題就換玩家，兩人各完成三題才結束', () => {
     let match = createNumberGemOnlineMatch()
-    for (let round = 0; round < 4; round += 1) {
+    for (let round = 0; round < 6; round += 1) {
       const solution = findNumberGemSolutionPath(match.state.puzzle)!
       for (const index of solution) {
         const next = chooseOnlineNumberGemCell(match, index)
@@ -22,11 +22,15 @@ describe('數字寶石連線完整回合', () => {
         match = next
       }
       expect(match.state.phase).toBe('completed')
-      expect(match.score.localQuestions[round < 3 ? 1 : 2]).toBe(round < 3 ? round + 1 : 1)
+      expect(match.score.localQuestions[round % 2 === 0 ? 1 : 2]).toBe(Math.floor(round / 2) + 1)
       const next = advanceOnlineNumberGemRound(match)
+      if (round === 5) {
+        expect(next).toBe(match)
+        break
+      }
       expect(numberGemOnlineRules.isLegalStep(match, next)).toBe(true)
       expect(next.roundSeed).toBe(match.roundSeed + 1)
-      expect(numberGemOnlineRules.currentRole(next)).toBe(round < 2 ? 'host' : 'guest')
+      expect(numberGemOnlineRules.currentRole(next)).toBe(round % 2 === 0 ? 'guest' : 'host')
       match = next
     }
   })

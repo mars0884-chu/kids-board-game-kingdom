@@ -4,6 +4,13 @@ import { getChildText } from '../../content/child-text'
 import { ReversiArtProposal } from './ReversiArtProposal'
 
 describe('黑白棋正式美術提案畫面', () => {
+  it('使用製作人核准的簡短翻棋提示，文案與語音一致且不含容易讀錯的夾字', () => {
+    const entry = getChildText('reversi.choose_move')
+    expect(entry.text_zh_tw).toBe('選能翻棋的格子')
+    expect(entry.speech_zh_tw).toBe(entry.text_zh_tw)
+    expect(entry.segments.map((segment) => segment.text).join('')).toBe(entry.text_zh_tw)
+  })
+
   it('以可操作的標準開局呈現八乘八棋盤、四個合法落點與逐字注音', () => {
     const { container } = render(<ReversiArtProposal mode="npc" onBack={vi.fn()} />)
     const board = screen.getByRole('grid', { name: '黑白棋' })

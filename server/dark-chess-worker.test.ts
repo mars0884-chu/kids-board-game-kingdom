@@ -69,9 +69,10 @@ describe('暗棋可信房間回應', () => {
       expect(response.status).toBe(200)
       expect(stub.fetch.mock.calls[0]![0].headers.get('x-game-uid')).toBe('host-uid')
       expect(JSON.stringify(await response.json())).not.toContain('seed')
+      expect((await worker.fetch(new Request('https://worker.test/rooms/12345678', { headers: { origin: 'https://example.test', authorization: 'Bearer anonymous-token' } }), env)).status).toBe(200)
       const denied = await worker.fetch(new Request('https://worker.test/rooms/test-room-123', { headers: { origin: 'https://example.test' } }), env)
       expect(denied.status).toBe(403)
-      expect(stub.fetch).toHaveBeenCalledOnce()
+      expect(stub.fetch).toHaveBeenCalledTimes(2)
     } finally {
       vi.stubGlobal('fetch', originalFetch)
       vi.unstubAllGlobals()
