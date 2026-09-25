@@ -21,8 +21,6 @@ Push-Location $sourceRoot
 try {
   foreach ($name in (git -c "safe.directory=$($sourceRoot.Replace('\','/'))" -c core.quotepath=false ls-files --cached --others --exclude-standard)) {
     $relativeName = $name.Replace('\','/')
-    # ART-011 尚未正式核准；候選象棋僅留在工作區，不進此版完整封包。
-    if ($relativeName -eq 'docs/games/XIANGQI_SPEC.md' -or $relativeName -eq 'scripts/verify-xiangqi-proposal.mjs' -or $relativeName.StartsWith('src/games/xiangqi/')) { continue }
     $null = $files.Add($relativeName)
   }
   if ($LASTEXITCODE -ne 0) { throw '來源清單讀取失敗' }

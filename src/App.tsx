@@ -23,6 +23,7 @@ import { AnimalChessGame } from './games/animal-chess/AnimalChessGame'
 import type { AnimalChessMode } from './games/animal-chess/storage'
 import { isOnlineGameId } from './online/game-id'
 import { JumpChessGame } from './games/jump-chess/JumpChessGame'
+import { XiangqiGame } from './games/xiangqi/XiangqiGame'
 import type { JumpChessMode } from './games/jump-chess/storage'
 import { InstallButton } from './pwa/InstallButton'
 import { UpdatePrompt } from './pwa/UpdatePrompt'
@@ -180,6 +181,10 @@ export default function App() {
 
   if (showDarkChessVerification) {
     return <DarkChessVerification onBack={() => setShowDarkChessVerification(false)} />
+  }
+
+  if (preview === 'xiangqi-art-proposal') {
+    return <XiangqiGame onBack={() => { window.location.href = window.location.pathname }} />
   }
 
   if (numberGemMode !== null) {
