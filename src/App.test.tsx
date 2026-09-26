@@ -1,11 +1,14 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { getChildText } from './content/child-text'
 
 const text = (id: string) => getChildText(id).text_zh_tw
 
-afterEach(() => window.history.replaceState({}, '', '/'))
+afterEach(() => {
+  window.history.replaceState({}, '', '/')
+  vi.unstubAllEnvs()
+})
 
 describe('主入口遊戲選擇', () => {
   it('可先選模式，再選井字棋、五子棋、黑白棋或暗棋', () => {
@@ -18,6 +21,36 @@ describe('主入口遊戲選擇', () => {
     expect(screen.getByRole('button', { name: text('reversi.title') })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '暗棋' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '動物棋' })).toBeInTheDocument()
+  })
+
+  it.each([
+    ['home.adventure', '冒險闖關'],
+    ['home.practice', '自由練習'],
+    ['home.two_player', '雙人同樂'],
+  ])('%s 入口可選象棋並打開完整棋盤', (modeId, modeName) => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: text(modeId) }))
+    expect(screen.getByRole('button', { name: text('xiangqi.title') })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: text('xiangqi.title') }))
+
+    expect(screen.getByRole('grid', { name: text('xiangqi.title') })).toBeInTheDocument()
+    expect(screen.getAllByRole('gridcell')).toHaveLength(90)
+    if (modeName === '自由練習') {
+      expect(screen.getByRole('group', { name: text('ui.choose_difficulty') })).toBeInTheDocument()
+    } else if (modeName === '雙人同樂') {
+      expect(screen.queryByRole('group', { name: text('ui.choose_difficulty') })).not.toBeInTheDocument()
+    }
+  })
+
+  it('雙裝置選棋列表會顯示象棋並開啟象棋熟人／隨機連線頁', () => {
+    vi.stubEnv('VITE_TURN_GAME_WORKER_URL', 'https://worker.example.test')
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: text('home.online') }))
+    fireEvent.click(screen.getByRole('button', { name: text('xiangqi.title') }))
+
+    const onlineGameTitle = document.querySelector('.webrtc-pairing__game-title')
+    expect(onlineGameTitle?.textContent?.replace(/[ㄅ-ㄩˊˇˋ˙]/gu, '')).toBe(text('xiangqi.title'))
+    expect(screen.getByRole('button', { name: text('online.random_match') })).toBeInTheDocument()
   })
 
   it('可由棋類選擇畫面直接開啟動物棋完整 7×9 版本', () => {

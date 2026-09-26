@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { animalChessOnlineRules, gomokuOnlineRules, reversiOnlineRules, ticTacToeOnlineRules } from './turn-rules'
+import { animalChessOnlineRules, gomokuOnlineRules, reversiOnlineRules, ticTacToeOnlineRules, xiangqiOnlineRules } from './turn-rules'
 import { applyAnimalChessMove, getLegalAnimalChessMoves } from '../games/animal-chess/rules'
 import { getLegalGomokuMoves, playGomokuMove } from '../games/gomoku/rules'
 import { applyReversiMove, getLegalReversiMoves } from '../games/reversi/rules'
 import { getLegalTicTacToeMoves, playTicTacToeMove } from '../games/tic-tac-toe/rules'
+import { applyMove as applyXiangqiMove, getLegalMoves as getLegalXiangqiMoves } from '../games/xiangqi/rules'
 
 describe('線上合法一步驗證', () => {
   it('動物棋只接受當前局面的一步合法走棋', () => {
@@ -40,5 +41,15 @@ describe('線上合法一步驗證', () => {
     expect(ticTacToeOnlineRules.currentRole(next)).toBe('guest')
     expect(ticTacToeOnlineRules.isLegalStep(before, next)).toBe(true)
     expect(ticTacToeOnlineRules.isLegalStep(before, before)).toBe(false)
+  })
+
+  it('象棋由紅方主動，伺服器只接受規則核心產生的一步合法走棋', () => {
+    const before = xiangqiOnlineRules.initial()
+    const move = getLegalXiangqiMoves(before)[0]!
+    const next = applyXiangqiMove(before, move.from, move.to)
+    expect(xiangqiOnlineRules.currentRole(before)).toBe('host')
+    expect(xiangqiOnlineRules.currentRole(next)).toBe('guest')
+    expect(xiangqiOnlineRules.isLegalStep(before, next)).toBe(true)
+    expect(xiangqiOnlineRules.isLegalStep(before, before)).toBe(false)
   })
 })

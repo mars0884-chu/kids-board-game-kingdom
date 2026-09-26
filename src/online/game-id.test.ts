@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { isOnlineGameId, matchesOnlineGame, onlineGameIds } from './game-id'
 
 describe('線上房間棋種隔離', () => {
-  it('七款已列棋種各有唯一識別', () => {
-    expect(new Set(onlineGameIds).size).toBe(7)
+  it('八款已列棋種各有唯一識別', () => {
+    expect(new Set(onlineGameIds).size).toBe(8)
     for (const id of onlineGameIds) expect(isOnlineGameId(id)).toBe(true)
     expect(isOnlineGameId('unknown')).toBe(false)
   })

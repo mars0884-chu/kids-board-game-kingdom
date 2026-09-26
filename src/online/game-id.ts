@@ -7,9 +7,21 @@ export const onlineGameIds = [
   'number-gem',
   'reversi',
   'tic-tac-toe',
+  'xiangqi',
 ] as const
 
 export type OnlineGameId = typeof onlineGameIds[number]
+
+export const onlineGameTitleTextIds: Record<OnlineGameId, string> = {
+  'jump-chess': 'jump_chess.title',
+  'animal-chess': 'animal_chess.title',
+  'dark-chess': 'dark_chess.title',
+  gomoku: 'gomoku.title',
+  'number-gem': 'number_gem.title',
+  reversi: 'reversi.title',
+  'tic-tac-toe': 'tictactoe.title',
+  xiangqi: 'xiangqi.title',
+}
 
 export function isOnlineGameId(value: unknown): value is OnlineGameId {
   return typeof value === 'string' && onlineGameIds.some((id) => id === value)

@@ -48,7 +48,7 @@ try {
 
     assert(before.viewport.width === viewport.width && before.viewport.height === viewport.height, `${viewport.name} 視窗量測尺寸不符。`)
     assert(before.document.scrollWidth <= viewport.width + 1, `${viewport.name} 發生水平溢出。`)
-    assert(before.buttonCount === 7, `${viewport.name} 棋種按鍵數量不是 7。`)
+    assert(before.buttonCount === 8, `${viewport.name} 棋種按鍵數量不是 8。`)
     assert(before.bodyOverflowY === 'auto' || before.bodyOverflowY === 'scroll', `${viewport.name} 沒有開啟垂直捲動。`)
 
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
@@ -66,7 +66,7 @@ try {
       buttonCount: document.querySelectorAll('.game-picker-actions .mode-button').length,
       scrollWidth: document.documentElement.scrollWidth,
     }))
-    assert(online.buttonCount === 7, `${viewport.name} 線上棋種按鍵數量不是 7。`)
+    assert(online.buttonCount === 8, `${viewport.name} 線上棋種按鍵數量不是 8。`)
     assert(online.scrollWidth <= viewport.width + 1, `${viewport.name} 線上選單水平溢出。`)
 
     results.push({

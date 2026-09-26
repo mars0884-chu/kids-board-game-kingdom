@@ -1,7 +1,7 @@
-import { animalChessOnlineRules, gomokuOnlineRules, reversiOnlineRules, ticTacToeOnlineRules, type OnlineTurnRules } from '../src/online/turn-rules'
+import { animalChessOnlineRules, gomokuOnlineRules, reversiOnlineRules, ticTacToeOnlineRules, xiangqiOnlineRules, type OnlineTurnRules } from '../src/online/turn-rules'
 import { numberGemOnlineRules } from '../src/online/number-gem-turn-rules'
 
-export type TrustedTurnGameId = 'animal-chess' | 'gomoku' | 'number-gem' | 'reversi' | 'tic-tac-toe'
+export type TrustedTurnGameId = 'animal-chess' | 'gomoku' | 'number-gem' | 'reversi' | 'tic-tac-toe' | 'xiangqi'
 
 interface TurnAdapter {
   initial(): string
@@ -27,6 +27,7 @@ const adapters: Record<TrustedTurnGameId, TurnAdapter> = {
   'number-gem': adapter(numberGemOnlineRules),
   reversi: adapter(reversiOnlineRules),
   'tic-tac-toe': adapter(ticTacToeOnlineRules),
+  xiangqi: adapter(xiangqiOnlineRules),
 }
 
 export function isTrustedTurnGameId(value: unknown): value is TrustedTurnGameId {

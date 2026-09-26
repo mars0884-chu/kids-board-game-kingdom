@@ -23,7 +23,7 @@ import { AnimalChessGame } from './games/animal-chess/AnimalChessGame'
 import type { AnimalChessMode } from './games/animal-chess/storage'
 import { isOnlineGameId } from './online/game-id'
 import { JumpChessGame } from './games/jump-chess/JumpChessGame'
-import { XiangqiGame } from './games/xiangqi/XiangqiGame'
+import { XiangqiGame, type XiangqiMode } from './games/xiangqi/XiangqiGame'
 import type { JumpChessMode } from './games/jump-chess/storage'
 import { InstallButton } from './pwa/InstallButton'
 import { UpdatePrompt } from './pwa/UpdatePrompt'
@@ -36,9 +36,9 @@ const homeModes = [
 ] as const
 
 type HomeModeId = typeof homeModes[number]['id']
-type GameId = 'tic-tac-toe' | 'gomoku' | 'reversi' | 'dark-chess' | 'number-gem' | 'animal-chess' | 'jump-chess'
+type GameId = 'tic-tac-toe' | 'gomoku' | 'reversi' | 'dark-chess' | 'number-gem' | 'animal-chess' | 'jump-chess' | 'xiangqi'
 
-const gameOptions: readonly { id: GameId; textId: 'tictactoe.title' | 'gomoku.title' | 'reversi.title' | 'dark_chess.title' | 'number_gem.title' | 'animal_chess.title' | 'jump_chess.title'; icon: 'puzzle' | 'board'; tone: 'mint' | 'coral' | 'blue' }[] = [
+const gameOptions: readonly { id: GameId; textId: 'tictactoe.title' | 'gomoku.title' | 'reversi.title' | 'dark_chess.title' | 'number_gem.title' | 'animal_chess.title' | 'jump_chess.title' | 'xiangqi.title'; icon: 'puzzle' | 'board'; tone: 'mint' | 'coral' | 'blue' }[] = [
   { id: 'tic-tac-toe', textId: 'tictactoe.title', icon: 'puzzle', tone: 'mint' },
   { id: 'number-gem', textId: 'number_gem.title', icon: 'puzzle', tone: 'blue' },
   { id: 'animal-chess', textId: 'animal_chess.title', icon: 'board', tone: 'mint' },
@@ -46,6 +46,7 @@ const gameOptions: readonly { id: GameId; textId: 'tictactoe.title' | 'gomoku.ti
   { id: 'reversi', textId: 'reversi.title', icon: 'board', tone: 'blue' },
   { id: 'dark-chess', textId: 'dark_chess.title', icon: 'board', tone: 'mint' },
   { id: 'jump-chess', textId: 'jump_chess.title', icon: 'board', tone: 'coral' },
+  { id: 'xiangqi', textId: 'xiangqi.title', icon: 'board', tone: 'coral' },
 ]
 
 export default function App() {
@@ -106,6 +107,7 @@ export default function App() {
       : preview === 'gomoku-local'
         ? 'local'
         : null)
+  const [xiangqiMode, setXiangqiMode] = useState<XiangqiMode | null>(() => inviteParams.has('friend') && inviteGame === 'xiangqi' ? 'online' : preview === 'xiangqi-art-proposal' ? 'local' : null)
   const [showComingSoon, setShowComingSoon] = useState(false)
   const { isSupported, speak } = useSpeech()
   const welcome = getChildText('home.welcome')
@@ -118,7 +120,9 @@ export default function App() {
 
   const chooseGame = (gameId: GameId) => {
     if (selectedHomeMode === null) return
-    if (gameId === 'jump-chess') {
+    if (gameId === 'xiangqi') {
+      setXiangqiMode(selectedHomeMode === 'online' ? 'online' : selectedHomeMode === 'two-player' ? 'local' : selectedHomeMode === 'practice' ? 'npc' : 'adventure')
+    } else if (gameId === 'jump-chess') {
       setJumpChessMode(selectedHomeMode === 'adventure' ? 'adventure' : selectedHomeMode === 'practice' ? 'npc' : selectedHomeMode === 'online' ? 'online' : 'local')
     } else if (gameId === 'number-gem') {
       setNumberGemMode(selectedHomeMode === 'adventure'
@@ -170,7 +174,9 @@ export default function App() {
               ? 'animal_chess.title'
               : gameId === 'jump-chess'
                 ? 'jump_chess.title'
-                : 'tictactoe.title'
+                : gameId === 'xiangqi'
+                  ? 'xiangqi.title'
+                  : 'tictactoe.title'
       speak(getChildText(textId))
     }
   }
@@ -183,8 +189,8 @@ export default function App() {
     return <DarkChessVerification onBack={() => setShowDarkChessVerification(false)} />
   }
 
-  if (preview === 'xiangqi-art-proposal') {
-    return <XiangqiGame onBack={() => { window.location.href = window.location.pathname }} />
+  if (xiangqiMode !== null) {
+    return <XiangqiGame key={xiangqiMode} mode={xiangqiMode} onBack={() => { setXiangqiMode(null); if (preview === 'xiangqi-art-proposal') window.location.href = window.location.pathname }} />
   }
 
   if (numberGemMode !== null) {

@@ -2,6 +2,7 @@ import { createAnimalChessState, getLegalAnimalChessMoves, applyAnimalChessMove,
 import { createGomokuState, getLegalGomokuMoves, playGomokuMove, serializeGomokuState, deserializeGomokuState, type GomokuState } from '../games/gomoku/rules'
 import { createReversiState, getLegalReversiMoves, applyReversiMove, serializeReversiState, deserializeReversiState, type ReversiState } from '../games/reversi/rules'
 import { createTicTacToeState, getLegalTicTacToeMoves, playTicTacToeMove, serializeTicTacToeState, deserializeTicTacToeState, type TicTacToeState } from '../games/tic-tac-toe/rules'
+import { applyMove as applyXiangqiMove, createInitialXiangqiState, getLegalMoves as getLegalXiangqiMoves, serializeXiangqiState, deserializeXiangqiState, type XiangqiState } from '../games/xiangqi/rules'
 
 export interface OnlineTurnRules<State> {
   initial(): State
@@ -57,4 +58,13 @@ export const ticTacToeOnlineRules: OnlineTurnRules<TicTacToeState> = {
   currentRole: (state) => state.currentPlayer === 'x' ? 'host' : 'guest',
   isLegalStep: (before, next) => before.phase === 'playing' &&
     matchesOneStep(before, next, getLegalTicTacToeMoves(before), playTicTacToeMove, serializeTicTacToeState),
+}
+
+export const xiangqiOnlineRules: OnlineTurnRules<XiangqiState> = {
+  initial: createInitialXiangqiState,
+  serialize: serializeXiangqiState,
+  deserialize: deserializeXiangqiState,
+  currentRole: (state) => state.currentPlayer === 'red' ? 'host' : 'guest',
+  isLegalStep: (before, next) => before.phase !== 'won' && before.phase !== 'draw' &&
+    matchesOneStep(before, next, getLegalXiangqiMoves(before), (state, move) => applyXiangqiMove(state, move.from, move.to), serializeXiangqiState),
 }

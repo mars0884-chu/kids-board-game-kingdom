@@ -7,7 +7,7 @@ import { createFriendInvitation, joinFriendInvitation, readFriendInvite, isFrien
 import type { OnlineSession } from './online-session'
 import { createFirebaseGameSession } from './firebase-game'
 import { getFirebaseServices, type FirebasePairingSession } from './firebase-pairing'
-import type { OnlineGameId } from './game-id'
+import { onlineGameTitleTextIds, type OnlineGameId } from './game-id'
 import { useSpeech } from '../hooks/useSpeech'
 import './webrtc-pairing.css'
 
@@ -119,6 +119,7 @@ export function FirebaseFriendPairing<Session = OnlineSession>({ onBack, onConne
         <span className="webrtc-pairing__icon" aria-hidden="true">↔</span>
         <BopomofoText as="h1" id="friend-title" className="webrtc-pairing__title" entry={getChildText('online.title')} />
       </header>
+      <BopomofoText className="webrtc-pairing__game-title" entry={getChildText(onlineGameTitleTextIds[gameId])} />
       <div className="webrtc-pairing__status" role="status" aria-live="polite"><BopomofoText entry={getChildText(status)} /></div>
       <BopomofoText className="webrtc-pairing__description" entry={getChildText('online.random_privacy_notice')} />
       {phase === 'waiting' && roomCode && <div className="firebase-friend__room">

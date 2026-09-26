@@ -8,7 +8,7 @@ import {
   type FirebasePairingSession,
 } from './firebase-pairing'
 import type { OnlineSession } from './online-session'
-import type { OnlineGameId } from './game-id'
+import { onlineGameTitleTextIds, type OnlineGameId } from './game-id'
 import './webrtc-pairing.css'
 
 interface FirebaseRandomPairingProps<Session> {
@@ -114,6 +114,7 @@ export function FirebaseRandomPairing<Session = OnlineSession>({ onBack, onConne
           <span className="webrtc-pairing__icon" aria-hidden="true">✦</span>
           <BopomofoText as="h1" className="webrtc-pairing__title" entry={getChildText('online.title')} />
         </header>
+        <BopomofoText className="webrtc-pairing__game-title" entry={getChildText(onlineGameTitleTextIds[gameId])} />
 
         <div className="webrtc-pairing__status" role="status" aria-live="polite">
           <BopomofoText entry={statusText} />

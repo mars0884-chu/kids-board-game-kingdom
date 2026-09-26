@@ -1,21 +1,34 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { BopomofoText } from '../../components/BopomofoText'
-import { ChildActionButton } from '../../components/common-ui'
+import { ChildActionButton, DifficultySelector, type DifficultyLevel } from '../../components/common-ui'
 import { getChildText } from '../../content/child-text'
 import { useSpeech } from '../../hooks/useSpeech'
 import { applyMove, createInitialXiangqiState, getLegalMovesFrom, type XiangqiKind, type XiangqiPlayer, type XiangqiState } from './rules'
+import { chooseXiangqiMove } from './ai'
+import { FirebaseFriendPairing } from '../../online/FirebaseFriendPairing'
+import { createFirebaseAuthoritativeTurnSession, type AuthoritativeTurnSession } from '../../online/firebase-authoritative-turn-game'
+import { xiangqiOnlineRules } from '../../online/turn-rules'
+import type { FirebaseRoomFactory } from '../../online/firebase-friend'
 import './XiangqiGame.css'
 
-interface XiangqiGameProps { onBack: () => void }
+export type XiangqiMode = 'adventure' | 'npc' | 'local' | 'online'
+interface XiangqiGameProps { mode: XiangqiMode; onBack: () => void }
+
+const createOnlineXiangqi: FirebaseRoomFactory<AuthoritativeTurnSession<XiangqiState>> =
+  (database, pairing, hostUid, guestUid, signal, expiresAt) =>
+    createFirebaseAuthoritativeTurnSession(database, pairing, 'xiangqi', hostUid, guestUid, signal, xiangqiOnlineRules, expiresAt)
 
 const names: Record<XiangqiPlayer, Record<XiangqiKind, string>> = {
   red: { king: '帥', advisor: '仕', elephant: '相', horse: '馬', chariot: '車', cannon: '炮', soldier: '兵' },
   black: { king: '將', advisor: '士', elephant: '象', horse: '馬', chariot: '車', cannon: '炮', soldier: '卒' },
 }
 
-export function XiangqiGame({ onBack }: XiangqiGameProps) {
+export function XiangqiGame({ mode, onBack }: XiangqiGameProps) {
   const [state, setState] = useState<XiangqiState>(() => createInitialXiangqiState())
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>('beginner')
   const [selected, setSelected] = useState<number | null>(null)
+  const [onlineSession, setOnlineSession] = useState<AuthoritativeTurnSession<XiangqiState> | null>(null)
+  const [onlineConnected, setOnlineConnected] = useState(false)
   const [zoom, setZoom] = useState(1)
   const boardWrapRef = useRef<HTMLDivElement>(null)
   const pinchRef = useRef<{ distance: number; zoom: number; focusX: number; focusY: number } | null>(null)
@@ -23,6 +36,8 @@ export function XiangqiGame({ onBack }: XiangqiGameProps) {
   const { speak } = useSpeech()
   const destinations = useMemo(() => selected === null ? [] : getLegalMovesFrom(state, selected), [state, selected])
   const selectedPiece = selected === null ? null : state.board[selected]
+  const isNpcTurn = (mode === 'npc' || mode === 'adventure') && state.currentPlayer === 'black'
+  const isOnlineTurn = mode !== 'online' || (onlineConnected && onlineSession !== null && (state.currentPlayer === 'red' ? 'host' : 'guest') === onlineSession.role)
   const statusId = state.phase === 'won' ? state.winner === 'red' ? 'xiangqi.red_wins' : 'xiangqi.black_wins'
     : state.phase === 'draw' ? 'xiangqi.draw'
       : state.phase === 'check' ? 'xiangqi.check'
@@ -36,6 +51,21 @@ export function XiangqiGame({ onBack }: XiangqiGameProps) {
     wrap.scrollTop = (pending.top + pending.y) * pending.scale - pending.y
     pendingScrollRef.current = null
   }, [zoom])
+
+  useEffect(() => {
+    if (onlineSession === null) return
+    const unsubscribe = onlineSession.subscribe((next) => { setState(next); setSelected(null) }, setOnlineConnected)
+    return () => { unsubscribe(); onlineSession.close() }
+  }, [onlineSession])
+
+  useEffect(() => {
+    if (!isNpcTurn || state.phase === 'won' || state.phase === 'draw') return
+    const timer = window.setTimeout(() => {
+      const move = chooseXiangqiMove(state, mode === 'adventure' ? 'beginner' : difficulty)
+      if (move) setState((current) => current.currentPlayer === 'black' ? applyMove(current, move.from, move.to) : current)
+    }, 450)
+    return () => window.clearTimeout(timer)
+  }, [difficulty, isNpcTurn, mode, state])
 
   useLayoutEffect(() => {
     const wrap = boardWrapRef.current
@@ -71,11 +101,12 @@ export function XiangqiGame({ onBack }: XiangqiGameProps) {
   }, [zoom])
 
   function selectCell(index: number) {
-    if (state.phase === 'won' || state.phase === 'draw') return
+    if (state.phase === 'won' || state.phase === 'draw' || isNpcTurn || !isOnlineTurn) return
     const piece = state.board[index]
     if (destinations.some((move) => move.to === index) && selected !== null) {
       const next = applyMove(state, selected, index)
-      setState(next)
+      if (mode === 'online') void onlineSession!.submit(next).catch(() => undefined)
+      else setState(next)
       setSelected(null)
       const nextStatus = next.phase === 'won' ? next.winner === 'red' ? 'xiangqi.red_wins' : 'xiangqi.black_wins'
         : next.phase === 'draw' ? 'xiangqi.draw' : next.phase === 'check' ? 'xiangqi.check' :
@@ -85,6 +116,10 @@ export function XiangqiGame({ onBack }: XiangqiGameProps) {
     }
     setSelected(piece?.owner === state.currentPlayer ? index : null)
     if (piece?.owner === state.currentPlayer) speak(getChildText(`xiangqi.piece_${names[piece.owner][piece.kind]}`))
+  }
+
+  if (mode === 'online' && onlineSession === null) {
+    return <FirebaseFriendPairing<AuthoritativeTurnSession<XiangqiState>> gameId="xiangqi" roomFactory={createOnlineXiangqi} onBack={onBack} onConnected={setOnlineSession} />
   }
 
   return <main className="xiangqi-game">
@@ -127,8 +162,9 @@ export function XiangqiGame({ onBack }: XiangqiGameProps) {
       </div>
       <nav className="xiangqi-game__actions">
         <ChildActionButton entry={getChildText('common.back')} icon="back" tone="secondary" onClick={onBack} />
-        <ChildActionButton entry={getChildText('common.try_again')} icon="retry" tone="primary" onClick={() => { setState(createInitialXiangqiState()); setSelected(null) }} />
+        <ChildActionButton entry={getChildText('common.try_again')} icon="retry" tone="primary" onClick={() => { if (mode === 'online') void onlineSession?.restart().catch(() => undefined); else { setState(createInitialXiangqiState()); setSelected(null) } }} />
       </nav>
+      {mode === 'npc' && <DifficultySelector selected={difficulty} onChange={setDifficulty} disabled={isNpcTurn || state.phase === 'won' || state.phase === 'draw'} />}
     </section>
   </main>
 }

@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { createTurnRoom, applyTurnRoomStep, restartTurnRoom, nextTurnRole, type TrustedTurnGameId } from './turn-game-authority'
-import { animalChessOnlineRules, gomokuOnlineRules, reversiOnlineRules, ticTacToeOnlineRules } from '../src/online/turn-rules'
+import { animalChessOnlineRules, gomokuOnlineRules, reversiOnlineRules, ticTacToeOnlineRules, xiangqiOnlineRules } from '../src/online/turn-rules'
 import { chooseOnlineNumberGemCell, numberGemOnlineRules } from '../src/online/number-gem-turn-rules'
 import { getLegalAnimalChessMoves, applyAnimalChessMove } from '../src/games/animal-chess/rules'
 import { getLegalGomokuMoves, playGomokuMove } from '../src/games/gomoku/rules'
 import { getLegalReversiMoves, applyReversiMove } from '../src/games/reversi/rules'
 import { getLegalTicTacToeMoves, playTicTacToeMove } from '../src/games/tic-tac-toe/rules'
+import { applyMove as applyXiangqiMove, getLegalMoves as getLegalXiangqiMoves } from '../src/games/xiangqi/rules'
 
 const legalFirstStep: Record<TrustedTurnGameId, () => string> = {
   'animal-chess': () => {
@@ -30,9 +31,14 @@ const legalFirstStep: Record<TrustedTurnGameId, () => string> = {
     const state = ticTacToeOnlineRules.initial()
     return ticTacToeOnlineRules.serialize(playTicTacToeMove(state, getLegalTicTacToeMoves(state)[0]!))
   },
+  xiangqi: () => {
+    const state = xiangqiOnlineRules.initial()
+    const move = getLegalXiangqiMoves(state)[0]!
+    return xiangqiOnlineRules.serialize(applyXiangqiMove(state, move.from, move.to))
+  },
 }
 
-describe('五款棋類的可信回合規則', () => {
+describe('六款棋類的可信回合規則', () => {
   for (const gameId of Object.keys(legalFirstStep) as TrustedTurnGameId[]) {
     it(`${gameId} 僅接受甲端由規則核心重算的第一步`, () => {
       const room = createTurnRoom(gameId)

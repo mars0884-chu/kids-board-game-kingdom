@@ -82,6 +82,12 @@
   font-size: clamp(1.35rem, 4vw, 2rem);
 }
 
+.webrtc-pairing__game-title {
+  justify-self: center;
+  font-size: clamp(1.1rem, 3vw, 1.4rem);
+  font-weight: 900;
+}
+
 .webrtc-pairing__header .bopomofo-pair__annotation {
   color: #fff3b8;
 }
