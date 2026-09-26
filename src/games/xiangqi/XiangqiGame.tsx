@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import { BopomofoText } from '../../components/BopomofoText'
-import { ChildActionButton, DifficultySelector, type DifficultyLevel } from '../../components/common-ui'
+import { ChildActionButton, DifficultySelector, FeedbackCard, ToolButton, type DifficultyLevel } from '../../components/common-ui'
 import { getChildText } from '../../content/child-text'
 import { useSpeech } from '../../hooks/useSpeech'
 import { applyMove, createInitialXiangqiState, getLegalMovesFrom, type XiangqiKind, type XiangqiPlayer, type XiangqiState } from './rules'
@@ -9,10 +9,18 @@ import { FirebaseFriendPairing } from '../../online/FirebaseFriendPairing'
 import { createFirebaseAuthoritativeTurnSession, type AuthoritativeTurnSession } from '../../online/firebase-authoritative-turn-game'
 import { xiangqiOnlineRules } from '../../online/turn-rules'
 import type { FirebaseRoomFactory } from '../../online/firebase-friend'
+import {
+  XIANGQI_TUTORIAL_LEVELS,
+  completeXiangqiTutorialMove,
+  createXiangqiTutorialState,
+  getXiangqiTutorialSolutions,
+  isCorrectXiangqiTutorialMove,
+} from './adventure'
+import { indexedDbXiangqiAdventureStorage, type XiangqiAdventureStorage } from './storage'
 import './XiangqiGame.css'
 
 export type XiangqiMode = 'adventure' | 'npc' | 'local' | 'online'
-interface XiangqiGameProps { mode: XiangqiMode; onBack: () => void }
+interface XiangqiGameProps { mode: XiangqiMode; onBack: () => void; adventureStorage?: XiangqiAdventureStorage }
 
 const createOnlineXiangqi: FirebaseRoomFactory<AuthoritativeTurnSession<XiangqiState>> =
   (database, pairing, hostUid, guestUid, signal, expiresAt) =>
@@ -23,25 +31,47 @@ const names: Record<XiangqiPlayer, Record<XiangqiKind, string>> = {
   black: { king: '將', advisor: '士', elephant: '象', horse: '馬', chariot: '車', cannon: '炮', soldier: '卒' },
 }
 
-export function XiangqiGame({ mode, onBack }: XiangqiGameProps) {
-  const [state, setState] = useState<XiangqiState>(() => createInitialXiangqiState())
+export function XiangqiGame({ mode, onBack, adventureStorage = indexedDbXiangqiAdventureStorage }: XiangqiGameProps) {
+  const [state, setState] = useState<XiangqiState>(() => mode === 'adventure' ? createXiangqiTutorialState(0, 0) : createInitialXiangqiState())
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('beginner')
   const [selected, setSelected] = useState<number | null>(null)
+  const [tutorialLevelIndex, setTutorialLevelIndex] = useState(0)
+  const [tutorialTaskIndex, setTutorialTaskIndex] = useState(0)
+  const [tutorialHintLevel, setTutorialHintLevel] = useState(0)
+  const [tutorialMoveComplete, setTutorialMoveComplete] = useState(false)
+  const [tutorialCourseComplete, setTutorialCourseComplete] = useState(false)
+  const [tutorialNoticeId, setTutorialNoticeId] = useState<string | null>(null)
+  const [completedTutorialLevels, setCompletedTutorialLevels] = useState<readonly string[]>([])
+  const [tutorialHydrated, setTutorialHydrated] = useState(mode !== 'adventure')
+  const [isPaused, setIsPaused] = useState(false)
   const [onlineSession, setOnlineSession] = useState<AuthoritativeTurnSession<XiangqiState> | null>(null)
   const [onlineConnected, setOnlineConnected] = useState(false)
   const [zoom, setZoom] = useState(1)
   const boardWrapRef = useRef<HTMLDivElement>(null)
+  const boardRef = useRef<HTMLDivElement>(null)
   const pinchRef = useRef<{ distance: number; zoom: number; focusX: number; focusY: number } | null>(null)
   const pendingScrollRef = useRef<{ x: number; y: number; left: number; top: number; scale: number } | null>(null)
-  const { speak } = useSpeech()
+  const { isSupported: isTaiwanVoiceAvailable, speak } = useSpeech()
   const destinations = useMemo(() => selected === null ? [] : getLegalMovesFrom(state, selected), [state, selected])
   const selectedPiece = selected === null ? null : state.board[selected]
-  const isNpcTurn = (mode === 'npc' || mode === 'adventure') && state.currentPlayer === 'black'
+  const tutorialLevel = XIANGQI_TUTORIAL_LEVELS[tutorialLevelIndex]!
+  const tutorialTask = tutorialLevel.tasks[tutorialTaskIndex]!
+  const tutorialSolutions = getXiangqiTutorialSolutions(tutorialTask)
+  const isNpcTurn = mode === 'npc' && state.currentPlayer === 'black'
   const isOnlineTurn = mode !== 'online' || (onlineConnected && onlineSession !== null && (state.currentPlayer === 'red' ? 'host' : 'guest') === onlineSession.role)
+  const tutorialBoardLocked = mode === 'adventure' && (!tutorialHydrated || isPaused || tutorialMoveComplete || tutorialCourseComplete)
+  const tutorialFeedbackId = tutorialCourseComplete ? 'xiangqi.lesson_complete'
+    : isPaused ? 'common.pause'
+      : tutorialNoticeId ?? (tutorialMoveComplete ? 'xiangqi.lesson_success' : tutorialLevel.instructionTextId)
+  const tutorialFeedbackEntry = getChildText(tutorialFeedbackId)
   const statusId = state.phase === 'won' ? state.winner === 'red' ? 'xiangqi.red_wins' : 'xiangqi.black_wins'
     : state.phase === 'draw' ? 'xiangqi.draw'
       : state.phase === 'check' ? 'xiangqi.check'
         : state.currentPlayer === 'red' ? 'xiangqi.red_turn' : 'xiangqi.black_turn'
+
+  useLayoutEffect(() => {
+    if (window.scrollY > 0) window.scrollTo(0, 0)
+  }, [])
 
   useLayoutEffect(() => {
     const wrap = boardWrapRef.current
@@ -59,13 +89,54 @@ export function XiangqiGame({ mode, onBack }: XiangqiGameProps) {
   }, [onlineSession])
 
   useEffect(() => {
+    if (mode !== 'adventure') {
+      setTutorialHydrated(true)
+      return
+    }
+    let active = true
+    void adventureStorage.load().then((session) => {
+      if (!active || session === null) return
+      const task = XIANGQI_TUTORIAL_LEVELS[session.levelIndex]!.tasks[session.taskIndex]!
+      let restoredState = createXiangqiTutorialState(session.levelIndex, session.taskIndex)
+      if (session.moveComplete || session.courseComplete) {
+        const solution = getXiangqiTutorialSolutions(task)[0]!
+        restoredState = completeXiangqiTutorialMove(restoredState, solution.from, solution.to)
+      }
+      setTutorialLevelIndex(session.levelIndex)
+      setTutorialTaskIndex(session.taskIndex)
+      setTutorialHintLevel(session.hintLevel)
+      setCompletedTutorialLevels(session.completedLevelIds)
+      setTutorialMoveComplete(session.moveComplete)
+      setTutorialCourseComplete(session.courseComplete)
+      setState(restoredState)
+    }).catch(() => undefined).finally(() => { if (active) setTutorialHydrated(true) })
+    return () => { active = false }
+  }, [adventureStorage, mode])
+
+  useEffect(() => {
+    if (mode !== 'adventure' || !tutorialHydrated) return
+    void adventureStorage.save({
+      levelIndex: tutorialLevelIndex,
+      taskIndex: tutorialTaskIndex,
+      hintLevel: tutorialHintLevel,
+      completedLevelIds: completedTutorialLevels,
+      moveComplete: tutorialMoveComplete,
+      courseComplete: tutorialCourseComplete,
+    })
+  }, [adventureStorage, completedTutorialLevels, mode, tutorialCourseComplete, tutorialHydrated, tutorialHintLevel, tutorialLevelIndex, tutorialMoveComplete, tutorialTaskIndex])
+
+  useEffect(() => {
     if (!isNpcTurn || state.phase === 'won' || state.phase === 'draw') return
     const timer = window.setTimeout(() => {
-      const move = chooseXiangqiMove(state, mode === 'adventure' ? 'beginner' : difficulty)
+      const move = chooseXiangqiMove(state, difficulty)
       if (move) setState((current) => current.currentPlayer === 'black' ? applyMove(current, move.from, move.to) : current)
     }, 450)
     return () => window.clearTimeout(timer)
   }, [difficulty, isNpcTurn, mode, state])
+
+  useEffect(() => {
+    if (mode === 'adventure' && tutorialHydrated) speak(getChildText(tutorialFeedbackId))
+  }, [mode, speak, tutorialHydrated])
 
   useLayoutEffect(() => {
     const wrap = boardWrapRef.current
@@ -100,10 +171,78 @@ export function XiangqiGame({ mode, onBack }: XiangqiGameProps) {
     }
   }, [zoom])
 
-  function selectCell(index: number) {
-    if (state.phase === 'won' || state.phase === 'draw' || isNpcTurn || !isOnlineTurn) return
+  function loadTutorialTask(levelIndex: number, taskIndex: number) {
+    setTutorialLevelIndex(levelIndex)
+    setTutorialTaskIndex(taskIndex)
+    setState(createXiangqiTutorialState(levelIndex, taskIndex))
+    setSelected(null)
+    setTutorialHintLevel(0)
+    setTutorialMoveComplete(false)
+    setTutorialCourseComplete(false)
+    setTutorialNoticeId(null)
+    setIsPaused(false)
+    speak(getChildText(XIANGQI_TUTORIAL_LEVELS[levelIndex]!.instructionTextId))
+  }
+
+  function restartTutorialCourse() {
+    setCompletedTutorialLevels([])
+    loadTutorialTask(0, 0)
+  }
+
+  function continueTutorial() {
+    if (!tutorialMoveComplete) return
+    const isLastTask = tutorialTaskIndex === tutorialLevel.tasks.length - 1
+    if (!isLastTask) {
+      loadTutorialTask(tutorialLevelIndex, tutorialTaskIndex + 1)
+      return
+    }
+
+    setCompletedTutorialLevels((current) => current.includes(tutorialLevel.id) ? current : [...current, tutorialLevel.id])
+    if (tutorialLevelIndex === XIANGQI_TUTORIAL_LEVELS.length - 1) {
+      setTutorialCourseComplete(true)
+      setTutorialNoticeId(null)
+      speak(getChildText('xiangqi.lesson_complete'))
+      return
+    }
+    loadTutorialTask(tutorialLevelIndex + 1, 0)
+  }
+
+  function showTutorialHint() {
+    if (tutorialBoardLocked) return
+    const nextHint = Math.min(3, tutorialHintLevel + 1)
+    setTutorialHintLevel(nextHint)
+    const hintId = nextHint === 1 ? tutorialLevel.instructionTextId
+      : nextHint === 2 ? tutorialLevel.hintAreaTextId : 'xiangqi.lesson_hint_target'
+    setTutorialNoticeId(hintId)
+    speak(getChildText(hintId))
+  }
+
+  function selectCell(clickedIndex: number, event?: ReactMouseEvent<HTMLButtonElement>) {
+    let index = clickedIndex
+    const boardRect = boardRef.current?.getBoundingClientRect()
+    if (event && event.detail > 0 && (event.clientX !== 0 || event.clientY !== 0) && boardRect && boardRect.width > 0 && boardRect.height > 0) {
+      const column = Math.max(0, Math.min(8, Math.round((event.clientX - boardRect.left) / boardRect.width * 8)))
+      const row = Math.max(0, Math.min(9, Math.round((event.clientY - boardRect.top) / boardRect.height * 9)))
+      index = row * 9 + column
+    }
+    if (state.phase === 'won' || state.phase === 'draw' || isNpcTurn || !isOnlineTurn || tutorialBoardLocked) return
     const piece = state.board[index]
     if (destinations.some((move) => move.to === index) && selected !== null) {
+      if (mode === 'adventure') {
+        if (!isCorrectXiangqiTutorialMove(state, tutorialTask, selected, index)) {
+          setTutorialNoticeId('xiangqi.lesson_try_again')
+          setSelected(null)
+          speak(getChildText('xiangqi.lesson_try_again'))
+          return
+        }
+        setState(completeXiangqiTutorialMove(state, selected, index))
+        setTutorialMoveComplete(true)
+        setTutorialNoticeId(null)
+        setTutorialHintLevel(0)
+        setSelected(null)
+        speak(getChildText('xiangqi.lesson_success'))
+        return
+      }
       const next = applyMove(state, selected, index)
       if (mode === 'online') void onlineSession!.submit(next).catch(() => undefined)
       else setState(next)
@@ -114,8 +253,19 @@ export function XiangqiGame({ mode, onBack }: XiangqiGameProps) {
       speak(getChildText(nextStatus))
       return
     }
+    if (mode === 'adventure' && selected !== null && piece === null) {
+      setTutorialNoticeId('xiangqi.lesson_try_again')
+      speak(getChildText('xiangqi.lesson_try_again'))
+      return
+    }
     setSelected(piece?.owner === state.currentPlayer ? index : null)
     if (piece?.owner === state.currentPlayer) speak(getChildText(`xiangqi.piece_${names[piece.owner][piece.kind]}`))
+  }
+
+  function restartCurrentMode() {
+    if (mode === 'online') void onlineSession?.restart().catch(() => undefined)
+    else if (mode === 'adventure') loadTutorialTask(tutorialLevelIndex, tutorialTaskIndex)
+    else { setState(createInitialXiangqiState()); setSelected(null) }
   }
 
   if (mode === 'online' && onlineSession === null) {
@@ -123,7 +273,7 @@ export function XiangqiGame({ mode, onBack }: XiangqiGameProps) {
   }
 
   return <main className="xiangqi-game">
-    <section className="xiangqi-game__frame" aria-label={getChildText('xiangqi.title').text_zh_tw}>
+    <section className={`xiangqi-game__frame${mode === 'adventure' ? ' xiangqi-game__frame--adventure' : ''}`} aria-label={getChildText('xiangqi.title').text_zh_tw}>
       <header className="xiangqi-game__header">
         <BopomofoText as="h1" entry={getChildText('xiangqi.title')} />
         <div className={`xiangqi-game__turn-card xiangqi-game__turn-card--${state.currentPlayer}`}>
@@ -136,7 +286,7 @@ export function XiangqiGame({ mode, onBack }: XiangqiGameProps) {
         {selectedPiece && <BopomofoText className="xiangqi-game__selection" as="p" entry={getChildText(`xiangqi.piece_${names[selectedPiece.owner][selectedPiece.kind]}`)} />}
       </header>
       <div ref={boardWrapRef} className={"xiangqi-game__board-wrap" + (zoom > 1.01 ? " xiangqi-game__board-wrap--zoomed" : "")} style={{ '--xiangqi-zoom': zoom } as React.CSSProperties}>
-        <div className="xiangqi-game__board" role="grid" aria-label={getChildText('xiangqi.title').text_zh_tw} style={{ width: `${zoom * 100}%` }}>
+        <div ref={boardRef} className="xiangqi-game__board" role="grid" aria-label={getChildText('xiangqi.title').text_zh_tw} style={{ width: `${zoom * 100}%` }}>
           <svg className="xiangqi-game__lines" viewBox="0 0 400 450" preserveAspectRatio="none" aria-hidden="true">
             {Array.from({ length: 10 }, (_, row) => <line key={`r${row}`} x1="0" y1={row * 50} x2="400" y2={row * 50} />)}
             {Array.from({ length: 9 }, (_, col) => <g key={`c${col}`}><line x1={col * 50} y1="0" x2={col * 50} y2="200" /><line x1={col * 50} y1="250" x2={col * 50} y2="450" /></g>)}
@@ -148,22 +298,66 @@ export function XiangqiGame({ mode, onBack }: XiangqiGameProps) {
             const row = Math.floor(index / 9)
             const col = index % 9
             const isDestination = destinations.some((move) => move.to === index)
+            const isHintSource = mode === 'adventure' && tutorialHintLevel >= 2 && tutorialSolutions.some((solution) => solution.from === index)
+            const isHintTarget = mode === 'adventure' && tutorialHintLevel >= 3 && tutorialSolutions.some((solution) => solution.to === index)
             return <button key={index} type="button" role="gridcell"
-              className={`xiangqi-game__cell${piece ? ` xiangqi-game__cell--${piece.owner}` : ''}${selected === index ? ' xiangqi-game__cell--selected' : ''}${isDestination ? ' xiangqi-game__cell--destination' : ''}`}
+              className={`xiangqi-game__cell${piece ? ` xiangqi-game__cell--${piece.owner}` : ''}${selected === index ? ' xiangqi-game__cell--selected' : ''}${isDestination ? ' xiangqi-game__cell--destination' : ''}${isHintSource ? ' xiangqi-game__cell--hint-source' : ''}${isHintTarget ? ' xiangqi-game__cell--hint-target' : ''}`}
               style={{ left: `${col * 12.5}%`, top: `${row * (100 / 9)}%` }}
               aria-label={piece ? `${piece.owner === 'red' ? '紅' : '黑'}${names[piece.owner][piece.kind]}，${row + 1}列${col + 1}行` : `${row + 1}列${col + 1}行${isDestination ? '，可走' : ''}`}
               aria-selected={selected === index}
-              onClick={() => selectCell(index)}>
+              disabled={tutorialBoardLocked}
+              onClick={(event) => selectCell(index, event)}>
               {piece && <BopomofoText entry={getChildText(`xiangqi.piece_${names[piece.owner][piece.kind]}`)} />}
               {!piece && isDestination && <span aria-hidden="true" className="xiangqi-game__target">✦</span>}
             </button>
           })}
         </div>
       </div>
-      <nav className="xiangqi-game__actions">
+      {mode === 'adventure' ? <aside className="xiangqi-game__adventure" aria-label={getChildText('home.adventure').text_zh_tw}>
+        <div className="xiangqi-game__lesson-steps" role="group" aria-label={getChildText('home.adventure').text_zh_tw}>
+          {XIANGQI_TUTORIAL_LEVELS.map((level, index) => {
+            const completed = completedTutorialLevels.includes(level.id)
+            return <button key={level.id} type="button"
+              className={`xiangqi-game__lesson-step${index === tutorialLevelIndex ? ' xiangqi-game__lesson-step--current' : ''}${completed ? ' xiangqi-game__lesson-step--complete' : ''}`}
+              aria-pressed={index === tutorialLevelIndex}
+              aria-label={getChildText(level.titleTextId).speech_zh_tw}
+              disabled={isPaused || !tutorialHydrated}
+              onClick={() => {
+                if (tutorialMoveComplete && tutorialTaskIndex === tutorialLevel.tasks.length - 1) {
+                  setCompletedTutorialLevels((current) => current.includes(tutorialLevel.id) ? current : [...current, tutorialLevel.id])
+                }
+                loadTutorialTask(index, 0)
+              }}>
+              <span className="xiangqi-game__lesson-mark" aria-hidden="true">{completed ? '✓' : index === tutorialLevelIndex ? '★' : '○'}</span>
+              <BopomofoText entry={getChildText(level.titleTextId)} />
+            </button>
+          })}
+        </div>
+        <FeedbackCard entry={tutorialFeedbackEntry} tone={tutorialMoveComplete || tutorialCourseComplete ? 'positive' : 'hint'} />
+        <div className="xiangqi-game__adventure-actions">
+          <ChildActionButton entry={getChildText('common.hint')} icon="hint" tone="hint" disabled={tutorialBoardLocked} onClick={showTutorialHint} />
+          <ChildActionButton
+            entry={getChildText(tutorialCourseComplete ? 'tictactoe.play_again' : tutorialMoveComplete ? 'reversi.adventure_next' : 'common.try_again')}
+            icon={tutorialCourseComplete || tutorialMoveComplete ? 'star' : 'retry'}
+            tone={tutorialMoveComplete || tutorialCourseComplete ? 'primary' : 'secondary'}
+            onClick={tutorialCourseComplete ? restartTutorialCourse : tutorialMoveComplete ? continueTutorial : restartCurrentMode}
+          />
+        </div>
+        <div className="xiangqi-game__tools">
+          <ToolButton entry={getChildText('common.back')} icon="back" onClick={onBack} />
+          <ToolButton entry={getChildText('common.listen')} icon="speaker" disabled={!isTaiwanVoiceAvailable} onClick={() => speak(tutorialFeedbackEntry)} />
+          <ToolButton entry={getChildText(isPaused ? 'common.resume' : 'common.pause')} icon="pause" aria-pressed={isPaused}
+            onClick={() => {
+              const resume = isPaused
+              setIsPaused(!isPaused)
+              setTutorialNoticeId(null)
+              speak(getChildText(resume ? tutorialMoveComplete ? 'xiangqi.lesson_success' : tutorialLevel.instructionTextId : 'common.pause'))
+            }} />
+        </div>
+      </aside> : <nav className="xiangqi-game__actions">
         <ChildActionButton entry={getChildText('common.back')} icon="back" tone="secondary" onClick={onBack} />
-        <ChildActionButton entry={getChildText('common.try_again')} icon="retry" tone="primary" onClick={() => { if (mode === 'online') void onlineSession?.restart().catch(() => undefined); else { setState(createInitialXiangqiState()); setSelected(null) } }} />
-      </nav>
+        <ChildActionButton entry={getChildText('common.try_again')} icon="retry" tone="primary" onClick={restartCurrentMode} />
+      </nav>}
       {mode === 'npc' && <DifficultySelector selected={difficulty} onChange={setDifficulty} disabled={isNpcTurn || state.phase === 'won' || state.phase === 'draw'} />}
     </section>
   </main>

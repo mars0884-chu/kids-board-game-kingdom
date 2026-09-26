@@ -8,20 +8,23 @@
 .xiangqi-game__status { margin: 0; font-weight: 900; }
 .xiangqi-game__selection { margin: 0; border: 2px solid #1368a4; border-radius: 999px; padding: 6px 10px; background: #fff; }
 .xiangqi-game__board-wrap { width: min(100%, 470px); padding: 23px; box-sizing: border-box; border: 5px solid #745832; border-radius: 18px; background: #f7dfac; box-shadow: 0 7px 0 #c3a779; }
-.xiangqi-game__board { width: 100%; aspect-ratio: 8 / 9; position: relative; }
+.xiangqi-game__board { width: 100%; aspect-ratio: 8 / 9; position: relative; container-type: inline-size; }
 .xiangqi-game__board-wrap--zoomed { max-height: min(70dvh, 550px); overflow: auto; overscroll-behavior: contain; }
 .xiangqi-game__board-wrap--zoomed { touch-action: pan-x pan-y; }
 .xiangqi-game__lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; stroke: #8a6a3a; stroke-width: 1.5; }
 .xiangqi-game__river { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; font-weight: 800; letter-spacing: 1em; color: #6a502d; pointer-events: none; }
-.xiangqi-game__cell { --xiangqi-piece-base: 48px; --xiangqi-glyph-base: 22px; position: absolute; z-index: 1; transform: translate(-50%, -50%); width: min(56px, calc(var(--xiangqi-piece-base) * var(--xiangqi-zoom, 1))); height: min(56px, calc(var(--xiangqi-piece-base) * var(--xiangqi-zoom, 1))); border: 0; border-radius: 50%; background: transparent; display: grid; place-items: center; color: inherit; padding: 0; cursor: pointer; }
-.xiangqi-game__cell--red, .xiangqi-game__cell--black { background: #fff9e9; border: 2px solid currentColor; box-shadow: 0 2px 0 #947e5a; font-weight: 750; }
+.xiangqi-game__cell { --xiangqi-piece-base: 48px; --xiangqi-glyph-base: 22px; --xiangqi-face-size: min(56px, calc(var(--xiangqi-piece-base) * var(--xiangqi-zoom, 1)), 10.8cqw); position: absolute; z-index: 1; transform: translate(-50%, -50%); width: max(48px, min(56px, calc(var(--xiangqi-piece-base) * var(--xiangqi-zoom, 1)))); height: max(48px, min(56px, calc(var(--xiangqi-piece-base) * var(--xiangqi-zoom, 1)))); box-sizing: border-box; border: 0; border-radius: 50%; background: transparent; display: grid; place-items: center; color: inherit; padding: 0; cursor: pointer; }
+.xiangqi-game__cell--red, .xiangqi-game__cell--black { font-weight: 750; }
+.xiangqi-game__cell--red::before, .xiangqi-game__cell--black::before { content: ''; position: absolute; z-index: 0; width: var(--xiangqi-face-size); height: var(--xiangqi-face-size); box-sizing: border-box; border: 2px solid currentColor; border-radius: 50%; background: #fff9e9; box-shadow: 0 2px 0 #947e5a; pointer-events: none; }
 .xiangqi-game__cell--red { color: #a52734; }.xiangqi-game__cell--black { color: #183b44; }
-.xiangqi-game__cell--selected { outline: 4px solid #1368a4; outline-offset: 1px; }
-.xiangqi-game__cell--destination { background: #b7eac8; outline: 2px dashed #176c44; }
+.xiangqi-game__cell--selected::before { outline: 3px solid #1368a4; outline-offset: 2px; }
+.xiangqi-game__cell--destination::before { content: ''; position: absolute; z-index: 0; width: 21px; height: 21px; box-sizing: border-box; border: 2px dashed #176c44; border-radius: 50%; background: #b7eac8; pointer-events: none; }
+.xiangqi-game__cell--hint-source::before { outline: 3px dashed #d38b13; outline-offset: 3px; }
+.xiangqi-game__cell--hint-target::before { outline: 3px solid #d38b13; outline-offset: 4px; background: #ffe17c; }
 .xiangqi-game__cell:focus-visible { outline: 4px solid #135fb5; outline-offset: 2px; }
 .xiangqi-game__target { font-size: 1.4rem; }
 .xiangqi-game__actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: min(100%, 470px); }
-.xiangqi-game__cell .bopomofo-text { position: absolute; inset: 0; display: grid; place-items: center; font-size: min(29px, calc(var(--xiangqi-glyph-base) * var(--xiangqi-zoom, 1))); line-height: 1; }
+.xiangqi-game__cell .bopomofo-text { position: absolute; z-index: 1; inset: 0; display: grid; place-items: center; font-size: min(29px, calc(var(--xiangqi-glyph-base) * var(--xiangqi-zoom, 1))); line-height: 1; pointer-events: none; }
 .xiangqi-game__cell .bopomofo-pair { width: 100%; height: 100%; grid-template-columns: 1fr; column-gap: 0; place-items: center; }
 .xiangqi-game__cell .bopomofo-pair__annotation { display: none !important; }
 .xiangqi-game__cell .bopomofo-pair__hanzi { grid-column: 1; line-height: 1; text-align: center; transform: translateY(-2px); }
@@ -30,6 +33,42 @@
 .xiangqi-game__river { font-size: 17px; letter-spacing: 0.15em; }
 .xiangqi-game__actions .child-action { font-size: 16px; gap: 5px; padding-inline: 4px; }
 .xiangqi-game__actions .child-control__icon { width: 18px; height: 18px; }
-@media (min-width: 780px) and (orientation: landscape) { .xiangqi-game__frame { grid-template-columns: minmax(220px, 1fr) minmax(0, 470px); align-items: center; min-height: calc(100dvh - 24px); }.xiangqi-game__header { display: grid; grid-column: 1; grid-row: 1; align-self: end; }.xiangqi-game__board-wrap { grid-column: 2; grid-row: 1 / 3; width: min(100%, calc(88.89dvh - 15px)); }.xiangqi-game__actions { grid-column: 1; grid-row: 2; align-self: start; } }
-@media (max-height: 450px) and (orientation: landscape) { .xiangqi-game__cell { --xiangqi-piece-base: 31px; --xiangqi-glyph-base: 20px; }.xiangqi-game__river { font-size: 13px; } }
+@media (min-width: 780px) and (orientation: landscape) { .xiangqi-game__frame { grid-template-columns: minmax(220px, 1fr) minmax(0, 470px); align-items: center; min-height: calc(100dvh - 24px); }.xiangqi-game__header { display: grid; grid-column: 1; grid-row: 1; align-self: end; }.xiangqi-game__board-wrap { grid-column: 2; grid-row: 1 / 3; width: min(100%, calc(88.89dvh - 30px)); }.xiangqi-game__actions { grid-column: 1; grid-row: 2; align-self: start; } }
+@media (max-height: 450px) and (orientation: landscape) { .xiangqi-game__cell { --xiangqi-piece-base: 29px; --xiangqi-glyph-base: 20px; }.xiangqi-game__river { font-size: 13px; } }
 @media (max-height: 450px) and (orientation: landscape) { .xiangqi-game__board-wrap--zoomed { max-height: calc(100dvh - 24px); } }
+
+.xiangqi-game__adventure { width: min(100%, 470px); display: grid; gap: 10px; }
+.xiangqi-game__lesson-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.xiangqi-game__lesson-step { min-width: 0; min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 5px 7px; border: 2px solid #4836a8; border-radius: 13px; background: #fffaf0; color: #35256f; box-shadow: 0 3px 0 #30236f; font: inherit; cursor: pointer; }
+.xiangqi-game__lesson-step--current { background: #ffdf68; }
+.xiangqi-game__lesson-step--complete { border-color: #27744b; color: #205b3c; }
+.xiangqi-game__lesson-step:disabled { opacity: .65; cursor: default; }
+.xiangqi-game__lesson-mark { flex: none; width: 21px; height: 21px; display: grid; place-items: center; border: 1px solid currentColor; border-radius: 50%; background: #fff; font-weight: 900; line-height: 1; }
+.xiangqi-game__lesson-step .bopomofo-text { min-width: 0; font-size: 14px; }
+.xiangqi-game__adventure-actions, .xiangqi-game__tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.xiangqi-game__tools { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.xiangqi-game__tools .child-tool { min-width: 0; min-height: 48px; padding-inline: 5px; }
+.xiangqi-game__tools .child-tool:last-child { grid-column: auto; }
+.xiangqi-game__adventure .feedback-card { margin: 0; }
+.xiangqi-game__adventure .child-action { min-height: 48px; }
+@media (min-width: 780px) and (orientation: landscape) {
+  .xiangqi-game__frame--adventure .xiangqi-game__adventure { grid-column: 1; grid-row: 2; align-self: start; width: min(100%, 470px); }
+  .xiangqi-game__frame--adventure .xiangqi-game__board-wrap { grid-column: 2; grid-row: 1 / 3; }
+  .xiangqi-game__frame--adventure .xiangqi-game__header { grid-column: 1; grid-row: 1; }
+}
+@media (max-height: 450px) and (orientation: landscape) {
+  .xiangqi-game__frame--adventure { gap: 7px; }
+  .xiangqi-game__frame--adventure .xiangqi-game__adventure { gap: 6px; }
+  .xiangqi-game__frame--adventure .xiangqi-game__header { display: flex; flex-direction: row; align-items: center; }
+  .xiangqi-game__lesson-step { min-height: 48px; padding-block: 3px; }
+  .xiangqi-game__lesson-step .bopomofo-text { font-size: 12px; }
+  .xiangqi-game__adventure .feedback-card { min-height: 48px; padding-block: 5px; }
+  .xiangqi-game__adventure-actions, .xiangqi-game__tools { gap: 6px; }
+  .xiangqi-game__tools .child-tool { min-height: 48px; }
+}
+@media (max-width: 430px) {
+  .xiangqi-game__frame--adventure .xiangqi-game__board-wrap { width: min(100%, 340px); }
+}
+@media (max-width: 400px) {
+  .xiangqi-game__frame--adventure .xiangqi-game__board-wrap { width: min(100%, 320px); }
+}

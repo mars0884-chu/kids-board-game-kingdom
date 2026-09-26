@@ -1,6 +1,6 @@
 {
   "name": "kids-board-game-kingdom",
-  "version": "0.13.6",
+  "version": "0.14.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -14,6 +14,7 @@
     "verify:jump-chess-webrtc": "node scripts/verify-jump-chess-webrtc-playwright.mjs",
     "verify:jump-chess-online-layout": "node scripts/verify-jump-chess-online-layout-playwright.mjs",
     "verify:game-picker-layout": "node scripts/verify-game-picker-layout-playwright.mjs",
+    "verify:xiangqi-adventure-layout": "node scripts/verify-xiangqi-adventure-layout-playwright.mjs",
     "test:watch": "vitest",
     "test:firebase": "vitest run --config firebase-test.config.ts",
     "verify:firebase-friend": "node scripts/verify-firebase-friend-browser.mjs",
