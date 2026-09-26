@@ -15,9 +15,9 @@ export type FirebaseRoomFactory<Session> = (
 export function normalizeFriendCode(value: string): string {
   return value.normalize('NFKC').replace(/[\s-]/g, '')
 }
-export function isFriendRoomCode(value: string): boolean { return /^(?:\d{8}|\d{12})$/.test(normalizeFriendCode(value)) }
+export function isFriendRoomCode(value: string): boolean { return /^\d{8}$/.test(normalizeFriendCode(value)) }
 export function createFriendRoomCode(): string {
-  // 新房號八位數；舊版十二位數仍可加入。拒絕抽樣避免模數偏差。
+  // 房號固定八位數；拒絕抽樣避免模數偏差。
   let code = ''
   while (code.length < 8) {
     for (const value of crypto.getRandomValues(new Uint8Array(16))) {
