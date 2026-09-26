@@ -1,6 +1,6 @@
-# 綜合兒童棋藝大冒險 v0.13.4
+# 綜合兒童棋藝大冒險 v0.13.5
 
-v0.13.4 將象棋接入原本 GitHub Pages 首頁的「冒險闖關」、「自由練習」、「雙人同樂」與「雙裝置連線」選棋流程；線上象棋使用既有 Firebase 匿名配對與 Cloudflare Worker 可信回合驗證，不需玩家使用製作人的帳號。公開網址不變：[GitHub Pages](https://mars0884-chu.github.io/kids-board-game-kingdom/)。冒險入口目前是入門 NPC 對局，完整六段互動課程仍未完成；協會規則的完整長將／長捉裁判、正式美術與台灣口音語音也仍待完成，不宣稱象棋完整驗收。
+v0.13.5 保留 v0.13.4 的象棋入口與連線功能，並修正 Firebase 熟人邀請頁在 1024×768 視窗的垂直溢位。象棋仍可由原 GitHub Pages 首頁的「冒險闖關」、「自由練習」、「雙人同樂」與「雙裝置連線」進入；公開網址不變：[GitHub Pages](https://mars0884-chu.github.io/kids-board-game-kingdom/)。冒險入口目前是入門 NPC 對局，完整六段互動課程仍未完成；協會規則的完整長將／長捉裁判、正式美術與台灣口音語音也仍待完成，不宣稱象棋完整驗收。
 
 完整原始碼封包不含 Firebase Web App 設定；兩支手機實機連線請使用上方公開網址。若在本機自行建置線上版本，需另外提供 `.env.example` 所列的 Firebase Web App 公開設定；不需要製作人的 Google／Firebase 登入帳密。
 

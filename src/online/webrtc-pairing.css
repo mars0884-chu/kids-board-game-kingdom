@@ -34,6 +34,9 @@
 .firebase-friend .child-control__label {
   padding-inline-end: 0.2em;
 }
+@media (min-width: 521px) and (max-height: 800px) {
+  .firebase-friend .webrtc-pairing__card { gap: 0.75rem; }
+}
 @media (orientation: landscape) and (max-height: 500px) {
   .firebase-friend .webrtc-pairing__status { grid-column: 1; grid-row: 2; }
   .firebase-friend__room { grid-column: 2; grid-row: 2; gap: 0; }
