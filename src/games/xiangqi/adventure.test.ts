@@ -6,8 +6,17 @@ import {
   isCorrectXiangqiTutorialMove,
 } from './adventure'
 import { getLegalMovesFrom, isInCheck } from './rules'
+import { getChildText } from '../../content/child-text'
 
 describe('象棋六段互動教學', () => {
+  it('第四段明確教會士仕九宮內斜走一格，將帥九宮內直走一格', () => {
+    const lesson = getChildText('xiangqi.lesson_4_instruction')
+
+    expect(lesson.text_zh_tw).toBe('仕士只在九宮內斜走一格；將帥只在九宮內直走一格')
+    expect(lesson.speech_zh_tw).toBe('仕士只在九宮內斜走一格。將帥只在九宮內直走一格。')
+    expect(getXiangqiTutorialSolutions(XIANGQI_TUTORIAL_LEVELS[3]!.tasks[0]!)).toContainEqual({ from: 8 * 9 + 3, to: 7 * 9 + 4 })
+  })
+
   it('依規格提供六段、九個可重玩的實作練習', () => {
     expect(XIANGQI_TUTORIAL_LEVELS).toHaveLength(6)
     expect(XIANGQI_TUTORIAL_LEVELS.map((level) => level.tasks.length)).toEqual([1, 2, 2, 2, 1, 1])

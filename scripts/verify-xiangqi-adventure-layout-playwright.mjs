@@ -76,6 +76,49 @@ try {
     assert(measurements.lessonButtons.every((button) => button.left >= -1 && button.right <= viewport.width + 1), `${viewport.name} 教學卡片超出畫面。`)
     assert(measurements.lessonButtons.every((button) => button.height >= 48), `${viewport.name} 教學卡片觸控高度低於 48px。`)
 
+    const pinchMeasurements = await page.evaluate(async () => {
+      const viewport = document.querySelector('.xiangqi-game')
+      const zoomContent = document.querySelector('.xiangqi-game__zoom-content')
+      if (!viewport || !zoomContent) return null
+      const readSizes = () => Object.fromEntries(['.xiangqi-game__header', '.xiangqi-game__board-wrap', '.feedback-card', '.xiangqi-game__tools'].map((selector) => {
+        const rect = document.querySelector(selector)?.getBoundingClientRect()
+        return [selector, rect ? { width: rect.width, height: rect.height } : null]
+      }))
+      const before = readSizes()
+      const centerX = Math.min(viewport.clientWidth - 48, Math.max(48, viewport.clientWidth / 2))
+      const centerY = Math.min(viewport.clientHeight - 48, Math.max(48, viewport.clientHeight / 2))
+      const dispatch = (type, spacing) => {
+        const event = new Event(type, { bubbles: true, cancelable: true })
+        Object.defineProperty(event, 'touches', { value: spacing === 0 ? [] : [
+          { clientX: centerX - spacing / 2, clientY: centerY },
+          { clientX: centerX + spacing / 2, clientY: centerY },
+        ] })
+        viewport.dispatchEvent(event)
+      }
+      dispatch('touchstart', 80)
+      dispatch('touchmove', 144)
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+      const zoom = Number.parseFloat(getComputedStyle(zoomContent).zoom)
+      const after = readSizes()
+      const scrollable = viewport.scrollWidth > viewport.clientWidth + 1 || viewport.scrollHeight > viewport.clientHeight + 1
+      dispatch('touchend', 0)
+      dispatch('touchstart', 144)
+      dispatch('touchmove', 80)
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+      const resetZoom = Number.parseFloat(getComputedStyle(zoomContent).zoom)
+      dispatch('touchend', 0)
+      return { before, after, zoom, resetZoom, scrollable }
+    })
+    assert(pinchMeasurements, `${viewport.name} 無法量測整體縮放。`)
+    assert(pinchMeasurements.zoom >= 1.7 && pinchMeasurements.zoom <= 1.9, `${viewport.name} 雙指手勢沒有放大整個畫面。`)
+    assert(['.xiangqi-game__header', '.xiangqi-game__board-wrap', '.feedback-card', '.xiangqi-game__tools'].every((selector) => {
+      const before = pinchMeasurements.before[selector]
+      const after = pinchMeasurements.after[selector]
+      return before && after && after.width > before.width * 1.5 && after.height > before.height * 1.5
+    }), `${viewport.name} 雙指縮放未同時放大標題、棋盤、教學回饋與操作鍵。`)
+    assert(pinchMeasurements.scrollable, `${viewport.name} 整體放大後沒有可滑動查看的溢出範圍。`)
+    assert(Math.abs(pinchMeasurements.resetZoom - 1) < 0.02, `${viewport.name} 反向縮放未能回到原始大小。`)
+
     const board = page.getByRole('grid')
     await board.getByRole('gridcell', { name: '紅兵，7列1行' }).click()
     await board.getByRole('gridcell', { name: '6列1行，可走' }).click()

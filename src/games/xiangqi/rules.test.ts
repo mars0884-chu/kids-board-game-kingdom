@@ -123,6 +123,22 @@ describe('象棋規則核心', () => {
     expect(getLegalMovesFrom(king, cell(9, 4))).not.toContainEqual(expect.objectContaining({ to: cell(7, 4) }))
   })
 
+  it('士／仕只能在各自九宮內沿斜線移動一格', () => {
+    const redState = makeState([
+      { owner: 'red', kind: 'king', row: 9, column: 3 },
+      { owner: 'black', kind: 'king', row: 0, column: 5 },
+      { owner: 'red', kind: 'advisor', row: 8, column: 3 },
+    ])
+    const blackState = makeState([
+      { owner: 'red', kind: 'king', row: 9, column: 3 },
+      { owner: 'black', kind: 'king', row: 0, column: 5 },
+      { owner: 'black', kind: 'advisor', row: 1, column: 5 },
+    ], 'black')
+
+    expect(getLegalMovesFrom(redState, cell(8, 3)).map((move) => move.to).sort()).toEqual([cell(7, 4), cell(9, 4)].sort())
+    expect(getLegalMovesFrom(blackState, cell(1, 5)).map((move) => move.to).sort()).toEqual([cell(0, 4), cell(2, 4)].sort())
+  })
+
   it('遵守飛將與不能讓自己的帥留在將軍線上的限制', () => {
     const flyingGeneral = makeState([
       { owner: 'red', kind: 'king', row: 9, column: 4 },

@@ -47,9 +47,10 @@ export function XiangqiGame({ mode, onBack, adventureStorage = indexedDbXiangqiA
   const [onlineSession, setOnlineSession] = useState<AuthoritativeTurnSession<XiangqiState> | null>(null)
   const [onlineConnected, setOnlineConnected] = useState(false)
   const [zoom, setZoom] = useState(1)
-  const boardWrapRef = useRef<HTMLDivElement>(null)
+  const [zoomBaseWidth, setZoomBaseWidth] = useState<number | null>(null)
+  const zoomViewportRef = useRef<HTMLElement>(null)
   const boardRef = useRef<HTMLDivElement>(null)
-  const pinchRef = useRef<{ distance: number; zoom: number; focusX: number; focusY: number } | null>(null)
+  const pinchRef = useRef<{ distance: number; zoom: number; focusX: number; focusY: number; left: number; top: number } | null>(null)
   const pendingScrollRef = useRef<{ x: number; y: number; left: number; top: number; scale: number } | null>(null)
   const { isSupported: isTaiwanVoiceAvailable, speak } = useSpeech()
   const destinations = useMemo(() => selected === null ? [] : getLegalMovesFrom(state, selected), [state, selected])
@@ -70,15 +71,33 @@ export function XiangqiGame({ mode, onBack, adventureStorage = indexedDbXiangqiA
         : state.currentPlayer === 'red' ? 'xiangqi.red_turn' : 'xiangqi.black_turn'
 
   useLayoutEffect(() => {
+    const viewport = zoomViewportRef.current
+    if (!viewport) return
+    const updateWidth = () => {
+      const style = window.getComputedStyle(viewport)
+      const width = viewport.clientWidth - Number.parseFloat(style.paddingLeft) - Number.parseFloat(style.paddingRight)
+      if (width > 0) setZoomBaseWidth(width)
+    }
+    updateWidth()
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', updateWidth)
+      return () => window.removeEventListener('resize', updateWidth)
+    }
+    const observer = new ResizeObserver(updateWidth)
+    observer.observe(viewport)
+    return () => observer.disconnect()
+  }, [])
+
+  useLayoutEffect(() => {
     if (window.scrollY > 0) window.scrollTo(0, 0)
   }, [])
 
   useLayoutEffect(() => {
-    const wrap = boardWrapRef.current
+    const viewport = zoomViewportRef.current
     const pending = pendingScrollRef.current
-    if (!wrap || !pending) return
-    wrap.scrollLeft = (pending.left + pending.x) * pending.scale - pending.x
-    wrap.scrollTop = (pending.top + pending.y) * pending.scale - pending.y
+    if (!viewport || !pending) return
+    viewport.scrollLeft = (pending.left + pending.x) * pending.scale - pending.x
+    viewport.scrollTop = (pending.top + pending.y) * pending.scale - pending.y
     pendingScrollRef.current = null
   }, [zoom])
 
@@ -139,35 +158,41 @@ export function XiangqiGame({ mode, onBack, adventureStorage = indexedDbXiangqiA
   }, [mode, speak, tutorialHydrated])
 
   useLayoutEffect(() => {
-    const wrap = boardWrapRef.current
-    if (!wrap) return
+    const viewport = zoomViewportRef.current
+    if (!viewport) return
     const distance = (touches: TouchList) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY)
     const midpoint = (touches: TouchList) => ({ x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 })
     const start = (event: TouchEvent) => {
       if (event.touches.length !== 2) return
       event.preventDefault()
       const point = midpoint(event.touches)
-      const rect = wrap.getBoundingClientRect()
-      pinchRef.current = { distance: distance(event.touches), zoom, focusX: point.x - rect.left, focusY: point.y - rect.top }
+      const rect = viewport.getBoundingClientRect()
+      pinchRef.current = {
+        distance: distance(event.touches), zoom, focusX: point.x - rect.left, focusY: point.y - rect.top,
+        left: viewport.scrollLeft, top: viewport.scrollTop,
+      }
     }
     const move = (event: TouchEvent) => {
       if (event.touches.length !== 2 || !pinchRef.current) return
       event.preventDefault()
       const next = Math.min(2.2, Math.max(1, pinchRef.current.zoom * distance(event.touches) / Math.max(1, pinchRef.current.distance)))
       if (Math.abs(next - zoom) < 0.01) return
-      pendingScrollRef.current = { x: pinchRef.current.focusX, y: pinchRef.current.focusY, left: wrap.scrollLeft, top: wrap.scrollTop, scale: next / zoom }
+      pendingScrollRef.current = {
+        x: pinchRef.current.focusX, y: pinchRef.current.focusY,
+        left: pinchRef.current.left, top: pinchRef.current.top, scale: next / pinchRef.current.zoom,
+      }
       setZoom(next)
     }
     const end = (event: TouchEvent) => { if (event.touches.length < 2) pinchRef.current = null }
-    wrap.addEventListener('touchstart', start, { passive: false })
-    wrap.addEventListener('touchmove', move, { passive: false })
-    wrap.addEventListener('touchend', end)
-    wrap.addEventListener('touchcancel', end)
+    viewport.addEventListener('touchstart', start, { passive: false })
+    viewport.addEventListener('touchmove', move, { passive: false })
+    viewport.addEventListener('touchend', end)
+    viewport.addEventListener('touchcancel', end)
     return () => {
-      wrap.removeEventListener('touchstart', start)
-      wrap.removeEventListener('touchmove', move)
-      wrap.removeEventListener('touchend', end)
-      wrap.removeEventListener('touchcancel', end)
+      viewport.removeEventListener('touchstart', start)
+      viewport.removeEventListener('touchmove', move)
+      viewport.removeEventListener('touchend', end)
+      viewport.removeEventListener('touchcancel', end)
     }
   }, [zoom])
 
@@ -272,7 +297,8 @@ export function XiangqiGame({ mode, onBack, adventureStorage = indexedDbXiangqiA
     return <FirebaseFriendPairing<AuthoritativeTurnSession<XiangqiState>> gameId="xiangqi" roomFactory={createOnlineXiangqi} onBack={onBack} onConnected={setOnlineSession} />
   }
 
-  return <main className="xiangqi-game">
+  return <main ref={zoomViewportRef} className="xiangqi-game">
+    <div className="xiangqi-game__zoom-content" style={{ zoom, width: zoomBaseWidth === null ? undefined : `${zoomBaseWidth}px` }}>
     <section className={`xiangqi-game__frame${mode === 'adventure' ? ' xiangqi-game__frame--adventure' : ''}`} aria-label={getChildText('xiangqi.title').text_zh_tw}>
       <header className="xiangqi-game__header">
         <BopomofoText as="h1" entry={getChildText('xiangqi.title')} />
@@ -285,8 +311,8 @@ export function XiangqiGame({ mode, onBack, adventureStorage = indexedDbXiangqiA
         </div>
         {selectedPiece && <BopomofoText className="xiangqi-game__selection" as="p" entry={getChildText(`xiangqi.piece_${names[selectedPiece.owner][selectedPiece.kind]}`)} />}
       </header>
-      <div ref={boardWrapRef} className={"xiangqi-game__board-wrap" + (zoom > 1.01 ? " xiangqi-game__board-wrap--zoomed" : "")} style={{ '--xiangqi-zoom': zoom } as React.CSSProperties}>
-        <div ref={boardRef} className="xiangqi-game__board" role="grid" aria-label={getChildText('xiangqi.title').text_zh_tw} style={{ width: `${zoom * 100}%` }}>
+      <div className="xiangqi-game__board-wrap">
+        <div ref={boardRef} className="xiangqi-game__board" role="grid" aria-label={getChildText('xiangqi.title').text_zh_tw}>
           <svg className="xiangqi-game__lines" viewBox="0 0 400 450" preserveAspectRatio="none" aria-hidden="true">
             {Array.from({ length: 10 }, (_, row) => <line key={`r${row}`} x1="0" y1={row * 50} x2="400" y2={row * 50} />)}
             {Array.from({ length: 9 }, (_, col) => <g key={`c${col}`}><line x1={col * 50} y1="0" x2={col * 50} y2="200" /><line x1={col * 50} y1="250" x2={col * 50} y2="450" /></g>)}
@@ -359,6 +385,7 @@ export function XiangqiGame({ mode, onBack, adventureStorage = indexedDbXiangqiA
         <ChildActionButton entry={getChildText('common.try_again')} icon="retry" tone="primary" onClick={restartCurrentMode} />
       </nav>}
       {mode === 'npc' && <DifficultySelector selected={difficulty} onChange={setDifficulty} disabled={isNpcTurn || state.phase === 'won' || state.phase === 'draw'} />}
-    </section>
+      </section>
+    </div>
   </main>
 }
