@@ -49,7 +49,7 @@ body:has(.animal-chess-game) {
 .animal-chess-game__heading { gap: 0.35rem; }
 .animal-chess-game__heading-icon { color: #d88938; font-size: 1.45rem; filter: drop-shadow(0 0.08rem 0 #fff1a8); }
 .animal-chess-game__title { color: #4c397d; font-size: clamp(1.15rem, 3vw, 1.8rem); font-weight: 950; }
-.animal-chess-game__title .bopomofo-pair { column-gap: 0.09em; }
+.animal-chess-game__title .bopomofo-pair { column-gap: var(--ui-bopomofo-gap); }
 .animal-chess-game__meta { flex-wrap: wrap; justify-content: flex-end; gap: 0.25rem 0.55rem; color: #5e4a6e; font-size: clamp(0.68rem, 1.7vw, 0.84rem); font-weight: 800; }
 .animal-chess-game__meta-item { gap: 0.18rem; white-space: nowrap; }
 .animal-chess-game__meta-item strong { color: #2c6c74; font-size: 1.12em; }
@@ -266,8 +266,6 @@ body:has(.animal-chess-game) {
 .animal-chess-controls .feedback-card__message { font-size: clamp(0.76rem, 1.8vw, 0.96rem); }
 .animal-chess-controls .difficulty-selector { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .animal-chess-controls .difficulty-option { min-width: 0; min-height: 3rem; padding: 0.2rem; }
-.animal-chess-controls .difficulty-option__icon { display: none; }
-.animal-chess-controls .difficulty-option .child-control__label { font-size: clamp(0.66rem, 1.7vw, 0.82rem); }
 .animal-chess-controls .difficulty-status { min-height: 1.5rem; margin-top: -0.2rem; font-size: 0.7rem; }
 
 .animal-chess-tutorial-card {
@@ -310,8 +308,6 @@ body:has(.animal-chess-game) {
   width: auto;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
-  font-size: clamp(0.7rem, 1.9vw, 0.86rem);
 }
 .animal-chess-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .animal-chess-tools .child-tool:last-child { grid-column: 1 / -1; }
@@ -383,5 +379,6 @@ body:has(.animal-chess-game) {
     max-height: calc(100% - 1rem);
   }
   .animal-chess-controls { gap: 0.25rem; }
+  .animal-chess-controls .difficulty-selector { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .animal-chess-controls .feedback-card { min-height: 2.7rem; }
 }

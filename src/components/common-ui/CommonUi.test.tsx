@@ -24,6 +24,28 @@ describe('ART-004-r03 共用 UI 元件', () => {
     expect(screen.getByRole('button', { name: '暫停' })).toBeInTheDocument()
   })
 
+  it('所有共用控制都標示 ART-013-r01 並使用同一組觸控、字級與圖示 token', () => {
+    const { container } = render(<CommonUiPreview onBack={vi.fn()} />)
+    const controls = [...container.querySelectorAll<HTMLButtonElement>('button[data-ui-standard="ART-013-r01"]')]
+
+    expect(controls.length).toBeGreaterThanOrEqual(10)
+    expect(controls.every((control) => control.style.borderRadius === 'var(--ui-control-radius)')).toBe(true)
+    expect(controls.every((control) => control.style.gap === 'var(--ui-control-gap)')).toBe(true)
+    expect(controls.every((control) => control.style.minHeight.startsWith('var(--ui-'))).toBe(true)
+    expect(container.querySelectorAll('.difficulty-option__icon svg')).toHaveLength(4)
+    expect(container.querySelector('.difficulty-selector[data-control-group="difficulty"]')).toHaveAttribute(
+      'data-ui-standard',
+      'ART-013-r01',
+    )
+
+    const labels = [...container.querySelectorAll<HTMLElement>('.child-control__label')]
+    expect(labels.length).toBeGreaterThan(0)
+    expect(labels.every((label) => label.style.fontSize === 'var(--ui-control-label-size)')).toBe(true)
+
+    const icons = [...container.querySelectorAll<HTMLElement>('.child-control__icon')]
+    expect(icons.every((icon) => icon.style.width === 'var(--ui-control-icon-size)')).toBe(true)
+  })
+
   it('以外框、星形與 aria-pressed 同步更新四階難度選擇', () => {
     const { container } = render(<CommonUiPreview onBack={vi.fn()} />)
     const adult = screen.getByRole('button', { name: '成人版' })

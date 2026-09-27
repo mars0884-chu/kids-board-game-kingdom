@@ -10,7 +10,7 @@ body:has(.reversi-art-proposal) {
 }
 
 .reversi-art-proposal .bopomofo-pair {
-  column-gap: 0.1em;
+  column-gap: var(--ui-bopomofo-gap);
 }
 
 .reversi-art-proposal .reversi-adventure-level-title {
@@ -28,29 +28,8 @@ body:has(.reversi-art-proposal) {
 }
 
 @media (orientation: landscape) and (max-height: 500px) {
-  .reversi-art-proposal__controls .difficulty-selector {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.16fr) !important;
-  }
-
   .reversi-art-proposal__controls .difficulty-option {
-    gap: 0.04rem;
-    font-size: 1.06rem;
-  }
-
-  .reversi-art-proposal__controls .difficulty-option .bopomofo-text {
-    column-gap: 0;
-  }
-
-  .reversi-art-proposal__controls .difficulty-option--adult .bopomofo-text {
-    transform: none;
-  }
-
-  .reversi-art-proposal__controls .difficulty-option--adult {
-    gap: 0;
-  }
-
-  .reversi-art-proposal__controls .difficulty-option--adult .difficulty-option__icon {
-    overflow: hidden;
+    padding-inline: 0.2rem;
   }
 
   .reversi-art-proposal__actions .child-action,
@@ -65,7 +44,7 @@ body:has(.reversi-art-proposal) {
   }
 
   .reversi-art-proposal__controls .difficulty-option {
-    font-size: 1.18rem;
+    padding-inline: 0.2rem;
   }
 
   .reversi-score__item,
@@ -170,9 +149,7 @@ body:has(.reversi-art-proposal) {
   }
 
   .reversi-score .bopomofo-pair__annotation,
-  .reversi-turn .bopomofo-pair__annotation {
-    font-size: 0.47em;
-  }
+  .reversi-turn .bopomofo-pair__annotation { font-size: var(--ui-bopomofo-size); }
 
   .reversi-art-proposal__controls .difficulty-option {
     align-items: center;
@@ -199,28 +176,7 @@ body:has(.reversi-art-proposal) {
   }
 
   .reversi-art-proposal__controls .difficulty-option {
-    gap: 0.04rem;
-    font-size: 0.98rem;
-  }
-
-  .reversi-art-proposal__controls .difficulty-selector {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.16fr) !important;
-  }
-
-  .reversi-art-proposal__controls .difficulty-option .bopomofo-text {
-    column-gap: 0;
-  }
-
-  .reversi-art-proposal__controls .difficulty-option--adult .bopomofo-text {
-    transform: none;
-  }
-
-  .reversi-art-proposal__controls .difficulty-option--adult {
-    gap: 0;
-  }
-
-  .reversi-art-proposal__controls .difficulty-option--adult .difficulty-option__icon {
-    overflow: hidden;
+    padding-inline: 0.2rem;
   }
 
   .reversi-art-proposal__actions .child-action,

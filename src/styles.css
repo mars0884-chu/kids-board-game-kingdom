@@ -18,6 +18,34 @@
   --wood: #e8b765;
   --wood-light: #fff0bf;
   --shadow: 0 18px 50px rgb(29 40 82 / 24%);
+  --ui-control-radius: 1rem;
+  --ui-control-border-width: 0.25rem;
+  --ui-control-gap: 0.5rem;
+  --ui-control-label-size: clamp(1.125rem, 2vw, 1.3125rem);
+  --ui-control-icon-size: 1.375rem;
+  --ui-difficulty-icon-size: 1.25rem;
+  --ui-primary-control-height: 3.5rem;
+  --ui-secondary-control-height: 3.25rem;
+  --ui-tool-control-height: 3rem;
+  --ui-difficulty-control-height: 3.5rem;
+  --ui-bopomofo-size: 0.43em;
+  --ui-bopomofo-gap: 0.14em;
+  --ui-role-primary-bg: var(--purple);
+  --ui-role-primary-fg: #fff;
+  --ui-role-secondary-bg: var(--yellow);
+  --ui-role-hint-bg: #e8f4ff;
+  --ui-role-hint-border: var(--blue-dark);
+  --ui-role-tool-bg: #fff;
+  --ui-role-tool-border: #6a6192;
+  --ui-role-difficulty-border: #776da5;
+  --ui-mode-card-min-height: clamp(4.55rem, 8.4vh, 6.2rem);
+  --ui-mode-card-columns: minmax(3.45rem, 4.2rem) minmax(0, 1fr);
+  --ui-mode-card-padding: 0.42rem 0.85rem 0.42rem 0.45rem;
+  --ui-mode-card-radius: 1.4rem;
+  --ui-mode-card-label-size: clamp(1.35rem, 4.8vw, 2rem);
+  --ui-mode-icon-frame-size: 3.45rem;
+  --ui-mode-icon-size: 2.45rem;
+  --ui-mode-icon-radius: 1rem;
 }
 
 * {
@@ -191,7 +219,7 @@ button:focus-visible {
 .bopomofo-pair {
   display: inline-grid;
   grid-template-columns: max-content max-content;
-  column-gap: 0.14em;
+  column-gap: var(--ui-bopomofo-gap);
   align-items: center;
   white-space: nowrap;
   line-height: 1;
@@ -211,7 +239,7 @@ button:focus-visible {
   justify-items: center;
   min-width: 1.53em;
   color: #6f6498;
-  font-size: 0.43em;
+  font-size: var(--ui-bopomofo-size);
   font-weight: 700;
   line-height: 0.92;
 }
@@ -308,18 +336,18 @@ button:focus-visible {
   display: grid;
   width: 100%;
   min-width: 0;
-  min-height: clamp(4.55rem, 8.4vh, 6.2rem);
-  grid-template-columns: minmax(3.45rem, 4.2rem) minmax(0, 1fr);
+  min-height: var(--ui-mode-card-min-height);
+  grid-template-columns: var(--ui-mode-card-columns);
   align-items: center;
-  padding: 0.42rem 0.85rem 0.42rem 0.45rem;
-  border-radius: 1.4rem;
+  padding: var(--ui-mode-card-padding);
+  border-radius: var(--ui-mode-card-radius);
   box-shadow:
     inset 0 0 0 0.22rem rgb(255 255 255 / 68%),
     0 0.4rem 0 var(--button-shadow),
     0 0.75rem 1.4rem rgb(29 40 82 / 24%);
   color: var(--ink);
   background: rgb(255 245 215 / 95%);
-  font-size: clamp(1.35rem, 4.8vw, 2rem);
+  font-size: var(--ui-mode-card-label-size);
   text-align: center;
 }
 
@@ -345,11 +373,11 @@ button:focus-visible {
 
 .mode-button__icon {
   display: grid;
-  width: 3.45rem;
-  height: 3.45rem;
+  width: var(--ui-mode-icon-frame-size);
+  height: var(--ui-mode-icon-frame-size);
   place-items: center;
   border: 0.18rem solid rgb(255 255 255 / 72%);
-  border-radius: 1rem;
+  border-radius: var(--ui-mode-icon-radius);
   color: #fff;
   box-shadow: inset 0 -0.25rem 0 rgb(0 0 0 / 10%);
 }
@@ -366,7 +394,17 @@ button:focus-visible {
   background: var(--coral);
 }
 
-.mode-button svg,
+.mode-button svg {
+  width: var(--ui-mode-icon-size);
+  height: var(--ui-mode-icon-size);
+  overflow: visible;
+  fill: currentcolor;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
 .utility-button svg,
 .adult-utility svg {
   width: 2.45rem;
@@ -880,7 +918,7 @@ button:focus-visible {
 
 /* ART-007-r02 的基礎響應式覆寫；提案專用微調由 r02 CSS 在 main.tsx 最後載入。 */
 @media (orientation: landscape) and (max-height: 500px) {
-  .reversi-art-proposal__controls .difficulty-selector { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .reversi-art-proposal__controls .difficulty-selector { gap: var(--ui-control-gap); }
 }
 
 @media (orientation: portrait) and (min-width: 431px) {
@@ -890,7 +928,7 @@ button:focus-visible {
   .reversi-score__item { min-height: 2.35rem; }
   .reversi-turn { min-height: 2rem; padding-block: 0.12rem; }
   .reversi-art-proposal__controls .feedback-card { min-height: 3.1rem; padding: 0.24rem 0.38rem; font-size: 0.82rem; }
-  .reversi-art-proposal__controls .difficulty-selector { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 0.25rem; }
+  .reversi-art-proposal__controls .difficulty-selector { gap: var(--ui-control-gap); }
   .reversi-art-proposal__controls .difficulty-option { min-height: 3rem; flex-direction: row; gap: 0.12rem; padding: 0.14rem; font-size: 0.8rem; }
   .reversi-art-proposal__controls .difficulty-option__icon { width: 0.78rem; height: 0.78rem; }
   .reversi-art-proposal__controls .difficulty-status { display: none; }
@@ -1511,10 +1549,10 @@ button:focus-visible {
   min-height: 3.63rem;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: var(--ui-control-gap);
   padding: 0.56rem 0.44rem;
-  border: 0.25rem solid var(--ink);
-  border-radius: 1rem;
+  border: var(--ui-control-border-width) solid var(--ink);
+  border-radius: var(--ui-control-radius);
   color: var(--ink);
   cursor: pointer;
   font-weight: 950;
@@ -1537,10 +1575,10 @@ button:focus-visible {
 }
 
 .child-action--primary {
-  min-height: 4.25rem;
-  color: #fff;
-  background: var(--purple);
-  font-size: clamp(1.44rem, 4vw, 1.63rem);
+  min-height: var(--ui-primary-control-height);
+  color: var(--ui-role-primary-fg);
+  background: var(--ui-role-primary-bg);
+  font-size: var(--ui-control-label-size);
 }
 
 .child-action--primary .bopomofo-pair__annotation {
@@ -1548,18 +1586,18 @@ button:focus-visible {
 }
 
 .child-action--secondary {
-  min-height: 4.25rem;
-  background: var(--yellow);
-  font-size: clamp(1.31rem, 3.4vw, 1.38rem);
+  min-height: var(--ui-secondary-control-height);
+  background: var(--ui-role-secondary-bg);
+  font-size: var(--ui-control-label-size);
 }
 
 .child-action--hint {
-  min-height: 4.25rem;
-  border-color: var(--blue-dark);
+  min-height: var(--ui-secondary-control-height);
+  border-color: var(--ui-role-hint-border);
   color: #1d568f;
-  background: #e8f4ff;
+  background: var(--ui-role-hint-bg);
   box-shadow: 0 0.38rem 0 var(--blue-dark);
-  font-size: clamp(1.38rem, 3.6vw, 1.5rem);
+  font-size: var(--ui-control-label-size);
 }
 
 .child-control__icon,
@@ -1571,8 +1609,8 @@ button:focus-visible {
 }
 
 .child-control__icon {
-  width: 1.65rem;
-  height: 1.65rem;
+  width: var(--ui-control-icon-size);
+  height: var(--ui-control-icon-size);
 }
 
 .child-control__icon svg,
@@ -1600,16 +1638,17 @@ button:focus-visible {
 
 .difficulty-selector {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ui-control-gap);
 }
 
 .difficulty-option {
   position: relative;
-  min-height: 5.38rem;
+  min-height: var(--ui-difficulty-control-height);
   flex-direction: column;
-  border-color: #776da5;
+  border-color: var(--ui-role-difficulty-border);
   background: #f7f3ff;
   box-shadow: 0 0.31rem 0 #776da5;
-  font-size: clamp(1.19rem, 3vw, 1.44rem);
+  font-size: var(--ui-control-label-size);
 }
 
 .difficulty-option--beginner {
@@ -1655,8 +1694,8 @@ button:focus-visible {
 }
 
 .difficulty-option__icon {
-  width: 1.56rem;
-  height: 1.56rem;
+  width: var(--ui-difficulty-icon-size);
+  height: var(--ui-difficulty-icon-size);
   color: var(--purple-dark);
 }
 
@@ -1721,14 +1760,29 @@ button:focus-visible {
 }
 
 .child-tool {
-  min-height: 3.63rem;
-  border-color: #6a6192;
-  background: #fff;
+  min-height: var(--ui-tool-control-height);
+  border-color: var(--ui-role-tool-border);
+  background: var(--ui-role-tool-bg);
   box-shadow: 0 0.31rem 0 #6a6192;
-  font-size: clamp(1.25rem, 3vw, 1.44rem);
+  font-size: var(--ui-control-label-size);
 }
 
 @media (max-width: 580px) {
+  .difficulty-selector {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 580px) {
+  :root {
+    --ui-mode-card-min-height: 4.35rem;
+    --ui-mode-card-columns: 3.7rem minmax(0, 1fr);
+    --ui-mode-card-radius: 1.15rem;
+    --ui-mode-card-label-size: clamp(1.25rem, 5.6vw, 1.55rem);
+    --ui-mode-icon-frame-size: 3.05rem;
+    --ui-mode-icon-size: 2.15rem;
+  }
+
   .common-ui-preview {
     padding: 0.63rem;
   }
@@ -2055,20 +2109,20 @@ button:focus-visible {
   }
 
   .mode-button {
-    min-height: 4.35rem;
-    grid-template-columns: 3.7rem 1fr;
-    border-radius: 1.15rem;
-    font-size: clamp(1.25rem, 5.6vw, 1.55rem);
+    min-height: var(--ui-mode-card-min-height);
+    grid-template-columns: var(--ui-mode-card-columns);
+    border-radius: var(--ui-mode-card-radius);
+    font-size: var(--ui-mode-card-label-size);
   }
 
   .mode-button__icon {
-    width: 3.05rem;
-    height: 3.05rem;
+    width: var(--ui-mode-icon-frame-size);
+    height: var(--ui-mode-icon-frame-size);
   }
 
   .mode-button svg {
-    width: 2.15rem;
-    height: 2.15rem;
+    width: var(--ui-mode-icon-size);
+    height: var(--ui-mode-icon-size);
   }
 
   .adult-utility span {
@@ -2082,6 +2136,11 @@ button:focus-visible {
 }
 
 @media (orientation: landscape) and (min-width: 560px) {
+  :root {
+    --ui-mode-card-min-height: clamp(4.35rem, 10.5vh, 6.25rem);
+    --ui-mode-card-label-size: clamp(1.35rem, 2.3vw, 2rem);
+  }
+
   .home-scene img {
     object-position: 38% 50%;
   }
@@ -2117,8 +2176,8 @@ button:focus-visible {
   }
 
   .mode-button {
-    min-height: clamp(4.35rem, 10.5vh, 6.25rem);
-    font-size: clamp(1.35rem, 2.3vw, 2rem);
+    min-height: var(--ui-mode-card-min-height);
+    font-size: var(--ui-mode-card-label-size);
   }
 
   .coming-soon {
@@ -2134,6 +2193,17 @@ button:focus-visible {
 }
 
 @media (orientation: landscape) and (min-width: 560px) and (max-height: 500px) {
+  :root {
+    --ui-mode-card-min-height: 3.25rem;
+    --ui-mode-card-columns: 3rem minmax(0, 1fr);
+    --ui-mode-card-padding: 0.22rem 0.55rem 0.22rem 0.3rem;
+    --ui-mode-card-radius: 0.95rem;
+    --ui-mode-card-label-size: clamp(1rem, 2.25vw, 1.18rem);
+    --ui-mode-icon-frame-size: 2.55rem;
+    --ui-mode-icon-size: 1.8rem;
+    --ui-mode-icon-radius: 0.78rem;
+  }
+
   .title-plaque {
     width: min(43vw, 22rem);
     min-height: 4.15rem;
@@ -2161,23 +2231,7 @@ button:focus-visible {
   }
 
   .mode-button {
-    min-height: 3.25rem;
-    grid-template-columns: 3rem minmax(0, 1fr);
-    padding: 0.22rem 0.55rem 0.22rem 0.3rem;
     border-width: 0.2rem;
-    border-radius: 0.95rem;
-    font-size: clamp(1rem, 2.25vw, 1.18rem);
-  }
-
-  .mode-button__icon {
-    width: 2.55rem;
-    height: 2.55rem;
-    border-radius: 0.78rem;
-  }
-
-  .mode-button svg {
-    width: 1.8rem;
-    height: 1.8rem;
   }
 
   .home-utilities {
@@ -2204,6 +2258,10 @@ button:focus-visible {
 }
 
 @media (min-height: 501px) and (max-height: 690px) {
+  :root {
+    --ui-mode-card-min-height: 3.85rem;
+  }
+
   .title-plaque {
     min-height: 4.8rem;
     padding-block: 0.85rem 0.58rem;
@@ -2222,9 +2280,6 @@ button:focus-visible {
     gap: 0.52rem;
   }
 
-  .mode-button {
-    min-height: 3.85rem;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3415,6 +3470,22 @@ body:has(.number-gem-connection) {
   width: 1.56rem;
   height: 1.56rem;
   font-size: 0.88rem;
+}
+
+/* ART-013-r01：所有遊戲共用四階難度的響應式排列，不能由棋種舊覆寫縮成窄格。 */
+.difficulty-selector[data-ui-standard="ART-013-r01"][data-control-group="difficulty"] {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ui-control-gap);
+}
+
+.difficulty-selector[data-ui-standard="ART-013-r01"][data-control-group="difficulty"] > .difficulty-option {
+  flex-direction: column;
+}
+
+@media (max-width: 580px) {
+  .difficulty-selector[data-ui-standard="ART-013-r01"][data-control-group="difficulty"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* 844×380／844×390：保留完整外框與底部路徑，仍讓 3×3 每格維持可觸控尺寸。 */

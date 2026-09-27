@@ -1,6 +1,7 @@
 import { BopomofoText } from '../BopomofoText'
 import { getChildText } from '../../content/child-text'
 import { CommonUiIcon, type CommonUiIconName } from './CommonUiIcon'
+import { commonControlButtonStyle, commonControlLabelStyle, commonDifficultyIconStyle } from './control-styles'
 
 export type DifficultyLevel = 'beginner' | 'growth' | 'challenge' | 'adult'
 
@@ -35,7 +36,13 @@ export function DifficultySelector({ disabled = false, onChange, selected }: Dif
 
   return (
     <>
-      <div className="difficulty-selector" role="group" aria-label={getChildText('ui.choose_difficulty').text_zh_tw}>
+      <div
+        className="difficulty-selector"
+        data-ui-standard="ART-013-r01"
+        data-control-group="difficulty"
+        role="group"
+        aria-label={getChildText('ui.choose_difficulty').text_zh_tw}
+      >
         {difficultyOptions.map((option) => {
           const entry = getChildText(option.textId)
           const isSelected = option.level === selected
@@ -48,12 +55,15 @@ export function DifficultySelector({ disabled = false, onChange, selected }: Dif
               aria-label={entry.text_zh_tw}
               aria-pressed={isSelected}
               disabled={disabled}
+              data-ui-standard="ART-013-r01"
+              data-control-role="difficulty"
+              style={commonControlButtonStyle.difficulty}
               onClick={() => onChange(option.level)}
             >
-              <span className="difficulty-option__icon" aria-hidden="true">
+              <span className="difficulty-option__icon" style={commonDifficultyIconStyle} aria-hidden="true">
                 <CommonUiIcon name={option.icon} />
               </span>
-              <BopomofoText className="child-control__label" entry={entry} />
+              <BopomofoText className="child-control__label" style={commonControlLabelStyle} entry={entry} />
             </button>
           )
         })}

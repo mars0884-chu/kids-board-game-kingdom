@@ -30,8 +30,7 @@
 .xiangqi-game__cell .bopomofo-pair__annotation { color: currentColor; }
 .xiangqi-game__header h1, .xiangqi-game__status { font-size: 20px; }
 .xiangqi-game__river { font-size: 17px; letter-spacing: 0.15em; }
-.xiangqi-game__actions .child-action { font-size: 16px; gap: 5px; padding-inline: 4px; }
-.xiangqi-game__actions .child-control__icon { width: 18px; height: 18px; }
+.xiangqi-game__actions .child-action { padding-inline: 4px; }
 @media (min-width: 780px) and (orientation: landscape) { .xiangqi-game__frame { grid-template-columns: minmax(220px, 1fr) minmax(0, 470px); align-items: center; min-height: calc(100dvh - 24px); }.xiangqi-game__header { display: grid; grid-column: 1; grid-row: 1; align-self: end; }.xiangqi-game__board-wrap { grid-column: 2; grid-row: 1 / 3; width: min(100%, calc(88.89dvh - 30px)); }.xiangqi-game__actions { grid-column: 1; grid-row: 2; align-self: start; } }
 @media (max-height: 450px) and (orientation: landscape) { .xiangqi-game__cell { --xiangqi-piece-base: 29px; --xiangqi-glyph-base: 20px; }.xiangqi-game__river { font-size: 13px; } }
 
@@ -59,7 +58,7 @@
   .xiangqi-game__frame--adventure .xiangqi-game__adventure { gap: 6px; }
   .xiangqi-game__frame--adventure .xiangqi-game__header { display: flex; flex-direction: row; align-items: center; }
   .xiangqi-game__lesson-step { min-height: 48px; padding-block: 3px; }
-  .xiangqi-game__lesson-step .bopomofo-text { font-size: 12px; }
+  .xiangqi-game__lesson-step .bopomofo-text { font-size: 14px; }
   .xiangqi-game__adventure .feedback-card { min-height: 48px; padding-block: 5px; }
   .xiangqi-game__adventure-actions, .xiangqi-game__tools { gap: 6px; }
   .xiangqi-game__tools .child-tool { min-height: 48px; }
