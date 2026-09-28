@@ -180,7 +180,7 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
       setState((current) => {
         if (current.phase !== 'playing' || current.currentPlayer !== 'white') return current
         if (mode === 'adventure' && tutorialStep === 6) return passGoTurn(current)
-        if (mode === 'adventure' && tutorialStep < 2) {
+        if (mode === 'adventure' && tutorialStep <= 2) {
           const point = tutorialReply(current)
           if (point !== null) return playGoMove(current, point)
         }
