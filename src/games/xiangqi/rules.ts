@@ -1,3 +1,10 @@
+import {
+  adjudicateXiangqiCycle,
+  classifyCertainXiangqiCycleConduct,
+  findThreeXiangqiCycles,
+  type XiangqiCycleMoveEvidence,
+  type XiangqiChaseTargetEvidence,
+} from './cycle-adjudication'
 export type XiangqiPlayer = 'red' | 'black'
 export type XiangqiKind = 'king' | 'advisor' | 'elephant' | 'horse' | 'chariot' | 'cannon' | 'soldier'
 export type XiangqiCell = XiangqiPiece | null
@@ -23,6 +30,7 @@ export interface XiangqiMove {
   readonly player: XiangqiPlayer
   readonly pieceId: string
   readonly capturedId: string | null
+  readonly cycleEvidence?: XiangqiCycleMoveEvidence
 }
 
 export interface XiangqiRuleOptions {
@@ -398,6 +406,112 @@ export function isInCheck(state: Pick<XiangqiState, 'board'>, player: XiangqiPla
   return state.board.some((piece) => piece !== null && piece.owner !== player && pieceAttacksCell(state, piece, kingRow, kingColumn))
 }
 
+function hasBlockedHorseLegToward(
+  board: readonly XiangqiCell[],
+  target: XiangqiPiece,
+  attacker: XiangqiPiece,
+): boolean {
+  if (target.kind !== 'horse') return false
+  const rowDelta = attacker.row - target.row
+  const columnDelta = attacker.column - target.column
+  const step = HORSE_STEPS.find((candidate) => candidate.row === rowDelta && candidate.column === columnDelta)
+  if (step === undefined) return false
+  return board[toCell(target.row + step.legRow, target.column + step.legColumn)] !== null
+}
+
+function isTrueRootForCapture(
+  state: Pick<XiangqiState, 'board' | 'currentPlayer'>,
+  capture: XiangqiMove,
+  target: XiangqiPiece,
+): boolean {
+  const boardAfterCapture = boardAfterMove(state, capture)
+  const targetTurn = { board: boardAfterCapture, currentPlayer: target.owner }
+  return getLegalMoves(targetTurn, target.owner).some((reply) => reply.capturedId === capture.pieceId)
+}
+
+function isPinnedAgainstAttacker(
+  state: Pick<XiangqiState, 'board' | 'currentPlayer'>,
+  target: XiangqiPiece,
+  attackerId: string,
+  attackerPlayer: XiangqiPlayer,
+): boolean {
+  const targetCell = state.board.findIndex((piece) => piece?.id === target.id)
+  if (targetCell < 0) return false
+  const pseudoMoves = pseudoMovesForPiece(state, target)
+  const legalMoveKeys = new Set(
+    getLegalMoves(state, target.owner)
+      .filter((move) => move.from === targetCell)
+      .map((move) => `${move.from}>${move.to}`),
+  )
+  const escapingPseudoMoveKeys = pseudoMoves
+    .filter((move) => {
+      const board = boardAfterMove(state, move)
+      const stillThreatened = getLegalMoves({ board, currentPlayer: attackerPlayer }, attackerPlayer)
+        .some((attack) => attack.pieceId === attackerId && attack.capturedId === target.id)
+      return !stillThreatened
+    })
+    .map((move) => `${move.from}>${move.to}`)
+  return escapingPseudoMoveKeys.length > 0 && !escapingPseudoMoveKeys.some((key) => legalMoveKeys.has(key))
+}
+
+function collectXiangqiCycleMoveEvidence(
+  position: Pick<XiangqiState, 'board' | 'currentPlayer'>,
+  mover: XiangqiPlayer,
+): XiangqiCycleMoveEvidence {
+  const captures = getLegalMoves(position, mover).filter((move) => move.capturedId !== null)
+  const grouped = new Map<string, {
+    target: XiangqiPiece
+    attackers: Map<string, XiangqiPiece>
+    trueRootAttackerIds: string[]
+    pinnedAttackerIds: string[]
+    blockedHorseLegAttackerIds: string[]
+  }>()
+
+  for (const capture of captures) {
+    const target = position.board.find((piece) => piece?.id === capture.capturedId)
+    const attacker = position.board[capture.from]
+    if (target === null || target === undefined || attacker === null || attacker === undefined) continue
+    let evidence = grouped.get(target.id)
+    if (evidence === undefined) {
+      evidence = {
+        target,
+        attackers: new Map(),
+        trueRootAttackerIds: [],
+        pinnedAttackerIds: [],
+        blockedHorseLegAttackerIds: [],
+      }
+      grouped.set(target.id, evidence)
+    }
+    evidence.attackers.set(attacker.id, attacker)
+    if (isTrueRootForCapture(position, capture, target)) evidence.trueRootAttackerIds.push(attacker.id)
+    if (attacker.kind === target.kind && isPinnedAgainstAttacker(position, target, attacker.id, mover)) {
+      evidence.pinnedAttackerIds.push(attacker.id)
+    }
+    if (attacker.kind === 'horse' && hasBlockedHorseLegToward(position.board, target, attacker)) {
+      evidence.blockedHorseLegAttackerIds.push(attacker.id)
+    }
+  }
+
+  const chaseTargets: XiangqiChaseTargetEvidence[] = [...grouped.values()].map((entry) => ({
+    targetId: entry.target.id,
+    targetKind: entry.target.kind,
+    targetUncrossedSoldier: entry.target.kind === 'soldier' &&
+      (entry.target.owner === 'red' ? entry.target.row >= 5 : entry.target.row <= 4),
+    attackerIds: [...entry.attackers.keys()],
+    attackerKinds: [...entry.attackers.values()].map((attacker) => attacker.kind),
+    trueRootAttackerIds: [...new Set(entry.trueRootAttackerIds)],
+    pinnedAttackerIds: [...new Set(entry.pinnedAttackerIds)],
+    blockedHorseLegAttackerIds: [...new Set(entry.blockedHorseLegAttackerIds)],
+  }))
+
+  return {
+    mover,
+    gaveCheck: isInCheck(position, otherPlayer(mover)),
+    threatensCapture: captures.length > 0,
+    chaseTargets,
+  }
+}
+
 function pseudoMovesForPlayer(state: Pick<XiangqiState, 'board'>, player: XiangqiPlayer): XiangqiMove[] {
   return state.board.flatMap((piece) => piece?.owner === player ? pseudoMovesForPiece(state, piece) : [])
 }
@@ -425,6 +539,24 @@ export function isInsufficientMatingMaterial(state: Pick<XiangqiState, 'board'>)
   return !hasMatingMaterial(state, 'red') && !hasMatingMaterial(state, 'black')
 }
 
+function cycleTerminalStatus(state: XiangqiState): Pick<XiangqiState, 'phase' | 'winner' | 'drawReason'> | null {
+  const repeated = findThreeXiangqiCycles(state.positionHistory)
+  if (repeated === null) return null
+  const endIndex = repeated.startIndex + repeated.period * repeated.repetitions
+  const cycleTurns = state.turns.slice(repeated.startIndex, endIndex)
+  if (cycleTurns.length !== repeated.period * repeated.repetitions) return null
+  const evidence = cycleTurns.map((turn) => turn.cycleEvidence)
+  if (evidence.some((entry) => entry === undefined)) return null
+
+  const classified = evidence as XiangqiCycleMoveEvidence[]
+  const red = classifyCertainXiangqiCycleConduct(classified, 'red')
+  const black = classifyCertainXiangqiCycleConduct(classified, 'black')
+  if (red === null || black === null) return null
+  const decision = adjudicateXiangqiCycle(red, black)
+  if (decision.kind === 'draw') return { phase: 'draw', winner: null, drawReason: 'repetition' }
+  return { phase: 'won', winner: otherPlayer(decision.loser), drawReason: null }
+}
+
 function nextTerminalStatus(state: XiangqiState): Pick<XiangqiState, 'phase' | 'winner' | 'drawReason'> {
   const nextPlayer = state.currentPlayer
   const legalMoves = getLegalMoves(state, nextPlayer)
@@ -434,8 +566,8 @@ function nextTerminalStatus(state: XiangqiState): Pick<XiangqiState, 'phase' | '
   if (isInsufficientMatingMaterial(state)) {
     return { phase: 'draw', winner: null, drawReason: 'insufficient-material' }
   }
-  // 協會 113 年修訂版須先分類雙方的長將、長捉與未犯例。
-  // 局面重複次數只供偵測，不得直接作為正式和局判決。
+  const cycleResult = cycleTerminalStatus(state)
+  if (cycleResult !== null) return cycleResult
   return { phase: isInCheck(state, nextPlayer) ? 'check' : 'playing', winner: null, drawReason: null }
 }
 
@@ -445,6 +577,9 @@ export function applyMove(state: XiangqiState, from: number, to: number): Xiangq
   if (move === undefined) throw new Error('這一步不是目前棋局的合法走法。')
   const board = boardAfterMove(state, move)
   const nextPlayer = otherPlayer(state.currentPlayer)
+  const nextPosition = { board, currentPlayer: nextPlayer }
+  const cycleEvidence = collectXiangqiCycleMoveEvidence(nextPosition, state.currentPlayer)
+  const recordedMove: XiangqiMove = { ...move, cycleEvidence }
   const nextKey = positionKey({ board, currentPlayer: nextPlayer })
   const repetitionCounts = {
     ...state.repetitionCounts,
@@ -456,7 +591,7 @@ export function applyMove(state: XiangqiState, from: number, to: number): Xiangq
     currentPlayer: nextPlayer,
     positionHistory: [...state.positionHistory, nextKey],
     repetitionCounts,
-    turns: [...state.turns, move],
+    turns: [...state.turns, recordedMove],
     phase: 'playing',
     winner: null,
     drawReason: null,

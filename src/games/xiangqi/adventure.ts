@@ -29,7 +29,9 @@ export interface XiangqiTutorialLevel {
 const at = (row: number, column: number) => row * 9 + column
 const basePieces: readonly XiangqiPlacement[] = [
   { owner: 'red', kind: 'king', row: 9, column: 4 },
-  { owner: 'black', kind: 'king', row: 0, column: 3 },
+  { owner: 'black', kind: 'king', row: 0, column: 4 },
+  { owner: 'red', kind: 'soldier', row: 6, column: 4 },
+  { owner: 'black', kind: 'soldier', row: 3, column: 4 },
   { owner: 'black', kind: 'chariot', row: 0, column: 8 },
 ]
 
@@ -53,7 +55,15 @@ export const XIANGQI_TUTORIAL_LEVELS: readonly XiangqiTutorialLevel[] = [
     id: 'chariot-and-cannon', titleTextId: 'xiangqi.lesson_2_title',
     instructionTextId: 'xiangqi.lesson_2_instruction', hintAreaTextId: 'xiangqi.lesson_hint_line',
     tasks: [
-      task('chariot-straight', { owner: 'red', kind: 'chariot', row: 7, column: 0 }, [7, 0], [7, 4]),
+      {
+        ...task('chariot-straight', { owner: 'red', kind: 'chariot', row: 9, column: 0 }, [9, 0], [9, 3], [
+          { owner: 'red', kind: 'soldier', row: 6, column: 0 },
+        ]),
+        acceptedMoves: [
+          { from: at(9, 0), to: at(9, 3) },
+          { from: at(9, 0), to: at(7, 0) },
+        ],
+      },
       task('cannon-one-screen', { owner: 'red', kind: 'cannon', row: 5, column: 0 }, [5, 0], [5, 3], [
         { owner: 'black', kind: 'soldier', row: 5, column: 1 },
         { owner: 'black', kind: 'chariot', row: 5, column: 3 },
@@ -72,7 +82,10 @@ export const XIANGQI_TUTORIAL_LEVELS: readonly XiangqiTutorialLevel[] = [
     id: 'palace-and-king', titleTextId: 'xiangqi.lesson_4_title',
     instructionTextId: 'xiangqi.lesson_4_instruction', hintAreaTextId: 'xiangqi.lesson_hint_palace',
     tasks: [
-      task('advisor-palace-diagonal', { owner: 'red', kind: 'advisor', row: 8, column: 3 }, [8, 3], [7, 4]),
+      task('advisor-palace-diagonal', { owner: 'red', kind: 'advisor', row: 9, column: 3 }, [9, 3], [8, 4], [
+        { owner: 'black', kind: 'advisor', row: 0, column: 3 },
+        { owner: 'black', kind: 'advisor', row: 0, column: 5 },
+      ]),
       task('king-palace-step', { owner: 'red', kind: 'king', row: 9, column: 4 }, [9, 4], [8, 4]),
     ],
   },
