@@ -59,7 +59,10 @@ function createCaptureLesson(): GoState {
 
 function createSuicideLesson(): GoState {
   let state = createGoState(9)
-  for (const point of [31, 0, 39, 2, 49, 6, 41, 8]) state = playGoMove(state, point)
+  // 白方輪到嘗試中心點；黑棋各自有中心以外的氣，避免該手變成提子或連棋。
+  for (const point of [31, 0, 39, 8, 41, 72, 49, 80, 22, 4, 38, 76, 42, 36, 58, 44, 30]) {
+    state = playGoMove(state, point)
+  }
   return state
 }
 

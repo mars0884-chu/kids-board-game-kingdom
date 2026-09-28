@@ -28,6 +28,31 @@ describe('正式圍棋遊戲', () => {
     expect(container.textContent?.replace(/[ㄅ-ㄩˊˇˋ˙]/gu, '')).toContain('你會找交點、連棋和提子了')
   })
 
+  it('禁著點教學由白方嘗試無氣點後可繼續，不會誤判為合法連棋', async () => {
+    const { container } = render(<GoGame mode="adventure" onBack={vi.fn()} />)
+    const board = screen.getByRole('grid', { name: '圍棋棋盤' })
+    Object.defineProperty(board, 'getBoundingClientRect', { configurable: true, value: () => ({ left: 0, top: 0, width: 600, height: 600, right: 600, bottom: 600, x: 0, y: 0, toJSON: () => ({}) }) })
+
+    fireEvent.keyDown(board, { key: 'Enter' })
+    await waitFor(() => expect(container.querySelector('.go-game__turn--black')).toBeInTheDocument())
+    fireEvent.keyDown(board, { key: 'ArrowRight' })
+    fireEvent.keyDown(board, { key: 'Enter' })
+    await waitFor(() => expect(container.querySelector('[role="progressbar"]')).toHaveAttribute('aria-valuenow', '3'))
+    await waitFor(() => expect(container.querySelector('.go-game__turn--black')).toBeInTheDocument())
+    fireEvent.keyDown(board, { key: 'ArrowDown' })
+    fireEvent.keyDown(board, { key: 'Enter' })
+
+    fireEvent.click(await screen.findByRole('button', { name: /開始提子練習/ }))
+    fireEvent.click(board, { clientX: 49.5 + 5 * ((550.5 - 49.5) / 8), clientY: 49.5 + 4 * ((550.5 - 49.5) / 8) })
+
+    fireEvent.click(await screen.findByRole('button', { name: /開始禁著點練習/ }))
+    fireEvent.click(board, { clientX: 300, clientY: 300 })
+
+    expect(container.querySelector('#go-point-9-40')).toHaveAttribute('data-stone', 'empty')
+    expect(await screen.findByRole('button', { name: /繼續劫的練習/ })).toBeInTheDocument()
+    expect(container.textContent?.replace(/[ㄅ-ㄩˊˇˋ˙]/gu, '')).toContain('這裡是禁著點，不能下子')
+  })
+
   it('同機雙人可在開局前選擇路數，並在實際棋盤落子', () => {
     const { container } = render(<GoGame mode="local" onBack={vi.fn()} />)
     const board = screen.getByRole('grid', { name: '圍棋棋盤' })
