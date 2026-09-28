@@ -9,6 +9,7 @@ describe('正式圍棋遊戲', () => {
     fireEvent.keyDown(board, { key: 'Enter' })
     expect(container.querySelectorAll('[data-stone="black"]')).toHaveLength(1)
     await waitFor(() => expect(container.querySelectorAll('.go-game__tutorial-target').length).toBeGreaterThan(0))
+    await waitFor(() => expect(container.querySelector('.go-game__turn--black')).toBeInTheDocument())
     fireEvent.keyDown(board, { key: 'ArrowRight' })
     fireEvent.keyDown(board, { key: 'Enter' })
     await waitFor(() => {
