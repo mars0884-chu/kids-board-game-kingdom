@@ -11,7 +11,10 @@ describe('正式圍棋遊戲', () => {
     await waitFor(() => expect(container.querySelectorAll('.go-game__tutorial-target').length).toBeGreaterThan(0))
     fireEvent.keyDown(board, { key: 'ArrowRight' })
     fireEvent.keyDown(board, { key: 'Enter' })
-    await waitFor(() => expect(container.querySelectorAll('.go-game__tutorial-target').length).toBeGreaterThan(0))
+    await waitFor(() => {
+      expect(container.querySelector('[role="progressbar"]')).toHaveAttribute('aria-valuenow', '3')
+      expect(container.querySelector('.go-game__turn--black')).toBeInTheDocument()
+    })
     fireEvent.keyDown(board, { key: 'ArrowDown' })
     fireEvent.keyDown(board, { key: 'Enter' })
     const nextLesson = await screen.findByRole('button', { name: /開始提子練習/ })
