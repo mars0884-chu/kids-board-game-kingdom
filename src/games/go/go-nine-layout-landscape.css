@@ -1,0 +1,20 @@
+/* 短橫向優先保留足夠棋面比例。 */
+@media (min-width: 700px) and (orientation: landscape) {
+  .go-nine-proposal__frame { grid-template-columns: minmax(230px, 1fr) minmax(0, min(78vh, 500px)); }
+  .go-nine-proposal__board-card { width: min(100%, 78vh, 500px); }
+}
+
+/* ART-012-r07：19 路在橫向多用一些高度；外框及棋線一併外擴。 */
+.go-nine-proposal[data-proposal="ART-012-r07"] .go-nine-proposal__board-card { width: min(100%, 560px); }
+@media (min-width: 700px) and (orientation: landscape) {
+  .go-nine-proposal[data-proposal="ART-012-r07"] .go-nine-proposal__frame { grid-template-columns: minmax(230px, 1fr) minmax(0, min(88vh, 560px)); }
+  .go-nine-proposal[data-proposal="ART-012-r07"] .go-nine-proposal__board-card { width: min(100%, 88vh, 560px); }
+}
+
+@media (min-width: 700px) and (max-width: 1100px) and (min-height: 431px) and (orientation: landscape) {
+  .go-nine-proposal[data-proposal="ART-012-r07"] .go-nine-proposal__header { flex-direction: column; align-items: flex-start; }
+  .go-nine-proposal[data-proposal="ART-012-r07"] .go-nine-proposal__heading { width: max-content; flex: none; }
+  .go-nine-proposal[data-proposal="ART-012-r07"] .go-nine-proposal__title,
+  .go-nine-proposal[data-proposal="ART-012-r07"] .go-nine-proposal__badge,
+  .go-nine-proposal[data-proposal="ART-012-r07"] .go-nine-proposal__turn-label { white-space: nowrap; }
+}

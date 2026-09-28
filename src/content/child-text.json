@@ -3557,5 +3557,85 @@
     "speech_zh_tw": "檢舉沒有送出",
     "audio_asset": "tts:zh-TW",
     "audience": "child"
+  },
+  {
+    "id": "go.title",
+    "text_zh_tw": "圍棋",
+    "segments": [{ "text": "圍", "bopomofo": "ㄨㄟˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }],
+    "speech_zh_tw": "圍棋",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.size_9",
+    "text_zh_tw": "9路",
+    "segments": [{ "text": "9", "bopomofo": null }, { "text": "路", "bopomofo": "ㄌㄨˋ" }],
+    "speech_zh_tw": "九路",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.size_13",
+    "text_zh_tw": "13路",
+    "segments": [{ "text": "1", "bopomofo": null }, { "text": "3", "bopomofo": null }, { "text": "路", "bopomofo": "ㄌㄨˋ" }],
+    "speech_zh_tw": "十三路",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.size_19",
+    "text_zh_tw": "19路",
+    "segments": [{ "text": "1", "bopomofo": null }, { "text": "9", "bopomofo": null }, { "text": "路", "bopomofo": "ㄌㄨˋ" }],
+    "speech_zh_tw": "十九路",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.turn_black",
+    "text_zh_tw": "輪到黑方",
+    "segments": [{ "text": "輪", "bopomofo": "ㄌㄨㄣˊ" }, { "text": "到", "bopomofo": "ㄉㄠˋ" }, { "text": "黑", "bopomofo": "ㄏㄟ" }, { "text": "方", "bopomofo": "ㄈㄤ" }],
+    "speech_zh_tw": "輪到黑方",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.black",
+    "text_zh_tw": "黑方",
+    "segments": [{ "text": "黑", "bopomofo": "ㄏㄟ" }, { "text": "方", "bopomofo": "ㄈㄤ" }],
+    "speech_zh_tw": "黑方",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.white",
+    "text_zh_tw": "白方",
+    "segments": [{ "text": "白", "bopomofo": "ㄅㄞˊ" }, { "text": "方", "bopomofo": "ㄈㄤ" }],
+    "speech_zh_tw": "白方",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.sample_board",
+    "text_zh_tw": "示範棋面",
+    "segments": [{ "text": "示", "bopomofo": "ㄕˋ" }, { "text": "範", "bopomofo": "ㄈㄢˋ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "面", "bopomofo": "ㄇㄧㄢˋ" }],
+    "speech_zh_tw": "示範棋面",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.layout_proposal",
+    "text_zh_tw": "9路畫面提案",
+    "segments": [{ "text": "9", "bopomofo": null }, { "text": "路", "bopomofo": "ㄌㄨˋ" }, { "text": "畫", "bopomofo": "ㄏㄨㄚˋ" }, { "text": "面", "bopomofo": "ㄇㄧㄢˋ" }, { "text": "提", "bopomofo": "ㄊㄧˊ" }, { "text": "案", "bopomofo": "ㄢˋ" }],
+    "speech_zh_tw": "九路畫面提案",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.board",
+    "text_zh_tw": "圍棋棋盤",
+    "segments": [{ "text": "圍", "bopomofo": "ㄨㄟˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "盤", "bopomofo": "ㄆㄢˊ" }],
+    "speech_zh_tw": "圍棋棋盤",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
   }
 ]

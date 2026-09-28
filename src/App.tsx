@@ -4,6 +4,7 @@ import homePortrait from './assets/art-003-r03-home-portrait.webp'
 import { BopomofoText } from './components/BopomofoText'
 import { HomeIcon } from './components/HomeIcon'
 import { CommonUiPreview } from './components/common-ui'
+import { GoNineLayoutProposal } from './games/go/GoNineLayoutProposal'
 import { getChildText } from './content/child-text'
 import { useSpeech } from './hooks/useSpeech'
 import { TicTacToeProposal } from './games/tic-tac-toe/TicTacToeProposal'
@@ -187,6 +188,11 @@ export default function App() {
 
   if (showDarkChessVerification) {
     return <DarkChessVerification onBack={() => setShowDarkChessVerification(false)} />
+  }
+
+  if (preview === 'go-nine-layout' || preview === 'go-thirteen-layout' || preview === 'go-nineteen-layout') {
+    const boardSize = preview === 'go-nine-layout' ? 9 : preview === 'go-thirteen-layout' ? 13 : 19
+    return <GoNineLayoutProposal boardSize={boardSize} onBack={() => { window.location.href = window.location.pathname }} />
   }
 
   if (xiangqiMode !== null) {

@@ -8,6 +8,8 @@ import './games/dark-chess/dark-chess-verification.css'
 import './games/dark-chess/dark-chess-game.css'
 import './games/animal-chess/animal-chess.css'
 import './games/jump-chess/jump-chess.css'
+import './games/go/go-nine-layout-proposal.css'
+import './games/go/go-nine-layout-landscape.css'
 
 const root = document.getElementById('root')
 
