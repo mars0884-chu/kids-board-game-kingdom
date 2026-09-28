@@ -50,26 +50,80 @@ function move(mover: XiangqiPlayer, options: {
 }
 
 describe('三循環行為分類與協會例外', () => {
+  function classifyChases(
+    first: readonly XiangqiChaseTargetEvidence[],
+    second: readonly XiangqiChaseTargetEvidence[] = first,
+  ): XiangqiCycleConduct | null {
+    return classifyCertainXiangqiCycleConduct([
+      move('red', { chaseTargets: first }),
+      move('black'),
+      move('red', { chaseTargets: second }),
+    ], 'red')
+  }
+
   it('同一方每一步都將軍才分類為長將；混合將軍與停著不作長將或長捉', () => {
-    expect(classifyCertainXiangqiCycleConduct([move('red', { gaveCheck: true }), move('black'), move('red', { gaveCheck: true })], 'red')).toBe('perpetual-check')
-    expect(classifyCertainXiangqiCycleConduct([move('red', { gaveCheck: true }), move('red', { chaseTargets: [chaseTarget()] })], 'red')).toBe('no-offence')
+    expect(classifyCertainXiangqiCycleConduct([
+      move('red', { gaveCheck: true }),
+      move('black'),
+      move('red', { gaveCheck: true }),
+    ], 'red')).toBe('perpetual-check')
+    expect(classifyCertainXiangqiCycleConduct([
+      move('red', { gaveCheck: true }),
+      move('red', { chaseTargets: [chaseTarget()] }),
+    ], 'red')).toBe('no-offence')
   })
 
-  it('持續威脅同一棋子才分類為長捉，分捉或中斷不判長捉', () => {
-    expect(classifyCertainXiangqiCycleConduct([move('red', { chaseTargets: [chaseTarget()] }), move('black'), move('red', { chaseTargets: [chaseTarget()] })], 'red')).toBe('perpetual-chase')
-    expect(classifyCertainXiangqiCycleConduct([move('red', { chaseTargets: [chaseTarget()] }), move('red', { chaseTargets: [chaseTarget({ targetId: 'another' })] })], 'red')).toBe('no-offence')
-    expect(classifyCertainXiangqiCycleConduct([move('red', { chaseTargets: [chaseTarget(), chaseTarget({ targetId: 'another' })] }), move('red', { chaseTargets: [chaseTarget()] })], 'red')).toBe('no-offence')
-    expect(classifyCertainXiangqiCycleConduct([move('red', { chaseTargets: [chaseTarget()] }), move('red')], 'red')).toBe('no-offence')
+  it('持續威脅同一棋子才分類為長捉；分捉、多子同捉或中斷不判長捉', () => {
+    expect(classifyChases([chaseTarget()])).toBe('perpetual-chase')
+    expect(classifyChases(
+      [chaseTarget()],
+      [chaseTarget({ targetId: 'another' })],
+    )).toBe('no-offence')
+    expect(classifyChases(
+      [chaseTarget(), chaseTarget({ targetId: 'another' })],
+      [chaseTarget()],
+    )).toBe('no-offence')
+    expect(classifyChases([chaseTarget()], [])).toBe('no-offence')
   })
 
   it('遵守未過河兵卒、將帥／兵卒參與、真根、同類子與拐腳馬例外', () => {
-    expect(classifyCertainXiangqiCycleConduct([move('red', { chaseTargets: [chaseTarget({ targetKind: 'soldier', targetUncrossedSoldier: true })]), move('red', { chaseTargets: [chaseTarget({ targetKind: 'soldier', targetUncrossedSoldier: true })])], 'red')).toBe('no-offence')
-    expect(classifyCertainXiangqiCycleConduct([move('red', { chaseTargets: [chaseTarget({ attackerKinds: ['soldier'] })]), move('red', { chaseTargets: [chaseTarget({ attackerKinds: ['soldier'] })])], 'red')).toBe('no-offence')
-    expect(classifyCertainXiangqiCycleConduct([move('red', { chaseTargets: [chaseTarget({ trueRootAttackerIds: ['attacker'] })]), move('red', { chaseTargets: [chaseTarget({ trueRootAttackerIds: ['attacker'] })])], 'red')).toBe('no-offence')
-    expect(classifyCertainXiangqiCycleConduct([move('red', { chaseTargets: [chaseTarget({ targetKind: 'chariot', attackerKinds: ['horse'], trueRootAttackerIds: ['attacker'] })]), move('red', { chaseTargets: [chaseTarget({ targetKind: 'chariot', attackerKinds: ['horse'], trueRootAttackerIds: ['attacker'] })])], 'red')).toBe('perpetual-chase')
-    expect(classifyCertainXiangqiCycleConduct([move('red', { chaseTargets: [chaseTarget({ targetKind: 'chariot', attackerKinds: ['chariot'] })]), move('red', { chaseTargets: [chaseTarget({ targetKind: 'chariot', attackerKinds: ['chariot'] })])], 'red')).toBe('no-offence')
-    expect(classifyCertainXiangqiCycleConduct([move('red', { chaseTargets: [chaseTarget({ targetKind: 'chariot', attackerKinds: ['chariot'], pinnedAttackerIds: ['attacker'] })]), move('red', { chaseTargets: [chaseTarget({ targetKind: 'chariot', attackerKinds: ['chariot'], pinnedAttackerIds: ['attacker'] })])], 'red')).toBe('perpetual-chase')
-    expect(classifyCertainXiangqiCycleConduct([move('red', { chaseTargets: [chaseTarget({ targetKind: 'horse', attackerKinds: ['horse'], blockedHorseLegAttackerIds: ['attacker'] })]), move('red', { chaseTargets: [chaseTarget({ targetKind: 'horse', attackerKinds: ['horse'], blockedHorseLegAttackerIds: ['attacker'] })])], 'red')).toBe('perpetual-chase')
+    expect(classifyChases([chaseTarget({
+      targetKind: 'soldier',
+      targetUncrossedSoldier: true,
+    })])).toBe('no-offence')
+    expect(classifyChases([chaseTarget({
+      attackerKinds: ['soldier'],
+    })])).toBe('no-offence')
+    expect(classifyChases([chaseTarget({
+      attackerKinds: ['king'],
+    })])).toBe('no-offence')
+    expect(classifyChases([chaseTarget({
+      trueRootAttackerIds: ['attacker'],
+    })])).toBe('no-offence')
+    expect(classifyChases([chaseTarget({
+      targetKind: 'chariot',
+      attackerKinds: ['horse'],
+      trueRootAttackerIds: ['attacker'],
+    })])).toBe('perpetual-chase')
+    expect(classifyChases([chaseTarget({
+      targetKind: 'chariot',
+      attackerKinds: ['cannon'],
+      trueRootAttackerIds: ['attacker'],
+    })])).toBe('perpetual-chase')
+    expect(classifyChases([chaseTarget({
+      targetKind: 'chariot',
+      attackerKinds: ['chariot'],
+    })])).toBe('no-offence')
+    expect(classifyChases([chaseTarget({
+      targetKind: 'chariot',
+      attackerKinds: ['chariot'],
+      pinnedAttackerIds: ['attacker'],
+    })])).toBe('perpetual-chase')
+    expect(classifyChases([chaseTarget({
+      targetKind: 'horse',
+      attackerKinds: ['horse'],
+      blockedHorseLegAttackerIds: ['attacker'],
+    })])).toBe('perpetual-chase')
   })
 
   it('舊棋譜缺少攻擊明細時不猜測長捉', () => {
@@ -79,7 +133,6 @@ describe('三循環行為分類與協會例外', () => {
     ], 'red')).toBeNull()
   })
 })
-
 function stateFrom(placements: readonly { readonly owner: XiangqiPlayer; readonly kind: XiangqiKind; readonly row: number; readonly column: number }[]): XiangqiState {
   const base = createInitialXiangqiState()
   const board: XiangqiCell[] = Array.from({ length: 90 }, () => null)
