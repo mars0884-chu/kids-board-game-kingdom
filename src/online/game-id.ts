@@ -8,6 +8,9 @@ export const onlineGameIds = [
   'reversi',
   'tic-tac-toe',
   'xiangqi',
+  'go-9',
+  'go-13',
+  'go-19',
 ] as const
 
 export type OnlineGameId = typeof onlineGameIds[number]
@@ -21,6 +24,9 @@ export const onlineGameTitleTextIds: Record<OnlineGameId, string> = {
   reversi: 'reversi.title',
   'tic-tac-toe': 'tictactoe.title',
   xiangqi: 'xiangqi.title',
+  'go-9': 'go.title',
+  'go-13': 'go.title',
+  'go-19': 'go.title',
 }
 
 export function isOnlineGameId(value: unknown): value is OnlineGameId {

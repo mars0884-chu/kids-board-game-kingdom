@@ -15,7 +15,7 @@ describe('主入口遊戲選擇', () => {
     render(<App />)
     expect(screen.getByRole('heading', { name: text('app.title') })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: text('home.adventure') }))
-    expect(screen.getByLabelText(text('ui.choose_game'))).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: text('ui.choose_game') })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: text('tictactoe.title') })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: text('gomoku.title') })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: text('reversi.title') })).toBeInTheDocument()
@@ -51,6 +51,32 @@ describe('主入口遊戲選擇', () => {
     const onlineGameTitle = document.querySelector('.webrtc-pairing__game-title')
     expect(onlineGameTitle?.textContent?.replace(/[ㄅ-ㄩˊˇˋ˙]/gu, '')).toBe(text('xiangqi.title'))
     expect(screen.getByRole('button', { name: text('online.random_match') })).toBeInTheDocument()
+  })
+
+  it('雙裝置圍棋先選路數，再進入正式熟人／隨機配對頁', () => {
+    vi.stubEnv('VITE_TURN_GAME_WORKER_URL', 'https://worker.example.test')
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: text('home.online') }))
+    fireEvent.click(screen.getByRole('button', { name: text('go.title') }))
+    expect(screen.getByRole('grid', { name: text('go.board') })).toHaveAttribute('aria-rowcount', '9')
+    fireEvent.click(screen.getByRole('button', { name: text('go.size_13') }))
+    expect(document.querySelector('main.go-game')).toHaveAttribute('data-board-size', '13')
+    fireEvent.click(screen.getByRole('button', { name: text('go.start_game') }))
+    expect(screen.getByRole('button', { name: text('online.random_match') })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: text('online.friend_ready') })).toBeInTheDocument()
+    expect(document.querySelector('.webrtc-pairing__game-title')?.textContent?.replace(/[ㄅ-ㄩˊˇˋ˙]/gu, '')).toBe(text('go.title'))
+  })
+
+  it('圍棋熟人邀請固定 19 路，不能以其他路數加入', () => {
+    vi.stubEnv('VITE_TURN_GAME_WORKER_URL', 'https://worker.example.test')
+    window.history.replaceState({}, '', '/#friend=12345678&game=go-19')
+    render(<App />)
+    expect(document.querySelector('main.go-game')).toHaveAttribute('data-go-mode', 'online')
+    expect(document.querySelector('main.go-game')).toHaveAttribute('data-board-size', '19')
+    expect(screen.getByRole('grid', { name: text('go.board') })).toHaveAttribute('aria-rowcount', '19')
+    expect(screen.getByRole('button', { name: text('go.size_9') })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: text('go.start_game') }))
+    expect(screen.getByRole('button', { name: text('online.friend_join') })).toBeInTheDocument()
   })
 
   it('可由棋類選擇畫面直接開啟動物棋完整 7×9 版本', () => {

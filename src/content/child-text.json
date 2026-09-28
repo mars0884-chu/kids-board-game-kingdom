@@ -303,6 +303,22 @@
     "audience": "child"
   },
   {
+    "id": "ui.scroll_games",
+    "text_zh_tw": "左右滑動看更多",
+    "segments": [
+      { "text": "左", "bopomofo": "ㄗㄨㄛˇ" },
+      { "text": "右", "bopomofo": "ㄧㄡˋ" },
+      { "text": "滑", "bopomofo": "ㄏㄨㄚˊ" },
+      { "text": "動", "bopomofo": "ㄉㄨㄥˋ" },
+      { "text": "看", "bopomofo": "ㄎㄢˋ" },
+      { "text": "更", "bopomofo": "ㄍㄥˋ" },
+      { "text": "多", "bopomofo": "ㄉㄨㄛ" }
+    ],
+    "speech_zh_tw": "左右滑動看更多",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
     "id": "ui.choose_difficulty",
     "text_zh_tw": "選擇難度",
     "segments": [
@@ -3615,26 +3631,194 @@
     "audience": "child"
   },
   {
-    "id": "go.sample_board",
-    "text_zh_tw": "示範棋面",
-    "segments": [{ "text": "示", "bopomofo": "ㄕˋ" }, { "text": "範", "bopomofo": "ㄈㄢˋ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "面", "bopomofo": "ㄇㄧㄢˋ" }],
-    "speech_zh_tw": "示範棋面",
-    "audio_asset": "tts:zh-TW",
-    "audience": "child"
-  },
-  {
-    "id": "go.layout_proposal",
-    "text_zh_tw": "9路畫面提案",
-    "segments": [{ "text": "9", "bopomofo": null }, { "text": "路", "bopomofo": "ㄌㄨˋ" }, { "text": "畫", "bopomofo": "ㄏㄨㄚˋ" }, { "text": "面", "bopomofo": "ㄇㄧㄢˋ" }, { "text": "提", "bopomofo": "ㄊㄧˊ" }, { "text": "案", "bopomofo": "ㄢˋ" }],
-    "speech_zh_tw": "九路畫面提案",
-    "audio_asset": "tts:zh-TW",
-    "audience": "child"
-  },
-  {
     "id": "go.board",
     "text_zh_tw": "圍棋棋盤",
     "segments": [{ "text": "圍", "bopomofo": "ㄨㄟˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "盤", "bopomofo": "ㄆㄢˊ" }],
     "speech_zh_tw": "圍棋棋盤",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.select_size",
+    "text_zh_tw": "選擇棋盤",
+    "segments": [{ "text": "選", "bopomofo": "ㄒㄩㄢˇ" }, { "text": "擇", "bopomofo": "ㄗㄜˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "盤", "bopomofo": "ㄆㄢˊ" }],
+    "speech_zh_tw": "選擇棋盤",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.start_game",
+    "text_zh_tw": "開始對局",
+    "segments": [{ "text": "開", "bopomofo": "ㄎㄞ" }, { "text": "始", "bopomofo": "ㄕˇ" }, { "text": "對", "bopomofo": "ㄉㄨㄟˋ" }, { "text": "局", "bopomofo": "ㄐㄩˊ" }],
+    "speech_zh_tw": "開始對局",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.turn_white",
+    "text_zh_tw": "輪到白方",
+    "segments": [{ "text": "輪", "bopomofo": "ㄌㄨㄣˊ" }, { "text": "到", "bopomofo": "ㄉㄠˋ" }, { "text": "白", "bopomofo": "ㄅㄞˊ" }, { "text": "方", "bopomofo": "ㄈㄤ" }],
+    "speech_zh_tw": "輪到白方",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.choose_point",
+    "text_zh_tw": "請選一個交點",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "選", "bopomofo": "ㄒㄩㄢˇ" }, { "text": "一", "bopomofo": "ㄧ" }, { "text": "個", "bopomofo": "ㄍㄜˋ" }, { "text": "交", "bopomofo": "ㄐㄧㄠ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }],
+    "speech_zh_tw": "請選一個交點",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_place",
+    "text_zh_tw": "請在空交點放一子",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "在", "bopomofo": "ㄗㄞˋ" }, { "text": "空", "bopomofo": "ㄎㄨㄥ" }, { "text": "交", "bopomofo": "ㄐㄧㄠ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }, { "text": "放", "bopomofo": "ㄈㄤˋ" }, { "text": "一", "bopomofo": "ㄧ" }, { "text": "子", "bopomofo": "ㄗˇ" }],
+    "speech_zh_tw": "請在空交點放一子",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_connect",
+    "text_zh_tw": "把黑棋放在相連的位置",
+    "segments": [{ "text": "把", "bopomofo": "ㄅㄚˇ" }, { "text": "黑", "bopomofo": "ㄏㄟ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "放", "bopomofo": "ㄈㄤˋ" }, { "text": "在", "bopomofo": "ㄗㄞˋ" }, { "text": "相", "bopomofo": "ㄒㄧㄤ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "的", "bopomofo": "ㄉㄜ˙" }, { "text": "位", "bopomofo": "ㄨㄟˋ" }, { "text": "置", "bopomofo": "ㄓˋ" }],
+    "speech_zh_tw": "把黑棋放在相連的位置",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_connect_hint",
+    "text_zh_tw": "請選旁邊的空交點",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "選", "bopomofo": "ㄒㄩㄢˇ" }, { "text": "旁", "bopomofo": "ㄆㄤˊ" }, { "text": "邊", "bopomofo": "ㄅㄧㄢ" }, { "text": "的", "bopomofo": "ㄉㄜ˙" }, { "text": "空", "bopomofo": "ㄎㄨㄥ" }, { "text": "交", "bopomofo": "ㄐㄧㄠ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }],
+    "speech_zh_tw": "請選旁邊的空交點",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_capture",
+    "text_zh_tw": "白棋只剩一口氣，請找最後一口氣",
+    "segments": [{ "text": "白", "bopomofo": "ㄅㄞˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "只", "bopomofo": "ㄓˇ" }, { "text": "剩", "bopomofo": "ㄕㄥˋ" }, { "text": "一", "bopomofo": "ㄧ" }, { "text": "口", "bopomofo": "ㄎㄡˇ" }, { "text": "氣", "bopomofo": "ㄑㄧˋ" }, { "text": "，", "bopomofo": null }, { "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "找", "bopomofo": "ㄓㄠˇ" }, { "text": "最", "bopomofo": "ㄗㄨㄟˋ" }, { "text": "後", "bopomofo": "ㄏㄡˋ" }, { "text": "一", "bopomofo": "ㄧ" }, { "text": "口", "bopomofo": "ㄎㄡˇ" }, { "text": "氣", "bopomofo": "ㄑㄧˋ" }],
+    "speech_zh_tw": "白棋只剩一口氣，請找最後一口氣",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_next",
+    "text_zh_tw": "開始提子練習",
+    "segments": [{ "text": "開", "bopomofo": "ㄎㄞ" }, { "text": "始", "bopomofo": "ㄕˇ" }, { "text": "提", "bopomofo": "ㄊㄧˊ" }, { "text": "子", "bopomofo": "ㄗˇ" }, { "text": "練", "bopomofo": "ㄌㄧㄢˋ" }, { "text": "習", "bopomofo": "ㄒㄧˊ" }],
+    "speech_zh_tw": "開始提子練習",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_capture_hint",
+    "text_zh_tw": "請下在白棋最後一口氣的位置",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "下", "bopomofo": "ㄒㄧㄚˋ" }, { "text": "在", "bopomofo": "ㄗㄞˋ" }, { "text": "白", "bopomofo": "ㄅㄞˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "最", "bopomofo": "ㄗㄨㄟˋ" }, { "text": "後", "bopomofo": "ㄏㄡˋ" }, { "text": "一", "bopomofo": "ㄧ" }, { "text": "口", "bopomofo": "ㄎㄡˇ" }, { "text": "氣", "bopomofo": "ㄑㄧˋ" }, { "text": "的", "bopomofo": "ㄉㄜ˙" }, { "text": "位", "bopomofo": "ㄨㄟˋ" }, { "text": "置", "bopomofo": "ㄓˋ" }],
+    "speech_zh_tw": "請下在白棋最後一口氣的位置",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_done",
+    "text_zh_tw": "你會找交點、連棋和提子了",
+    "segments": [{ "text": "你", "bopomofo": "ㄋㄧˇ" }, { "text": "會", "bopomofo": "ㄏㄨㄟˋ" }, { "text": "找", "bopomofo": "ㄓㄠˇ" }, { "text": "交", "bopomofo": "ㄐㄧㄠ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }, { "text": "、", "bopomofo": null }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "和", "bopomofo": "ㄏㄢˋ" }, { "text": "提", "bopomofo": "ㄊㄧˊ" }, { "text": "子", "bopomofo": "ㄗˇ" }, { "text": "了", "bopomofo": "ㄌㄜ˙" }],
+    "speech_zh_tw": "你會找交點、連棋和提子了",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.pass",
+    "text_zh_tw": "虛著",
+    "segments": [{ "text": "虛", "bopomofo": "ㄒㄩ" }, { "text": "著", "bopomofo": "ㄓㄨㄛˊ" }],
+    "speech_zh_tw": "虛著",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.resign",
+    "text_zh_tw": "認輸",
+    "segments": [{ "text": "認", "bopomofo": "ㄖㄣˋ" }, { "text": "輸", "bopomofo": "ㄕㄨ" }],
+    "speech_zh_tw": "認輸",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.scoring",
+    "text_zh_tw": "一起確認棋局",
+    "segments": [{ "text": "一", "bopomofo": "ㄧ" }, { "text": "起", "bopomofo": "ㄑㄧˇ" }, { "text": "確", "bopomofo": "ㄑㄩㄝˋ" }, { "text": "認", "bopomofo": "ㄖㄣˋ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "局", "bopomofo": "ㄐㄩˊ" }],
+    "speech_zh_tw": "一起確認棋局",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.mark_dead",
+    "text_zh_tw": "標記死棋",
+    "segments": [{ "text": "標", "bopomofo": "ㄅㄧㄠ" }, { "text": "記", "bopomofo": "ㄐㄧˋ" }, { "text": "死", "bopomofo": "ㄙˇ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }],
+    "speech_zh_tw": "標記死棋",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.agree_score",
+    "text_zh_tw": "同意計分",
+    "segments": [{ "text": "同", "bopomofo": "ㄊㄨㄥˊ" }, { "text": "意", "bopomofo": "ㄧˋ" }, { "text": "計", "bopomofo": "ㄐㄧˋ" }, { "text": "分", "bopomofo": "ㄈㄣ" }],
+    "speech_zh_tw": "同意計分",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.resume_game",
+    "text_zh_tw": "繼續下棋",
+    "segments": [{ "text": "繼", "bopomofo": "ㄐㄧˋ" }, { "text": "續", "bopomofo": "ㄒㄩˋ" }, { "text": "下", "bopomofo": "ㄒㄧㄚˋ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }],
+    "speech_zh_tw": "繼續下棋",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.black_wins",
+    "text_zh_tw": "黑方獲勝",
+    "segments": [{ "text": "黑", "bopomofo": "ㄏㄟ" }, { "text": "方", "bopomofo": "ㄈㄤ" }, { "text": "獲", "bopomofo": "ㄏㄨㄛˋ" }, { "text": "勝", "bopomofo": "ㄕㄥˋ" }],
+    "speech_zh_tw": "黑方獲勝",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.white_wins",
+    "text_zh_tw": "白方獲勝",
+    "segments": [{ "text": "白", "bopomofo": "ㄅㄞˊ" }, { "text": "方", "bopomofo": "ㄈㄤ" }, { "text": "獲", "bopomofo": "ㄏㄨㄛˋ" }, { "text": "勝", "bopomofo": "ㄕㄥˋ" }],
+    "speech_zh_tw": "白方獲勝",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.draw",
+    "text_zh_tw": "這局和棋",
+    "segments": [{ "text": "這", "bopomofo": "ㄓㄜˋ" }, { "text": "局", "bopomofo": "ㄐㄩˊ" }, { "text": "和", "bopomofo": "ㄏㄜˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }],
+    "speech_zh_tw": "這局和棋",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.black_score",
+    "text_zh_tw": "黑方分數",
+    "segments": [{ "text": "黑", "bopomofo": "ㄏㄟ" }, { "text": "方", "bopomofo": "ㄈㄤ" }, { "text": "分", "bopomofo": "ㄈㄣ" }, { "text": "數", "bopomofo": "ㄕㄨˋ" }],
+    "speech_zh_tw": "黑方分數",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.white_score",
+    "text_zh_tw": "白方分數",
+    "segments": [{ "text": "白", "bopomofo": "ㄅㄞˊ" }, { "text": "方", "bopomofo": "ㄈㄤ" }, { "text": "分", "bopomofo": "ㄈㄣ" }, { "text": "數", "bopomofo": "ㄕㄨˋ" }],
+    "speech_zh_tw": "白方分數",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.invalid_move",
+    "text_zh_tw": "這裡不能下",
+    "segments": [{ "text": "這", "bopomofo": "ㄓㄜˋ" }, { "text": "裡", "bopomofo": "ㄌㄧˇ" }, { "text": "不", "bopomofo": "ㄅㄨˋ" }, { "text": "能", "bopomofo": "ㄋㄥˊ" }, { "text": "下", "bopomofo": "ㄒㄧㄚˋ" }],
+    "speech_zh_tw": "這裡不能下",
     "audio_asset": "tts:zh-TW",
     "audience": "child"
   }

@@ -24,6 +24,11 @@ try {
     $null = $files.Add($relativeName)
   }
   if ($LASTEXITCODE -ne 0) { throw '來源清單讀取失敗' }
+  # 已明確從 Git 刪除的舊版技術候選不應被基底封包重新納入。
+  foreach ($name in (git -c "safe.directory=$($sourceRoot.Replace('\','/'))" -c core.quotepath=false ls-files --deleted)) {
+    $null = $files.Remove($name.Replace('\','/'))
+  }
+  if ($LASTEXITCODE -ne 0) { throw '刪除清單讀取失敗' }
 } finally { Pop-Location }
 foreach ($item in Get-ChildItem -LiteralPath (Join-Path $sourceRoot 'dist') -File -Recurse) { $null = $files.Add([IO.Path]::GetRelativePath($sourceRoot,$item.FullName).Replace('\','/')) }
 foreach ($name in $files) {

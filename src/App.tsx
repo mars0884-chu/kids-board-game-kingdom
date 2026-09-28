@@ -4,7 +4,7 @@ import homePortrait from './assets/art-003-r03-home-portrait.webp'
 import { BopomofoText } from './components/BopomofoText'
 import { HomeIcon } from './components/HomeIcon'
 import { CommonUiPreview } from './components/common-ui'
-import { GoNineLayoutProposal } from './games/go/GoNineLayoutProposal'
+import { GoGame, type GoMode } from './games/go/GoGame'
 import { getChildText } from './content/child-text'
 import { useSpeech } from './hooks/useSpeech'
 import { TicTacToeProposal } from './games/tic-tac-toe/TicTacToeProposal'
@@ -37,9 +37,9 @@ const homeModes = [
 ] as const
 
 type HomeModeId = typeof homeModes[number]['id']
-type GameId = 'tic-tac-toe' | 'gomoku' | 'reversi' | 'dark-chess' | 'number-gem' | 'animal-chess' | 'jump-chess' | 'xiangqi'
+type GameId = 'tic-tac-toe' | 'gomoku' | 'reversi' | 'dark-chess' | 'number-gem' | 'animal-chess' | 'jump-chess' | 'xiangqi' | 'go'
 
-const gameOptions: readonly { id: GameId; textId: 'tictactoe.title' | 'gomoku.title' | 'reversi.title' | 'dark_chess.title' | 'number_gem.title' | 'animal_chess.title' | 'jump_chess.title' | 'xiangqi.title'; icon: 'puzzle' | 'board'; tone: 'mint' | 'coral' | 'blue' }[] = [
+const gameOptions: readonly { id: GameId; textId: 'tictactoe.title' | 'gomoku.title' | 'reversi.title' | 'dark_chess.title' | 'number_gem.title' | 'animal_chess.title' | 'jump_chess.title' | 'xiangqi.title' | 'go.title'; icon: 'puzzle' | 'board'; tone: 'mint' | 'coral' | 'blue' }[] = [
   { id: 'tic-tac-toe', textId: 'tictactoe.title', icon: 'puzzle', tone: 'mint' },
   { id: 'number-gem', textId: 'number_gem.title', icon: 'puzzle', tone: 'blue' },
   { id: 'animal-chess', textId: 'animal_chess.title', icon: 'board', tone: 'mint' },
@@ -48,12 +48,14 @@ const gameOptions: readonly { id: GameId; textId: 'tictactoe.title' | 'gomoku.ti
   { id: 'dark-chess', textId: 'dark_chess.title', icon: 'board', tone: 'mint' },
   { id: 'jump-chess', textId: 'jump_chess.title', icon: 'board', tone: 'coral' },
   { id: 'xiangqi', textId: 'xiangqi.title', icon: 'board', tone: 'coral' },
+  { id: 'go', textId: 'go.title', icon: 'board', tone: 'blue' },
 ]
 
 export default function App() {
   const preview = new URLSearchParams(window.location.search).get('preview')
   const inviteParams = new URLSearchParams(window.location.hash.slice(1))
   const inviteGame = isOnlineGameId(inviteParams.get('game')) ? inviteParams.get('game') : 'jump-chess'
+  const inviteGoBoardSize = inviteGame === 'go-9' ? 9 : inviteGame === 'go-13' ? 13 : inviteGame === 'go-19' ? 19 : undefined
   const hasWebRtcSignal = new URLSearchParams(window.location.search).has('webrtc')
     || (inviteParams.has('friend') && inviteGame === 'jump-chess')
   const [showCommonUi, setShowCommonUi] = useState(
@@ -109,6 +111,7 @@ export default function App() {
         ? 'local'
         : null)
   const [xiangqiMode, setXiangqiMode] = useState<XiangqiMode | null>(() => inviteParams.has('friend') && inviteGame === 'xiangqi' ? 'online' : preview === 'xiangqi-art-proposal' ? 'local' : null)
+  const [goMode, setGoMode] = useState<GoMode | null>(() => inviteParams.has('friend') && inviteGoBoardSize ? 'online' : null)
   const [showComingSoon, setShowComingSoon] = useState(false)
   const { isSupported, speak } = useSpeech()
   const welcome = getChildText('home.welcome')
@@ -121,7 +124,9 @@ export default function App() {
 
   const chooseGame = (gameId: GameId) => {
     if (selectedHomeMode === null) return
-    if (gameId === 'xiangqi') {
+    if (gameId === 'go') {
+      setGoMode(selectedHomeMode === 'adventure' ? 'adventure' : selectedHomeMode === 'practice' ? 'npc' : selectedHomeMode === 'online' ? 'online' : 'local')
+    } else if (gameId === 'xiangqi') {
       setXiangqiMode(selectedHomeMode === 'online' ? 'online' : selectedHomeMode === 'two-player' ? 'local' : selectedHomeMode === 'practice' ? 'npc' : 'adventure')
     } else if (gameId === 'jump-chess') {
       setJumpChessMode(selectedHomeMode === 'adventure' ? 'adventure' : selectedHomeMode === 'practice' ? 'npc' : selectedHomeMode === 'online' ? 'online' : 'local')
@@ -163,7 +168,9 @@ export default function App() {
           : selectedHomeMode === 'online' ? 'online' : 'local')
     }
     if (isSupported) {
-      const textId = gameId === 'number-gem'
+      const textId = gameId === 'go'
+        ? 'go.title'
+        : gameId === 'number-gem'
         ? 'number_gem.title'
         : gameId === 'gomoku'
         ? 'gomoku.title'
@@ -190,13 +197,12 @@ export default function App() {
     return <DarkChessVerification onBack={() => setShowDarkChessVerification(false)} />
   }
 
-  if (preview === 'go-nine-layout' || preview === 'go-thirteen-layout' || preview === 'go-nineteen-layout') {
-    const boardSize = preview === 'go-nine-layout' ? 9 : preview === 'go-thirteen-layout' ? 13 : 19
-    return <GoNineLayoutProposal boardSize={boardSize} onBack={() => { window.location.href = window.location.pathname }} />
-  }
-
   if (xiangqiMode !== null) {
     return <XiangqiGame key={xiangqiMode} mode={xiangqiMode} onBack={() => { setXiangqiMode(null); if (preview === 'xiangqi-art-proposal') window.location.href = window.location.pathname }} />
+  }
+
+  if (goMode !== null) {
+    return <GoGame key={`${goMode}-${inviteGoBoardSize ?? ''}`} mode={goMode} initialBoardSize={inviteGoBoardSize} onBack={() => setGoMode(null)} />
   }
 
   if (numberGemMode !== null) {
@@ -271,8 +277,9 @@ export default function App() {
               <BopomofoText entry={getChildText(selectedModeTextId)} />
               <BopomofoText entry={getChildText('ui.choose_game')} />
             </div>
-            <div className="game-picker-actions">
+            <div className="game-picker-actions" role="group" aria-label={getChildText('ui.choose_game').text_zh_tw} tabIndex={0}>
               {(selectedHomeMode === 'online' ? gameOptions.filter((game) => {
+                if (game.id === 'go') return Boolean(import.meta.env.VITE_TURN_GAME_WORKER_URL)
                 if (game.id === 'dark-chess') return Boolean(import.meta.env.VITE_DARK_CHESS_WORKER_URL)
                 if (game.id === 'jump-chess') return true
                 return Boolean(import.meta.env.VITE_TURN_GAME_WORKER_URL)
@@ -290,6 +297,7 @@ export default function App() {
                 </button>
               ))}
             </div>
+            <BopomofoText className="game-picker-scroll-hint" entry={getChildText('ui.scroll_games')} />
             <button className="game-picker-back" type="button" onClick={() => setSelectedHomeMode(null)}>
               <BopomofoText entry={getChildText('common.back')} />
             </button>

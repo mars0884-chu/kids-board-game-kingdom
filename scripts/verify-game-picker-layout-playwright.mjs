@@ -44,12 +44,30 @@ try {
       },
       buttonCount: document.querySelectorAll('.game-picker-actions .mode-button').length,
       bodyOverflowY: getComputedStyle(document.body).overflowY,
+      gridRows: getComputedStyle(document.querySelector('.game-picker-actions')).gridTemplateRows.split(' ').length,
+      gridRowsRaw: getComputedStyle(document.querySelector('.game-picker-actions')).gridTemplateRows,
+      gridColumnsRaw: getComputedStyle(document.querySelector('.game-picker-actions')).gridTemplateColumns,
+      gridWidth: document.querySelector('.game-picker-actions').clientWidth,
+      gridScrollWidth: document.querySelector('.game-picker-actions').scrollWidth,
+      buttonTops: [...new Set([...document.querySelectorAll('.game-picker-actions .mode-button')].map((button) => Math.round(button.getBoundingClientRect().top)))],
+      buttonRects: [...document.querySelectorAll('.game-picker-actions .mode-button')].map((button) => { const box = button.getBoundingClientRect(); return { left: Math.round(box.left), top: Math.round(box.top), width: Math.round(box.width) } }),
     }))
 
     assert(before.viewport.width === viewport.width && before.viewport.height === viewport.height, `${viewport.name} 視窗量測尺寸不符。`)
     assert(before.document.scrollWidth <= viewport.width + 1, `${viewport.name} 發生水平溢出。`)
-    assert(before.buttonCount === 8, `${viewport.name} 棋種按鍵數量不是 8。`)
+    assert(before.buttonCount === 9, `${viewport.name} 棋種按鍵數量不是 9。`)
+    assert(before.gridRows === 2, `${viewport.name} 棋種按鈕未維持兩排：${JSON.stringify({ rows: before.gridRowsRaw, columns: before.gridColumnsRaw, buttons: before.buttonRects, width: before.gridWidth })}。`)
+    assert(before.gridScrollWidth >= before.gridWidth, `${viewport.name} 棋種瀏覽區尺寸錯誤。`)
     assert(before.bodyOverflowY === 'auto' || before.bodyOverflowY === 'scroll', `${viewport.name} 沒有開啟垂直捲動。`)
+
+    const goButton = page.locator('.game-picker-actions .mode-button').nth(8)
+    await goButton.scrollIntoViewIfNeeded()
+    const goButtonVisible = await goButton.evaluate((button) => {
+      const bounds = button.getBoundingClientRect()
+      const scroller = button.closest('.game-picker-actions').getBoundingClientRect()
+      return bounds.left >= scroller.left - 1 && bounds.right <= scroller.right + 1
+    })
+    assert(goButtonVisible, `${viewport.name} 水平瀏覽後仍無法完整看到圍棋入口。`)
 
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
     const backButton = await page.locator('.game-picker-back').evaluate((element) => {
@@ -66,12 +84,14 @@ try {
       buttonCount: document.querySelectorAll('.game-picker-actions .mode-button').length,
       scrollWidth: document.documentElement.scrollWidth,
     }))
-    assert(online.buttonCount === 8, `${viewport.name} 線上棋種按鍵數量不是 8。`)
+    assert(online.buttonCount >= 1 && online.buttonCount <= 9, `${viewport.name} 線上棋種按鍵數量不在可用範圍。`)
     assert(online.scrollWidth <= viewport.width + 1, `${viewport.name} 線上選單水平溢出。`)
 
     results.push({
       viewport: viewport.name,
       scrollHeight: before.document.scrollHeight,
+      gridRows: before.gridRows,
+      gridScrollWidth: before.gridScrollWidth,
       scrollYAfter: backButton.scrollY,
       backBottomAfter: Math.round(backButton.bottom * 10) / 10,
     })

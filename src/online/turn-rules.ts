@@ -3,6 +3,7 @@ import { createGomokuState, getLegalGomokuMoves, playGomokuMove, serializeGomoku
 import { createReversiState, getLegalReversiMoves, applyReversiMove, serializeReversiState, deserializeReversiState, type ReversiState } from '../games/reversi/rules'
 import { createTicTacToeState, getLegalTicTacToeMoves, playTicTacToeMove, serializeTicTacToeState, deserializeTicTacToeState, type TicTacToeState } from '../games/tic-tac-toe/rules'
 import { applyMove as applyXiangqiMove, createInitialXiangqiState, getLegalMoves as getLegalXiangqiMoves, serializeXiangqiState, deserializeXiangqiState, type XiangqiState } from '../games/xiangqi/rules'
+import { applyGoAction, createGoState, deserializeGoState, serializeGoState, type GoBoardSize, type GoState } from '../games/go/rules'
 
 export interface OnlineTurnRules<State> {
   initial(): State
@@ -67,4 +68,24 @@ export const xiangqiOnlineRules: OnlineTurnRules<XiangqiState> = {
   currentRole: (state) => state.currentPlayer === 'red' ? 'host' : 'guest',
   isLegalStep: (before, next) => before.phase !== 'won' && before.phase !== 'draw' &&
     matchesOneStep(before, next, getLegalXiangqiMoves(before), (state, move) => applyXiangqiMove(state, move.from, move.to), serializeXiangqiState),
+}
+
+/** 每個路數使用獨立房間棋種；棋盤尺寸由可信 Worker 固定，不能由客戶端中途更換。 */
+export function createGoOnlineRules(boardSize: GoBoardSize): OnlineTurnRules<GoState> {
+  return {
+    initial: () => createGoState(boardSize),
+    serialize: serializeGoState,
+    deserialize: (serialized) => {
+      const state = deserializeGoState(serialized)
+      if (state.boardSize !== boardSize) throw new Error('圍棋房間路數不一致。')
+      return state
+    },
+    currentRole: (state) => state.currentPlayer === 'black' ? 'host' : 'guest',
+    isLegalStep: (before, next) => {
+      if (before.phase === 'finished' || before.boardSize !== boardSize || next.boardSize !== boardSize ||
+        next.moves.length !== before.moves.length + 1 || next.moves.at(-1)?.player !== before.currentPlayer) return false
+      try { return serializeGoState(applyGoAction(before, next.moves.at(-1)!.action)) === serializeGoState(next) }
+      catch { return false }
+    },
+  }
 }

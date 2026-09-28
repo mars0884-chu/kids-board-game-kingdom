@@ -1,6 +1,6 @@
-# 五款公開局面遊戲可信連線
+# 公開局面遊戲可信連線
 
-`animal-chess`、`gomoku`、`number-gem`、`reversi` 與 `tic-tac-toe` 由 `server/turn-game-worker.ts` 共用 Cloudflare Workers／SQLite Durable Object。Firebase 只負責匿名身分、房號／隨機配對與在線狀態；遊戲局面以 Worker 的序號及規則核心重算結果為準。暗棋另由 `server/dark-chess-worker.ts` 保留未翻資訊，兩者不可合併為客戶端權威棋盤。
+`animal-chess`、`gomoku`、`number-gem`、`reversi`、`tic-tac-toe`、`xiangqi` 與圍棋 `go-9`／`go-13`／`go-19` 由 `server/turn-game-worker.ts` 共用 Cloudflare Workers／SQLite Durable Object。圍棋三種路數各有獨立棋種識別，房間建立後不得切換。Firebase 只負責匿名身分、房號／隨機配對與在線狀態；遊戲局面以 Worker 的序號及規則核心重算結果為準。暗棋另由 `server/dark-chess-worker.ts` 保留未翻資訊，兩者不可合併為客戶端權威棋盤。
 
 公開服務網址：`https://kids-board-turn-games.kids-board-game-kingdom.workers.dev`。GitHub Pages 工作流程已設為 `VITE_TURN_GAME_WORKER_URL`；暗棋網址設為 `VITE_DARK_CHESS_WORKER_URL`。兩個網址是可公開的服務入口，不是帳號密碼。Worker 的 `FIREBASE_API_KEY`、`FIREBASE_DATABASE_URL`、`ALLOWED_ORIGIN` 由 Cloudflare Secret 保存；不得放進 GitHub 儲存庫。免費方案有額度上限，不宣稱無限制服務量。
 

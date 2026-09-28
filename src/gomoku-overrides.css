@@ -119,12 +119,6 @@
   color: #175f5b;
 }
 
-.game-picker-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
 .game-picker-back {
   display: inline-flex;
   align-items: center;
@@ -199,10 +193,6 @@
 }
 
 @media (max-width: 580px) {
-  .game-picker-actions {
-    grid-template-columns: 1fr;
-  }
-
   .game-picker-context {
     gap: 0.35rem 0.7rem;
   }

@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { animalChessOnlineRules, gomokuOnlineRules, reversiOnlineRules, ticTacToeOnlineRules, xiangqiOnlineRules } from './turn-rules'
+import { animalChessOnlineRules, createGoOnlineRules, gomokuOnlineRules, reversiOnlineRules, ticTacToeOnlineRules, xiangqiOnlineRules } from './turn-rules'
 import { applyAnimalChessMove, getLegalAnimalChessMoves } from '../games/animal-chess/rules'
 import { getLegalGomokuMoves, playGomokuMove } from '../games/gomoku/rules'
 import { applyReversiMove, getLegalReversiMoves } from '../games/reversi/rules'
 import { getLegalTicTacToeMoves, playTicTacToeMove } from '../games/tic-tac-toe/rules'
 import { applyMove as applyXiangqiMove, getLegalMoves as getLegalXiangqiMoves } from '../games/xiangqi/rules'
+import { applyGoAction, getLegalGoMoves, type GoBoardSize } from '../games/go/rules'
 
 describe('線上合法一步驗證', () => {
   it('動物棋只接受當前局面的一步合法走棋', () => {
@@ -51,5 +52,25 @@ describe('線上合法一步驗證', () => {
     expect(xiangqiOnlineRules.currentRole(next)).toBe('guest')
     expect(xiangqiOnlineRules.isLegalStep(before, next)).toBe(true)
     expect(xiangqiOnlineRules.isLegalStep(before, before)).toBe(false)
+  })
+
+  it.each([9, 13, 19] as GoBoardSize[])('圍棋 %i 路只接受同路數房間中的一個合法回合', (size) => {
+    const rules = createGoOnlineRules(size)
+    const before = rules.initial()
+    const firstMove = applyGoAction(before, { type: 'play', point: getLegalGoMoves(before)[0]! })
+    expect(before.boardSize).toBe(size)
+    expect(rules.currentRole(before)).toBe('host')
+    expect(rules.currentRole(firstMove)).toBe('guest')
+    expect(rules.isLegalStep(before, firstMove)).toBe(true)
+    expect(rules.isLegalStep(before, before)).toBe(false)
+    expect(() => rules.deserialize(JSON.stringify({ ...firstMove, boardSize: size === 9 ? 13 : 9 }))).toThrow()
+
+    const pass = applyGoAction(before, { type: 'pass' })
+    expect(rules.isLegalStep(before, pass)).toBe(true)
+    const secondPass = applyGoAction(pass, { type: 'pass' })
+    expect(rules.isLegalStep(pass, secondPass)).toBe(true)
+    const resume = applyGoAction(secondPass, { type: 'resume' })
+    expect(rules.currentRole(secondPass)).toBe('host')
+    expect(rules.isLegalStep(secondPass, resume)).toBe(true)
   })
 })

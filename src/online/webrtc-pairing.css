@@ -226,6 +226,11 @@
     padding-block: 0.35rem;
   }
 
+  .firebase-friend .webrtc-pairing__card {
+    gap: 0.2rem;
+    padding-block: 0.3rem;
+  }
+
   .webrtc-pairing__card {
     width: min(calc(100% - 0.7rem), 72rem);
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
