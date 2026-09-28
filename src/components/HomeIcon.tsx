@@ -1,6 +1,104 @@
-type HomeIconName = 'castle' | 'puzzle' | 'friends' | 'board' | 'speaker' | 'adult'
+export type HomeIconName = 'castle' | 'puzzle' | 'friends' | 'board' | 'speaker' | 'adult' | 'tic-tac-toe' | 'number-gem' | 'animal-chess' | 'gomoku' | 'reversi' | 'dark-chess' | 'jump-chess' | 'xiangqi' | 'go'
 
 export function HomeIcon({ name }: { name: HomeIconName }) {
+  if (name === 'tic-tac-toe') {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M18 7v34M30 7v34M7 18h34M7 30h34" fill="none" />
+        <circle cx="13" cy="13" r="4" fill="none" />
+        <path d="m23 22 5 5m0-5-5 5m7 8h7" fill="none" />
+      </svg>
+    )
+  }
+
+  if (name === 'number-gem') {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="m24 5 17 14-17 24L7 19z" fill="none" />
+        <path d="M7 19h34M17 19l7 24m7-24-7 24" fill="none" />
+        <circle cx="24" cy="13" r="2.5" />
+      </svg>
+    )
+  }
+
+  if (name === 'animal-chess') {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="13" r="4" />
+        <circle cx="24" cy="9" r="4" />
+        <circle cx="36" cy="13" r="4" />
+        <circle cx="9" cy="25" r="4" />
+        <circle cx="39" cy="25" r="4" />
+        <path d="M14 37c0-7 4-12 10-12s10 5 10 12c0 4-4 5-10 3-6 2-10 1-10-3z" />
+      </svg>
+    )
+  }
+
+  if (name === 'gomoku') {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M8 9h32M8 24h32M8 39h32M9 8v32M24 8v32M39 8v32" fill="none" />
+        <circle cx="9" cy="24" r="3.5" />
+        <circle cx="17" cy="24" r="3.5" />
+        <circle cx="25" cy="24" r="3.5" />
+        <circle cx="33" cy="24" r="3.5" />
+        <circle cx="41" cy="24" r="3.5" />
+      </svg>
+    )
+  }
+
+  if (name === 'reversi') {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M8 13h32v22H8zM19 13v22M29 13v22M8 24h32" fill="none" />
+        <circle cx="19" cy="24" r="6" />
+        <circle cx="29" cy="24" r="6" fill="none" />
+      </svg>
+    )
+  }
+
+  if (name === 'dark-chess') {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M12 6h19l7 7v29H12zM31 6v9h8" fill="none" />
+        <path d="M20 21a5 5 0 1 1 7 4c-2 1-3 2-3 5m0 6h.1" fill="none" />
+      </svg>
+    )
+  }
+
+  if (name === 'jump-chess') {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M8 36 21 13l7 13 12-17M10 39h28" fill="none" />
+        <circle cx="8" cy="36" r="4" />
+        <circle cx="21" cy="13" r="4" />
+        <circle cx="28" cy="26" r="4" />
+        <circle cx="40" cy="9" r="4" />
+      </svg>
+    )
+  }
+
+  if (name === 'xiangqi') {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="m7 18 9-8 8 8 8-8 9 8v5H7zM11 23v16m26-16v16M8 39h32" fill="none" />
+        <circle cx="24" cy="30" r="6" fill="none" />
+        <path d="M24 26v8m-4-4h8" fill="none" />
+      </svg>
+    )
+  }
+
+  if (name === 'go') {
+    return (
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M9 9h30M9 24h30M9 39h30M9 9v30M24 9v30M39 9v30" fill="none" />
+        <circle cx="24" cy="24" r="5" />
+        <circle cx="9" cy="9" r="2.5" />
+        <circle cx="39" cy="39" r="2.5" />
+      </svg>
+    )
+  }
+
   if (name === 'castle') {
     return (
       <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">

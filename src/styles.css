@@ -1306,10 +1306,14 @@ button:focus-visible {
 
 .game-picker-scroll-hint {
   justify-self: center;
-  margin: 0;
+  margin: 0.1rem 0 0;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid #d8deeb;
+  border-radius: 999px;
   color: #315d77;
   font-size: 0.9rem;
   font-weight: 750;
+  background: #f4f8fc;
   text-align: center;
 }
 

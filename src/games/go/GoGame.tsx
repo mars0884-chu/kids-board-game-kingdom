@@ -57,6 +57,21 @@ function createCaptureLesson(): GoState {
   return state
 }
 
+function createSuicideLesson(): GoState {
+  let state = createGoState(9)
+  for (const point of [31, 0, 39, 2, 49, 6, 41, 8]) state = playGoMove(state, point)
+  return state
+}
+
+function createKoCaptureLesson(): GoState {
+  const state = createGoState(9)
+  const board = [...state.board]
+  for (const point of [1, 9, 19]) board[point] = 'black'
+  for (const point of [10, 2, 20, 12]) board[point] = 'white'
+  const position = board.map((stone) => stone === null ? '.' : stone === 'black' ? 'B' : 'W').join('')
+  return playGoMove({ ...state, board, positionHistory: [position] }, 11)
+}
+
 function tutorialReply(state: GoState): number | null {
   const lastBlackPoint = [...state.moves].reverse().find((move) => move.player === 'black' && move.action.type === 'play')?.action
   if (lastBlackPoint?.type !== 'play') return null
@@ -78,6 +93,7 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
   const [cursor, setCursor] = useState(0)
   const [noticeId, setNoticeId] = useState<string | null>(null)
   const [tutorialStep, setTutorialStep] = useState(0)
+  const [tutorialAdvance, setTutorialAdvance] = useState(false)
   const [onlineSession, setOnlineSession] = useState<AuthoritativeTurnSession<GoState> | null>(null)
   const [onlineConnected, setOnlineConnected] = useState(false)
   const [onlinePending, setOnlinePending] = useState(false)
@@ -115,6 +131,8 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
 
   const feedbackEntry = useMemo(() => {
     if (noticeId !== null) return getChildText(noticeId)
+    if (mode === 'adventure' && tutorialStep === 6 && state.phase === 'finished') return getChildText('go.tutorial_course_done')
+    if (mode === 'adventure' && tutorialStep === 6 && state.phase === 'scoring') return getChildText('go.tutorial_scoring')
     if (state.phase === 'scoring') return getChildText('go.scoring')
     if (state.phase === 'finished') {
       if (state.result?.winner === null) return getChildText('go.draw')
@@ -124,12 +142,18 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
     if (mode === 'adventure' && state.phase === 'playing') {
       if (tutorialStep === 0) return getChildText('go.tutorial_place')
       if (tutorialStep === 1) return getChildText('go.tutorial_connect')
-      if (tutorialStep === 2) return getChildText('go.tutorial_capture')
-      if (tutorialStep === 3) return getChildText('go.tutorial_capture_hint')
-      return getChildText('go.tutorial_done')
+      if (tutorialStep === 2) return getChildText('go.tutorial_liberties')
+      if (tutorialStep === 3) return getChildText('go.tutorial_capture')
+      if (tutorialStep === 4) return getChildText('go.tutorial_suicide')
+      if (tutorialStep === 5) return getChildText('go.tutorial_ko')
+      return getChildText('go.tutorial_pass')
     }
     return getChildText('go.choose_point')
   }, [isPaused, mode, noticeId, state.phase, state.result?.winner, tutorialStep])
+
+  useEffect(() => {
+    if (mode === 'adventure' && isSupported) speak(feedbackEntry)
+  }, [feedbackEntry, isSupported, mode, speak])
 
   const turnEntry = mode === 'online' && !onlineConnected ? getChildText('online.friend_connecting') : entryForTurn(state, mode, isPaused)
   const currentScore = useMemo(() => calculateGoScore(state), [state])
@@ -138,18 +162,24 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
   const tutorialTargets = useMemo(() => {
     if (mode !== 'adventure') return new Set<number>()
     if (tutorialStep === 3) return new Set([41])
-    if (tutorialStep !== 1) return new Set<number>()
+    if (tutorialStep === 4) return new Set([40])
+    if (tutorialStep === 5) return new Set([10])
+    if (tutorialStep !== 1 && tutorialStep !== 2) return new Set<number>()
     const firstBlackPoint = state.moves.find((move) => move.player === 'black' && move.action.type === 'play')?.action
     return firstBlackPoint?.type === 'play' ? new Set(getGoGroup(state.board, 9, firstBlackPoint.point).liberties) : new Set<number>()
   }, [mode, state.board, state.moves, tutorialStep])
   const ownsTurn = mode === 'local' || (mode === 'online' ? onlineSession?.role === (state.currentPlayer === 'black' ? 'host' : 'guest') : state.currentPlayer === 'black')
-  const boardLocked = isPaused || onlinePending || !isStarted || (mode === 'online' && !onlineConnected) || (state.phase !== 'playing' && state.phase !== 'scoring') || !ownsTurn
+  const canTryTutorialRule = mode === 'adventure' && (tutorialStep === 4 || tutorialStep === 5) && !tutorialAdvance
+  const interactionLocked = isPaused || onlinePending || !isStarted || (mode === 'online' && !onlineConnected) || (state.phase !== 'playing' && state.phase !== 'scoring')
+  const turnActionsLocked = interactionLocked || !ownsTurn || (mode === 'adventure' && tutorialAdvance)
+  const boardLocked = interactionLocked || (mode === 'adventure' && (tutorialAdvance || tutorialStep === 6)) || (!ownsTurn && !canTryTutorialRule)
 
   useEffect(() => {
-    if (mode === 'local' || mode === 'online' || isPaused || !isStarted || state.phase !== 'playing' || state.currentPlayer !== 'white') return
+    if (mode === 'local' || mode === 'online' || isPaused || !isStarted || state.phase !== 'playing' || state.currentPlayer !== 'white' || (mode === 'adventure' && (tutorialAdvance || tutorialStep === 5))) return
     const timer = window.setTimeout(() => {
       setState((current) => {
         if (current.phase !== 'playing' || current.currentPlayer !== 'white') return current
+        if (mode === 'adventure' && tutorialStep === 6) return passGoTurn(current)
         if (mode === 'adventure' && tutorialStep < 2) {
           const point = tutorialReply(current)
           if (point !== null) return playGoMove(current, point)
@@ -161,7 +191,7 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
       setNoticeId(null)
     }, 360)
     return () => window.clearTimeout(timer)
-  }, [difficulty, isPaused, isStarted, mode, state, tutorialStep])
+  }, [difficulty, isPaused, isStarted, mode, state, tutorialAdvance, tutorialStep])
 
   useEffect(() => {
     if (mode === 'local' || mode === 'online' || isPaused || state.phase !== 'scoring' || state.currentPlayer !== 'white' || state.scoreAgreedBy.includes('white')) return
@@ -200,12 +230,45 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
         setTutorialStep(2)
         return
       }
+      if (mode === 'adventure' && tutorialStep === 2) {
+        const firstBlackPoint = state.moves.find((move) => move.player === 'black' && move.action.type === 'play')?.action
+        const liberties = firstBlackPoint?.type === 'play' ? getGoGroup(state.board, 9, firstBlackPoint.point).liberties : []
+        if (!liberties.includes(point)) { setNoticeId('go.tutorial_liberty_hint'); return }
+        void submitAction({ type: 'play', point })
+        setNoticeId('go.tutorial_liberty_complete')
+        setTutorialAdvance(true)
+        return
+      }
       if (mode === 'adventure' && tutorialStep === 3) {
         if (point !== 41) { setNoticeId('go.tutorial_capture_hint'); return }
         void submitAction({ type: 'play', point })
-        setTutorialStep(4)
+        setNoticeId('go.tutorial_done')
+        setTutorialAdvance(true)
         return
       }
+      if (mode === 'adventure' && tutorialStep === 4) {
+        if (point !== 40) { setNoticeId('go.tutorial_suicide_hint'); return }
+        try {
+          playGoMove(state, point)
+          setNoticeId('go.tutorial_suicide_hint')
+        } catch {
+          setNoticeId('go.tutorial_suicide_forbidden')
+          setTutorialAdvance(true)
+        }
+        return
+      }
+      if (mode === 'adventure' && tutorialStep === 5) {
+        if (point !== 10) { setNoticeId('go.tutorial_ko_hint'); return }
+        try {
+          playGoMove(state, point)
+          setNoticeId('go.tutorial_ko_hint')
+        } catch {
+          setNoticeId('go.tutorial_ko_forbidden')
+          setTutorialAdvance(true)
+        }
+        return
+      }
+      if (mode === 'adventure' && tutorialStep === 6) return
       if (state.phase === 'scoring') void submitAction({ type: 'mark-dead', point })
       else if (state.phase === 'playing' && ownsTurn) {
         void submitAction({ type: 'play', point })
@@ -264,7 +327,7 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
       return
     }
     setState(createGoState(boardSize))
-    if (mode === 'adventure') setTutorialStep(0)
+    if (mode === 'adventure') { setTutorialStep(0); setTutorialAdvance(false) }
     setCursor(Math.floor((boardSize * boardSize) / 2))
     setIsPaused(false)
     setNoticeId(null)
@@ -335,7 +398,7 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
                     const isTutorialTarget = tutorialTargets.has(point)
                     return <g key={point} id={`go-point-${boardSize}-${point}`} data-stone={stone ?? 'empty'} data-dead={isDead || undefined} data-cursor={isCursor || undefined}>
                       <circle className="go-game__hit" cx={x} cy={y} r={Math.min(step * 0.44, 22)} />
-                      {isTutorialTarget && <circle className="go-game__tutorial-target" cx={x} cy={y} r={Math.min(step * 0.42, 20)} />}
+                      {isTutorialTarget && <circle className={`go-game__tutorial-target${tutorialStep === 4 || tutorialStep === 5 ? ' go-game__tutorial-target--forbidden' : ''}`} cx={x} cy={y} r={Math.min(step * 0.42, 20)} />}
                       {isCursor && <circle className="go-game__cursor" cx={x} cy={y} r={Math.min(config.radius * 0.7, step * 0.34)} />}
                       {stone && <circle className={`go-game__piece go-game__piece--${stone}`} cx={x} cy={y} r={config.radius} fill={stone === 'black' ? 'url(#go-game-black)' : 'url(#go-game-white)'} filter="url(#go-game-shadow)" opacity={isDead ? 0.38 : 1} />}
                       {isDead && <path className="go-game__dead-mark" d={`M ${x - step * 0.17} ${y - step * 0.17} L ${x + step * 0.17} ${y + step * 0.17} M ${x + step * 0.17} ${y - step * 0.17} L ${x - step * 0.17} ${y + step * 0.17}`} />}
@@ -347,6 +410,15 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
           </section>
 
           <aside className="go-game__controls">
+            {mode === 'adventure' && (
+              <div className="go-game__tutorial-progress">
+                <BopomofoText entry={getChildText('go.tutorial_label')} />
+                <div className="go-game__tutorial-track" role="progressbar" aria-label={getChildText('go.tutorial_label').text_zh_tw} aria-valuemin={1} aria-valuemax={7} aria-valuenow={tutorialStep + 1}>
+                  <span style={{ width: `${((tutorialStep + 1) / 7) * 100}%` }} />
+                </div>
+                <strong aria-hidden="true">{tutorialStep + 1}/7</strong>
+              </div>
+            )}
             <FeedbackCard entry={feedbackEntry} tone={state.phase === 'finished' ? 'positive' : 'hint'} />
             {!isStarted ? (
               <div className="go-game__size-picker">
@@ -357,10 +429,22 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
                   ))}
                 </div>
                 <ChildActionButton entry={getChildText('go.start_game')} icon="target" tone="primary" disabled={onlinePending} onClick={() => setIsStarted(true)} />
+                <div className="go-game__tools">
+                  <ToolButton entry={getChildText('common.back')} icon="back" onClick={onBack} />
+                </div>
               </div>
             ) : null}
-            {mode === 'adventure' && tutorialStep === 2 && state.currentPlayer === 'black' && state.moves.length > 0 && (
-              <ChildActionButton entry={getChildText('go.tutorial_next')} icon="target" tone="primary" onClick={() => { setState(createCaptureLesson()); setBoardSize(9); setCursor(41); setTutorialStep(3); setNoticeId(null) }} />
+            {mode === 'adventure' && tutorialAdvance && tutorialStep === 2 && (
+              <ChildActionButton entry={getChildText('go.tutorial_next')} icon="target" tone="primary" onClick={() => { setState(createCaptureLesson()); setBoardSize(9); setCursor(41); setTutorialStep(3); setTutorialAdvance(false); setNoticeId(null) }} />
+            )}
+            {mode === 'adventure' && tutorialAdvance && tutorialStep === 3 && (
+              <ChildActionButton entry={getChildText('go.tutorial_next_forbidden')} icon="target" tone="primary" onClick={() => { setState(createSuicideLesson()); setBoardSize(9); setCursor(40); setTutorialStep(4); setTutorialAdvance(false); setNoticeId(null) }} />
+            )}
+            {mode === 'adventure' && tutorialAdvance && tutorialStep === 4 && (
+              <ChildActionButton entry={getChildText('go.tutorial_next_ko')} icon="target" tone="primary" onClick={() => { setState(createKoCaptureLesson()); setBoardSize(9); setCursor(10); setTutorialStep(5); setTutorialAdvance(false); setNoticeId(null) }} />
+            )}
+            {mode === 'adventure' && tutorialAdvance && tutorialStep === 5 && (
+              <ChildActionButton entry={getChildText('go.tutorial_next_pass')} icon="target" tone="primary" onClick={() => { setState(createGoState(9)); setBoardSize(9); setCursor(40); setTutorialStep(6); setTutorialAdvance(false); setNoticeId(null) }} />
             )}
             {mode === 'npc' && <DifficultySelector selected={difficulty} onChange={setDifficulty} disabled={state.moves.length > 0} />}
             {mode === 'local' && isStarted && state.moves.length === 0 && (
@@ -384,14 +468,14 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
             )}
             {isStarted && state.phase === 'playing' && (
               <div className="go-game__actions">
-                <ChildActionButton entry={getChildText('go.pass')} icon="target" tone="secondary" disabled={boardLocked} onClick={() => void submitAction({ type: 'pass' })} />
-                <ChildActionButton entry={getChildText('go.resign')} icon="back" tone="hint" disabled={boardLocked} onClick={() => void submitAction({ type: 'resign' })} />
+                <ChildActionButton entry={getChildText('go.pass')} icon="target" tone="secondary" disabled={turnActionsLocked} onClick={() => void submitAction({ type: 'pass' })} />
+                <ChildActionButton entry={getChildText('go.resign')} icon="back" tone="hint" disabled={turnActionsLocked} onClick={() => void submitAction({ type: 'resign' })} />
               </div>
             )}
             {state.phase === 'scoring' && (
               <div className="go-game__actions">
-                <ChildActionButton entry={getChildText('go.agree_score')} icon="star" tone="primary" disabled={boardLocked} onClick={() => void submitAction({ type: 'agree-score' })} />
-                <ChildActionButton entry={getChildText('go.resume_game')} icon="retry" tone="secondary" disabled={boardLocked} onClick={() => void submitAction({ type: 'resume' })} />
+                <ChildActionButton entry={getChildText('go.agree_score')} icon="star" tone="primary" disabled={turnActionsLocked} onClick={() => void submitAction({ type: 'agree-score' })} />
+                <ChildActionButton entry={getChildText('go.resume_game')} icon="retry" tone="secondary" disabled={turnActionsLocked} onClick={() => void submitAction({ type: 'resume' })} />
               </div>
             )}
             {state.phase === 'finished' && <ChildActionButton entry={getChildText('tictactoe.play_again')} icon="retry" tone="primary" disabled={mode === 'online' && onlineSession?.role !== 'host'} onClick={restart} />}

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import homeLandscape from './assets/art-003-r03-home-landscape.webp'
 import homePortrait from './assets/art-003-r03-home-portrait.webp'
 import { BopomofoText } from './components/BopomofoText'
-import { HomeIcon } from './components/HomeIcon'
+import { HomeIcon, type HomeIconName } from './components/HomeIcon'
 import { CommonUiPreview } from './components/common-ui'
 import { GoGame, type GoMode } from './games/go/GoGame'
 import { getChildText } from './content/child-text'
@@ -39,16 +39,16 @@ const homeModes = [
 type HomeModeId = typeof homeModes[number]['id']
 type GameId = 'tic-tac-toe' | 'gomoku' | 'reversi' | 'dark-chess' | 'number-gem' | 'animal-chess' | 'jump-chess' | 'xiangqi' | 'go'
 
-const gameOptions: readonly { id: GameId; textId: 'tictactoe.title' | 'gomoku.title' | 'reversi.title' | 'dark_chess.title' | 'number_gem.title' | 'animal_chess.title' | 'jump_chess.title' | 'xiangqi.title' | 'go.title'; icon: 'puzzle' | 'board'; tone: 'mint' | 'coral' | 'blue' }[] = [
-  { id: 'tic-tac-toe', textId: 'tictactoe.title', icon: 'puzzle', tone: 'mint' },
-  { id: 'number-gem', textId: 'number_gem.title', icon: 'puzzle', tone: 'blue' },
-  { id: 'animal-chess', textId: 'animal_chess.title', icon: 'board', tone: 'mint' },
-  { id: 'gomoku', textId: 'gomoku.title', icon: 'board', tone: 'coral' },
-  { id: 'reversi', textId: 'reversi.title', icon: 'board', tone: 'blue' },
-  { id: 'dark-chess', textId: 'dark_chess.title', icon: 'board', tone: 'mint' },
-  { id: 'jump-chess', textId: 'jump_chess.title', icon: 'board', tone: 'coral' },
-  { id: 'xiangqi', textId: 'xiangqi.title', icon: 'board', tone: 'coral' },
-  { id: 'go', textId: 'go.title', icon: 'board', tone: 'blue' },
+const gameOptions: readonly { id: GameId; textId: 'tictactoe.title' | 'gomoku.title' | 'reversi.title' | 'dark_chess.title' | 'number_gem.title' | 'animal_chess.title' | 'jump_chess.title' | 'xiangqi.title' | 'go.title'; icon: HomeIconName; tone: 'mint' | 'coral' | 'blue' }[] = [
+  { id: 'tic-tac-toe', textId: 'tictactoe.title', icon: 'tic-tac-toe', tone: 'mint' },
+  { id: 'number-gem', textId: 'number_gem.title', icon: 'number-gem', tone: 'blue' },
+  { id: 'animal-chess', textId: 'animal_chess.title', icon: 'animal-chess', tone: 'mint' },
+  { id: 'gomoku', textId: 'gomoku.title', icon: 'gomoku', tone: 'coral' },
+  { id: 'reversi', textId: 'reversi.title', icon: 'reversi', tone: 'blue' },
+  { id: 'dark-chess', textId: 'dark_chess.title', icon: 'dark-chess', tone: 'mint' },
+  { id: 'jump-chess', textId: 'jump_chess.title', icon: 'jump-chess', tone: 'coral' },
+  { id: 'xiangqi', textId: 'xiangqi.title', icon: 'xiangqi', tone: 'coral' },
+  { id: 'go', textId: 'go.title', icon: 'go', tone: 'blue' },
 ]
 
 export default function App() {

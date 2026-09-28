@@ -3727,6 +3727,134 @@
     "audience": "child"
   },
   {
+    "id": "go.tutorial_label",
+    "text_zh_tw": "圍棋冒險教學",
+    "segments": [{ "text": "圍", "bopomofo": "ㄨㄟˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "冒", "bopomofo": "ㄇㄠˋ" }, { "text": "險", "bopomofo": "ㄒㄧㄢˇ" }, { "text": "教", "bopomofo": "ㄐㄧㄠˋ" }, { "text": "學", "bopomofo": "ㄒㄩㄝˊ" }],
+    "speech_zh_tw": "圍棋冒險教學",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_liberties",
+    "text_zh_tw": "棋子旁邊的空交點叫做氣。請選圈起來的氣。",
+    "segments": [{ "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "子", "bopomofo": "ㄗˇ" }, { "text": "旁", "bopomofo": "ㄆㄤˊ" }, { "text": "邊", "bopomofo": "ㄅㄧㄢ" }, { "text": "的", "bopomofo": "ㄉㄜ˙" }, { "text": "空", "bopomofo": "ㄎㄨㄥ" }, { "text": "交", "bopomofo": "ㄐㄧㄠ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }, { "text": "叫", "bopomofo": "ㄐㄧㄠˋ" }, { "text": "做", "bopomofo": "ㄗㄨㄛˋ" }, { "text": "氣", "bopomofo": "ㄑㄧˋ" }, { "text": "。", "bopomofo": null }, { "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "選", "bopomofo": "ㄒㄩㄢˇ" }, { "text": "圈", "bopomofo": "ㄑㄩㄢ" }, { "text": "起", "bopomofo": "ㄑㄧˇ" }, { "text": "來", "bopomofo": "ㄌㄞˊ" }, { "text": "的", "bopomofo": "ㄉㄜ˙" }, { "text": "氣", "bopomofo": "ㄑㄧˋ" }, { "text": "。", "bopomofo": null }],
+    "speech_zh_tw": "棋子旁邊的空交點叫做氣。請選圈起來的氣。",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_liberty_hint",
+    "text_zh_tw": "請選黑棋旁邊圈起來的空交點",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "選", "bopomofo": "ㄒㄩㄢˇ" }, { "text": "黑", "bopomofo": "ㄏㄟ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "旁", "bopomofo": "ㄆㄤˊ" }, { "text": "邊", "bopomofo": "ㄅㄧㄢ" }, { "text": "圈", "bopomofo": "ㄑㄩㄢ" }, { "text": "起", "bopomofo": "ㄑㄧˇ" }, { "text": "來", "bopomofo": "ㄌㄞˊ" }, { "text": "的", "bopomofo": "ㄉㄜ˙" }, { "text": "空", "bopomofo": "ㄎㄨㄥ" }, { "text": "交", "bopomofo": "ㄐㄧㄠ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }],
+    "speech_zh_tw": "請選黑棋旁邊圈起來的空交點",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_liberty_complete",
+    "text_zh_tw": "你找到氣了。接著看看怎麼提子。",
+    "segments": [{ "text": "你", "bopomofo": "ㄋㄧˇ" }, { "text": "找", "bopomofo": "ㄓㄠˇ" }, { "text": "到", "bopomofo": "ㄉㄠˋ" }, { "text": "氣", "bopomofo": "ㄑㄧˋ" }, { "text": "了", "bopomofo": "ㄌㄜ˙" }, { "text": "。", "bopomofo": null }, { "text": "接", "bopomofo": "ㄐㄧㄝ" }, { "text": "著", "bopomofo": "ㄓㄜ˙" }, { "text": "看", "bopomofo": "ㄎㄢˋ" }, { "text": "看", "bopomofo": "ㄎㄢˋ" }, { "text": "怎", "bopomofo": "ㄗㄣˇ" }, { "text": "麼", "bopomofo": "ㄇㄜ˙" }, { "text": "提", "bopomofo": "ㄊㄧˊ" }, { "text": "子", "bopomofo": "ㄗˇ" }, { "text": "。", "bopomofo": null }],
+    "speech_zh_tw": "你找到氣了。接著看看怎麼提子。",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_next_forbidden",
+    "text_zh_tw": "開始禁著點練習",
+    "segments": [{ "text": "開", "bopomofo": "ㄎㄞ" }, { "text": "始", "bopomofo": "ㄕˇ" }, { "text": "禁", "bopomofo": "ㄐㄧㄣˋ" }, { "text": "著", "bopomofo": "ㄓㄨㄛˊ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }, { "text": "練", "bopomofo": "ㄌㄧㄢˋ" }, { "text": "習", "bopomofo": "ㄒㄧˊ" }],
+    "speech_zh_tw": "開始禁著點練習",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_suicide",
+    "text_zh_tw": "四周都是黑棋，中間沒有氣。請試著點中間。",
+    "segments": [{ "text": "四", "bopomofo": "ㄙˋ" }, { "text": "周", "bopomofo": "ㄓㄡ" }, { "text": "都", "bopomofo": "ㄉㄡ" }, { "text": "是", "bopomofo": "ㄕˋ" }, { "text": "黑", "bopomofo": "ㄏㄟ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "，", "bopomofo": null }, { "text": "中", "bopomofo": "ㄓㄨㄥ" }, { "text": "間", "bopomofo": "ㄐㄧㄢ" }, { "text": "沒", "bopomofo": "ㄇㄟˊ" }, { "text": "有", "bopomofo": "ㄧㄡˇ" }, { "text": "氣", "bopomofo": "ㄑㄧˋ" }, { "text": "。", "bopomofo": null }, { "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "試", "bopomofo": "ㄕˋ" }, { "text": "著", "bopomofo": "ㄓㄨㄛˊ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }, { "text": "中", "bopomofo": "ㄓㄨㄥ" }, { "text": "間", "bopomofo": "ㄐㄧㄢ" }, { "text": "。", "bopomofo": null }],
+    "speech_zh_tw": "四周都是黑棋，中間沒有氣。請試著點中間。",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_suicide_hint",
+    "text_zh_tw": "請點被黑棋圍住的中間交點",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }, { "text": "被", "bopomofo": "ㄅㄟˋ" }, { "text": "黑", "bopomofo": "ㄏㄟ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "圍", "bopomofo": "ㄨㄟˊ" }, { "text": "住", "bopomofo": "ㄓㄨˋ" }, { "text": "的", "bopomofo": "ㄉㄜ˙" }, { "text": "中", "bopomofo": "ㄓㄨㄥ" }, { "text": "間", "bopomofo": "ㄐㄧㄢ" }, { "text": "交", "bopomofo": "ㄐㄧㄠ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }],
+    "speech_zh_tw": "請點被黑棋圍住的中間交點",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_suicide_forbidden",
+    "text_zh_tw": "中間沒有氣，這裡是禁著點，不能下子。",
+    "segments": [{ "text": "中", "bopomofo": "ㄓㄨㄥ" }, { "text": "間", "bopomofo": "ㄐㄧㄢ" }, { "text": "沒", "bopomofo": "ㄇㄟˊ" }, { "text": "有", "bopomofo": "ㄧㄡˇ" }, { "text": "氣", "bopomofo": "ㄑㄧˋ" }, { "text": "，", "bopomofo": null }, { "text": "這", "bopomofo": "ㄓㄜˋ" }, { "text": "裡", "bopomofo": "ㄌㄧˇ" }, { "text": "是", "bopomofo": "ㄕˋ" }, { "text": "禁", "bopomofo": "ㄐㄧㄣˋ" }, { "text": "著", "bopomofo": "ㄓㄨㄛˊ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }, { "text": "，", "bopomofo": null }, { "text": "不", "bopomofo": "ㄅㄨˋ" }, { "text": "能", "bopomofo": "ㄋㄥˊ" }, { "text": "下", "bopomofo": "ㄒㄧㄚˋ" }, { "text": "子", "bopomofo": "ㄗˇ" }, { "text": "。", "bopomofo": null }],
+    "speech_zh_tw": "中間沒有氣，這裡是禁著點，不能下子。",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_next_ko",
+    "text_zh_tw": "繼續劫的練習",
+    "segments": [{ "text": "繼", "bopomofo": "ㄐㄧˋ" }, { "text": "續", "bopomofo": "ㄒㄩˋ" }, { "text": "劫", "bopomofo": "ㄐㄧㄝˊ" }, { "text": "的", "bopomofo": "ㄉㄜ˙" }, { "text": "練", "bopomofo": "ㄌㄧㄢˋ" }, { "text": "習", "bopomofo": "ㄒㄧˊ" }],
+    "speech_zh_tw": "繼續劫的練習",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_ko",
+    "text_zh_tw": "黑棋剛提一子，白棋不能立刻回提。",
+    "segments": [{ "text": "黑", "bopomofo": "ㄏㄟ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "剛", "bopomofo": "ㄍㄤ" }, { "text": "提", "bopomofo": "ㄊㄧˊ" }, { "text": "一", "bopomofo": "ㄧ" }, { "text": "子", "bopomofo": "ㄗˇ" }, { "text": "，", "bopomofo": null }, { "text": "白", "bopomofo": "ㄅㄞˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "不", "bopomofo": "ㄅㄨˋ" }, { "text": "能", "bopomofo": "ㄋㄥˊ" }, { "text": "立", "bopomofo": "ㄌㄧˋ" }, { "text": "刻", "bopomofo": "ㄎㄜˋ" }, { "text": "回", "bopomofo": "ㄏㄨㄟˊ" }, { "text": "提", "bopomofo": "ㄊㄧˊ" }, { "text": "。", "bopomofo": null }],
+    "speech_zh_tw": "黑棋剛提一子，白棋不能立刻回提。",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_ko_hint",
+    "text_zh_tw": "請點圈起的交點，試試白棋能不能回提。",
+    "segments": [{ "text": "請", "bopomofo": "ㄑㄧㄥˇ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }, { "text": "圈", "bopomofo": "ㄑㄩㄢ" }, { "text": "起", "bopomofo": "ㄑㄧˇ" }, { "text": "的", "bopomofo": "ㄉㄜ˙" }, { "text": "交", "bopomofo": "ㄐㄧㄠ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }, { "text": "，", "bopomofo": null }, { "text": "試", "bopomofo": "ㄕˋ" }, { "text": "試", "bopomofo": "ㄕˋ" }, { "text": "白", "bopomofo": "ㄅㄞˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "能", "bopomofo": "ㄋㄥˊ" }, { "text": "不", "bopomofo": "ㄅㄨˋ" }, { "text": "能", "bopomofo": "ㄋㄥˊ" }, { "text": "回", "bopomofo": "ㄏㄨㄟˊ" }, { "text": "提", "bopomofo": "ㄊㄧˊ" }, { "text": "。", "bopomofo": null }],
+    "speech_zh_tw": "請點圈起的交點，試試白棋能不能回提。",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_ko_forbidden",
+    "text_zh_tw": "整盤棋形重複，不能立刻回提。",
+    "segments": [{ "text": "整", "bopomofo": "ㄓㄥˇ" }, { "text": "盤", "bopomofo": "ㄆㄢˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "形", "bopomofo": "ㄒㄧㄥˊ" }, { "text": "重", "bopomofo": "ㄔㄨㄥˊ" }, { "text": "複", "bopomofo": "ㄈㄨˋ" }, { "text": "，", "bopomofo": null }, { "text": "不", "bopomofo": "ㄅㄨˋ" }, { "text": "能", "bopomofo": "ㄋㄥˊ" }, { "text": "立", "bopomofo": "ㄌㄧˋ" }, { "text": "刻", "bopomofo": "ㄎㄜˋ" }, { "text": "回", "bopomofo": "ㄏㄨㄟˊ" }, { "text": "提", "bopomofo": "ㄊㄧˊ" }, { "text": "。", "bopomofo": null }],
+    "speech_zh_tw": "整盤棋形重複，不能立刻回提。",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_next_pass",
+    "text_zh_tw": "開始虛著和計分練習",
+    "segments": [{ "text": "開", "bopomofo": "ㄎㄞ" }, { "text": "始", "bopomofo": "ㄕˇ" }, { "text": "虛", "bopomofo": "ㄒㄩ" }, { "text": "著", "bopomofo": "ㄓㄨㄛˊ" }, { "text": "和", "bopomofo": "ㄏㄢˋ" }, { "text": "計", "bopomofo": "ㄐㄧˋ" }, { "text": "分", "bopomofo": "ㄈㄣ" }, { "text": "練", "bopomofo": "ㄌㄧㄢˋ" }, { "text": "習", "bopomofo": "ㄒㄧˊ" }],
+    "speech_zh_tw": "開始虛著和計分練習",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_pass",
+    "text_zh_tw": "沒有合適的落點時，可以選虛著。",
+    "segments": [{ "text": "沒", "bopomofo": "ㄇㄟˊ" }, { "text": "有", "bopomofo": "ㄧㄡˇ" }, { "text": "合", "bopomofo": "ㄏㄜˊ" }, { "text": "適", "bopomofo": "ㄕˋ" }, { "text": "的", "bopomofo": "ㄉㄜ˙" }, { "text": "落", "bopomofo": "ㄌㄨㄛˋ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }, { "text": "時", "bopomofo": "ㄕˊ" }, { "text": "，", "bopomofo": null }, { "text": "可", "bopomofo": "ㄎㄜˇ" }, { "text": "以", "bopomofo": "ㄧˇ" }, { "text": "選", "bopomofo": "ㄒㄩㄢˇ" }, { "text": "虛", "bopomofo": "ㄒㄩ" }, { "text": "著", "bopomofo": "ㄓㄨㄛˊ" }, { "text": "。", "bopomofo": null }],
+    "speech_zh_tw": "沒有合適的落點時，可以選虛著。",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_scoring",
+    "text_zh_tw": "雙方連續虛著後，一起確認分數。",
+    "segments": [{ "text": "雙", "bopomofo": "ㄕㄨㄤ" }, { "text": "方", "bopomofo": "ㄈㄤ" }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "續", "bopomofo": "ㄒㄩˋ" }, { "text": "虛", "bopomofo": "ㄒㄩ" }, { "text": "著", "bopomofo": "ㄓㄨㄛˊ" }, { "text": "後", "bopomofo": "ㄏㄡˋ" }, { "text": "，", "bopomofo": null }, { "text": "一", "bopomofo": "ㄧ" }, { "text": "起", "bopomofo": "ㄑㄧˇ" }, { "text": "確", "bopomofo": "ㄑㄩㄝˋ" }, { "text": "認", "bopomofo": "ㄖㄣˋ" }, { "text": "分", "bopomofo": "ㄈㄣ" }, { "text": "數", "bopomofo": "ㄕㄨˋ" }, { "text": "。", "bopomofo": null }],
+    "speech_zh_tw": "雙方連續虛著後，一起確認分數。",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
+    "id": "go.tutorial_course_done",
+    "text_zh_tw": "你學會落子、連棋、找氣、提子、禁著點、劫和虛著了。",
+    "segments": [{ "text": "你", "bopomofo": "ㄋㄧˇ" }, { "text": "學", "bopomofo": "ㄒㄩㄝˊ" }, { "text": "會", "bopomofo": "ㄏㄨㄟˋ" }, { "text": "落", "bopomofo": "ㄌㄨㄛˋ" }, { "text": "子", "bopomofo": "ㄗˇ" }, { "text": "、", "bopomofo": null }, { "text": "連", "bopomofo": "ㄌㄧㄢˊ" }, { "text": "棋", "bopomofo": "ㄑㄧˊ" }, { "text": "、", "bopomofo": null }, { "text": "找", "bopomofo": "ㄓㄠˇ" }, { "text": "氣", "bopomofo": "ㄑㄧˋ" }, { "text": "、", "bopomofo": null }, { "text": "提", "bopomofo": "ㄊㄧˊ" }, { "text": "子", "bopomofo": "ㄗˇ" }, { "text": "、", "bopomofo": null }, { "text": "禁", "bopomofo": "ㄐㄧㄣˋ" }, { "text": "著", "bopomofo": "ㄓㄨㄛˊ" }, { "text": "點", "bopomofo": "ㄉㄧㄢˇ" }, { "text": "、", "bopomofo": null }, { "text": "劫", "bopomofo": "ㄐㄧㄝˊ" }, { "text": "和", "bopomofo": "ㄏㄢˋ" }, { "text": "虛", "bopomofo": "ㄒㄩ" }, { "text": "著", "bopomofo": "ㄓㄨㄛˊ" }, { "text": "了", "bopomofo": "ㄌㄜ˙" }, { "text": "。", "bopomofo": null }],
+    "speech_zh_tw": "你學會落子、連棋、找氣、提子、禁著點、劫和虛著了。",
+    "audio_asset": "tts:zh-TW",
+    "audience": "child"
+  },
+  {
     "id": "go.pass",
     "text_zh_tw": "虛著",
     "segments": [{ "text": "虛", "bopomofo": "ㄒㄩ" }, { "text": "著", "bopomofo": "ㄓㄨㄛˊ" }],
