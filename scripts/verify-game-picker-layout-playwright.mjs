@@ -33,6 +33,51 @@ try {
   for (const viewport of viewports) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height })
     await page.goto(`${baseUrl}?layout-check=${viewport.name}`, { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('.home-mode-panel .mode-button')
+
+    const home = await page.evaluate(() => {
+      const panel = document.querySelector('.home-mode-panel')
+      const buttons = [...panel.querySelectorAll(':scope > .mode-button')]
+      const rects = buttons.map((button) => {
+        const bounds = button.getBoundingClientRect()
+        const label = button.querySelector('.bopomofo-text')
+        return {
+          left: bounds.left,
+          top: bounds.top,
+          right: bounds.right,
+          bottom: bounds.bottom,
+          width: bounds.width,
+          height: bounds.height,
+          labelOverflow: label ? label.scrollWidth > label.clientWidth + 1 : false,
+        }
+      })
+      const utilityRects = [...document.querySelectorAll('.home-utilities button')]
+        .filter((button) => getComputedStyle(button).display !== 'none')
+        .map((button) => button.getBoundingClientRect())
+      const overlapsUtilities = rects.some((card) => utilityRects.some((utility) =>
+        card.left < utility.right && card.right > utility.left
+        && card.top < utility.bottom && card.bottom > utility.top))
+      return {
+        viewport: { width: window.innerWidth, height: window.innerHeight },
+        scrollWidth: document.documentElement.scrollWidth,
+        gridRows: getComputedStyle(panel).gridTemplateRows.split(' ').length,
+        distinctRows: new Set(rects.map((rect) => Math.round(rect.top))).size,
+        buttonCount: buttons.length,
+        rects,
+        overlapsUtilities,
+      }
+    })
+
+    assert(home.viewport.width === viewport.width && home.viewport.height === viewport.height, `${viewport.name} 首頁視窗量測尺寸不符。`)
+    assert(home.scrollWidth <= viewport.width + 1, `${viewport.name} 首頁發生水平溢出。`)
+    assert(home.buttonCount === 4 && home.gridRows === 2 && home.distinctRows === 2, `${viewport.name} 首頁模式入口未排列為兩排：${JSON.stringify(home)}。`)
+    assert(home.rects.every((rect) => rect.width >= 48 && rect.height >= 48), `${viewport.name} 首頁模式觸控區小於 48px。`)
+    assert(home.rects.every((rect) => rect.left >= -1 && rect.right <= viewport.width + 1 && rect.top >= -1 && rect.bottom <= viewport.height + 1), `${viewport.name} 首頁模式卡片超出可視範圍。`)
+    assert(!home.rects.some((card, index) => home.rects.slice(index + 1).some((other) =>
+      card.left < other.right && card.right > other.left && card.top < other.bottom && card.bottom > other.top)), `${viewport.name} 首頁模式卡片互相重疊。`)
+    assert(!home.overlapsUtilities, `${viewport.name} 首頁模式卡片與底部工具重疊。`)
+    assert(home.rects.every((rect) => !rect.labelOverflow), `${viewport.name} 首頁模式文案發生水平裁切。`)
+
     await page.locator('.home-mode-panel .mode-button').nth(1).click()
     await page.waitForSelector('.game-picker-content')
 
