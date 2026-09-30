@@ -14,6 +14,10 @@ function indexFromSeed(seed: number, count: number): number {
   return (value >>> 0) % count
 }
 
+function seedFromPosition(state: XiangqiState): number {
+  return state.turns.reduce((seed, move) => Math.imul(seed ^ (move.from * 97 + move.to), 16777619), 20260925)
+}
+
 function evaluate(state: XiangqiState, player: XiangqiPlayer): number {
   if (state.phase === 'won') return state.winner === player ? 1_000_000 : -1_000_000
   if (state.phase === 'draw') return 0
@@ -40,7 +44,7 @@ function rankedMoves(state: XiangqiState, player: XiangqiPlayer) {
 export function chooseXiangqiMove(
   state: XiangqiState,
   difficulty: XiangqiDifficulty,
-  seed = state.turns.length * 113 + 20260925,
+  seed = seedFromPosition(state),
 ): XiangqiMove | null {
   if (state.phase === 'won' || state.phase === 'draw') return null
   const legal = getLegalMoves(state)

@@ -43,3 +43,6 @@ art/proposals/
 /docs/games/ART-007-r01-CAPTURE-BLOCKER.md
 /scripts/capture-*-art-proposal*.mjs
 /src/assets/*-candidate.*
+
+# 私人語音參考樣本與本機合成暫存，不得推送公開儲存庫
+/private-voice/

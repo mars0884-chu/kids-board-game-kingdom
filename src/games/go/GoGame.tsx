@@ -86,6 +86,10 @@ function tutorialReply(state: GoState): number | null {
   })[0] ?? null
 }
 
+function goPositionSeed(state: GoState): number {
+  return state.moves.reduce((seed, move) => Math.imul(seed ^ (move.action.type === 'play' ? move.action.point + 1 : 0), 16777619), 20260928)
+}
+
 export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('beginner')
   const startingSize = initialBoardSize ?? (mode === 'local' ? 9 : sizeForDifficulty('beginner'))
@@ -101,6 +105,7 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
   const [onlineConnected, setOnlineConnected] = useState(false)
   const [onlinePending, setOnlinePending] = useState(false)
   const boardRef = useRef<SVGSVGElement>(null)
+  const lastTouchTimeRef = useRef(0)
   const { isSupported, speak } = useSpeech()
 
   const roomFactory = useCallback<FirebaseRoomFactory<AuthoritativeTurnSession<GoState>>>(
@@ -187,7 +192,7 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
           const point = tutorialReply(current)
           if (point !== null) return playGoMove(current, point)
         }
-        const move = chooseGoMove(current, difficulty, 20260928 + current.moves.length * 193)
+        const move = chooseGoMove(current, difficulty, goPositionSeed(current))
         if (move === null) return passGoTurn(current)
         try { return playGoMove(current, move) } catch { return current }
       })
@@ -284,12 +289,12 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
     }
   }
 
-  const handleBoardClick = (event: PointerEvent<SVGSVGElement>) => {
+  const activateBoardPoint = (clientX: number, clientY: number, board: SVGSVGElement) => {
     if (boardLocked) return
-    const bounds = event.currentTarget.getBoundingClientRect()
+    const bounds = board.getBoundingClientRect()
     if (bounds.width <= 0 || bounds.height <= 0) return
-    const x = (event.clientX - bounds.left) / bounds.width * 600
-    const y = (event.clientY - bounds.top) / bounds.height * 600
+    const x = (clientX - bounds.left) / bounds.width * 600
+    const y = (clientY - bounds.top) / bounds.height * 600
     const column = Math.round((x - config.start) / step)
     const row = Math.round((y - config.start) / step)
     if (row < 0 || row >= state.boardSize || column < 0 || column >= state.boardSize) return
@@ -367,9 +372,16 @@ export function GoGame({ mode, onBack, initialBoardSize }: GoGameProps) {
                 aria-colcount={boardSize}
                 aria-activedescendant={`go-point-${boardSize}-${cursor}`}
                 tabIndex={boardLocked ? -1 : 0}
-                onClick={handleBoardClick}
+                onClick={(event) => {
+                  if (Date.now() - lastTouchTimeRef.current < 800) return
+                  activateBoardPoint(event.clientX, event.clientY, event.currentTarget)
+                }}
                 onKeyDown={handleBoardKey}
-                onPointerDown={(event) => { if (event.pointerType === 'touch') event.preventDefault() }}
+                onPointerUp={(event: PointerEvent<SVGSVGElement>) => {
+                  if (event.pointerType !== 'touch') return
+                  lastTouchTimeRef.current = Date.now()
+                  activateBoardPoint(event.clientX, event.clientY, event.currentTarget)
+                }}
                 data-line-count={boardSize * 2}
               >
                 <defs>

@@ -46,7 +46,7 @@ describe('正式圍棋遊戲', () => {
     fireEvent.click(board, { clientX: 49.5 + 5 * ((550.5 - 49.5) / 8), clientY: 49.5 + 4 * ((550.5 - 49.5) / 8) })
 
     fireEvent.click(await screen.findByRole('button', { name: /開始禁著點練習/ }))
-    fireEvent.click(board, { clientX: 300, clientY: 300 })
+    fireEvent.pointerUp(board, { pointerType: 'touch', clientX: 300, clientY: 300 })
 
     expect(container.querySelector('#go-point-9-40')).toHaveAttribute('data-stone', 'empty')
     expect(await screen.findByRole('button', { name: /繼續劫的練習/ })).toBeInTheDocument()

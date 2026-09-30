@@ -49,6 +49,8 @@ try {
           width: bounds.width,
           height: bounds.height,
           labelOverflow: label ? label.scrollWidth > label.clientWidth + 1 : false,
+          labelWidth: label?.clientWidth ?? 0,
+          labelScrollWidth: label?.scrollWidth ?? 0,
         }
       })
       const utilityRects = [...document.querySelectorAll('.home-utilities button')]
@@ -76,7 +78,7 @@ try {
     assert(!home.rects.some((card, index) => home.rects.slice(index + 1).some((other) =>
       card.left < other.right && card.right > other.left && card.top < other.bottom && card.bottom > other.top)), `${viewport.name} 首頁模式卡片互相重疊。`)
     assert(!home.overlapsUtilities, `${viewport.name} 首頁模式卡片與底部工具重疊。`)
-    assert(home.rects.every((rect) => !rect.labelOverflow), `${viewport.name} 首頁模式文案發生水平裁切。`)
+    assert(home.rects.every((rect) => !rect.labelOverflow), `${viewport.name} 首頁模式文案發生水平裁切：${JSON.stringify(home.rects)}。`)
 
     await page.locator('.home-mode-panel .mode-button').nth(1).click()
     await page.waitForSelector('.game-picker-content')
@@ -101,8 +103,9 @@ try {
     assert(before.viewport.width === viewport.width && before.viewport.height === viewport.height, `${viewport.name} 視窗量測尺寸不符。`)
     assert(before.document.scrollWidth <= viewport.width + 1, `${viewport.name} 發生水平溢出。`)
     assert(before.buttonCount === 9, `${viewport.name} 棋種按鍵數量不是 9。`)
-    assert(before.gridRows === 2, `${viewport.name} 棋種按鈕未維持兩排：${JSON.stringify({ rows: before.gridRowsRaw, columns: before.gridColumnsRaw, buttons: before.buttonRects, width: before.gridWidth })}。`)
-    assert(before.gridScrollWidth >= before.gridWidth, `${viewport.name} 棋種瀏覽區尺寸錯誤。`)
+    const expectedRows = viewport.width > 1050 ? 3 : 5
+    assert(before.gridRows === expectedRows, `${viewport.name} 棋種按鈕排數錯誤：${JSON.stringify({ rows: before.gridRowsRaw, columns: before.gridColumnsRaw, buttons: before.buttonRects, width: before.gridWidth })}。`)
+    assert(before.gridScrollWidth <= before.gridWidth + 1, `${viewport.name} 棋種選擇不應水平捲動。`)
     assert(before.bodyOverflowY === 'auto' || before.bodyOverflowY === 'scroll', `${viewport.name} 沒有開啟垂直捲動。`)
 
     const goButton = page.locator('.game-picker-actions .mode-button').nth(8)
@@ -112,7 +115,7 @@ try {
       const scroller = button.closest('.game-picker-actions').getBoundingClientRect()
       return bounds.left >= scroller.left - 1 && bounds.right <= scroller.right + 1
     })
-    assert(goButtonVisible, `${viewport.name} 水平瀏覽後仍無法完整看到圍棋入口。`)
+    assert(goButtonVisible, `${viewport.name} 圍棋入口未完整顯示。`)
 
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
     const backButton = await page.locator('.game-picker-back').evaluate((element) => {

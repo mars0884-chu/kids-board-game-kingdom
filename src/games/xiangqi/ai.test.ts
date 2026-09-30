@@ -14,4 +14,15 @@ describe('象棋四階 NPC', () => {
     expect(JSON.stringify(initial)).toBe(before)
     expect(applyMove(initial, move!.from, move!.to).currentPlayer).toBe('black')
   })
+  it('入門 NPC 會因紅方不同開局選擇不同的合法回應', () => {
+    const initial = createInitialXiangqiState()
+    const replies = getLegalMoves(initial).slice(0, 12).map(move => {
+      const next = applyMove(initial, move.from, move.to)
+      const answer = chooseXiangqiMove(next, 'beginner')
+      expect(answer).not.toBeNull()
+      expect(getLegalMoves(next)).toContainEqual(answer)
+      return `${answer!.from}-${answer!.to}`
+    })
+    expect(new Set(replies).size).toBeGreaterThan(1)
+  })
 })

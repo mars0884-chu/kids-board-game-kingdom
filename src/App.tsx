@@ -297,7 +297,6 @@ export default function App() {
                 </button>
               ))}
             </div>
-            <BopomofoText className="game-picker-scroll-hint" entry={getChildText('ui.scroll_games')} />
             <button className="game-picker-back" type="button" onClick={() => setSelectedHomeMode(null)}>
               <BopomofoText entry={getChildText('common.back')} />
             </button>

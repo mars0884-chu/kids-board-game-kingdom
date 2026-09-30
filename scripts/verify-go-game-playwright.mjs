@@ -49,7 +49,7 @@ let context
 try {
   const results = []
   for (const viewport of viewports) {
-    context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, deviceScaleFactor: 1 })
+    context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, deviceScaleFactor: 1, hasTouch: viewport.name === '390x844', isMobile: viewport.name === '390x844' })
     const page = await context.newPage()
     page.setDefaultTimeout(8_000)
     const pageErrors = []
@@ -65,18 +65,32 @@ try {
     assert(boardMetrics.left >= -1 && boardMetrics.right <= viewport.width + 1 && boardMetrics.pageWidth <= viewport.width + 1, `${viewport.name} 正式棋盤或頁面發生水平溢位。`)
 
     // 實際完成冒險課程的落子、連棋與提子，不使用預覽路由或測試專用畫面。
-    await clickBoardPoint(page, { row: 4, column: 4 }, 9)
+    const board = page.locator('.go-game__board')
+    await board.focus()
+    await board.press('Enter')
     await page.waitForFunction(() => document.querySelectorAll('.go-game__board [data-stone="black"]').length === 1)
     await page.locator('.go-game__turn--white').waitFor()
     await page.locator('.go-game__turn--black').waitFor()
     await page.locator('.go-game__tutorial-target').first().waitFor()
-    await clickTutorialTarget(page)
+    await board.press('ArrowRight')
+    await board.press('Enter')
     await page.locator('.go-game__turn--white').waitFor()
     await page.locator('.go-game__turn--black').waitFor()
+    await board.press('ArrowDown')
+    await board.press('Enter')
     await page.getByRole('button', { name: /開始提子練習/ }).waitFor()
     await page.getByRole('button', { name: /開始提子練習/ }).click()
     await clickTutorialTarget(page)
     await page.waitForFunction(() => document.querySelector('#go-point-9-40')?.getAttribute('data-stone') === 'empty')
+    await page.getByRole('button', { name: /開始禁著點練習/ }).click()
+    const forbidden = await page.locator('.go-game__tutorial-target').first().evaluate((circle) => {
+      const board = circle.ownerSVGElement
+      const box = board.getBoundingClientRect()
+      return { x: box.left + Number(circle.getAttribute('cx')) / 600 * box.width, y: box.top + Number(circle.getAttribute('cy')) / 600 * box.height }
+    })
+    if (viewport.name === '390x844') await page.touchscreen.tap(forbidden.x, forbidden.y)
+    else await page.mouse.click(forbidden.x, forbidden.y)
+    await page.getByRole('button', { name: /繼續劫的練習/ }).waitFor()
 
     // 同一正式遊戲入口檢查 19 路成人版，不裁切也不更改棋盤比例。
     if (viewport.name === '390x844') {
