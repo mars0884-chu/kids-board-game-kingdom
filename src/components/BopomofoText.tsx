@@ -1,5 +1,6 @@
-import type { ElementType, HTMLAttributes } from 'react'
+import { useEffect, useRef, type ElementType, type HTMLAttributes } from 'react'
 import type { ChildTextEntry, ChildTextSegment } from '../content/child-text'
+import { warmRecordedSpeech } from '../audio/recordedSpeech'
 
 interface BopomofoTextProps extends HTMLAttributes<HTMLElement> {
   as?: ElementType
@@ -75,8 +76,22 @@ export function BopomofoText({
   entry,
   ...props
 }: BopomofoTextProps) {
+  const elementRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const element = elementRef.current
+    if (!element || !('IntersectionObserver' in window)) return
+    const observer = new IntersectionObserver((items) => {
+      if (items.some((item) => item.isIntersecting)) {
+        warmRecordedSpeech(entry)
+        observer.disconnect()
+      }
+    }, { rootMargin: '120px' })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [entry])
   return (
     <Component
+      ref={elementRef}
       className={`bopomofo-text ${className}`.trim()}
       aria-label={entry.text_zh_tw}
       {...props}

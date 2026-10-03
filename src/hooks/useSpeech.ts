@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { ChildTextEntry } from '../content/child-text'
+import { recordedSpeechSource } from '../audio/recordedSpeech'
 let activeAudio: HTMLAudioElement | null = null
 
 export function selectTaiwanSpeechVoice(voices: readonly SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
@@ -50,8 +51,7 @@ export function useSpeech() {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel()
     const recording = entry.audio_asset
     if (recording.startsWith('voice/') && 'Audio' in window) {
-      const basePath = (import.meta as unknown as { env: { BASE_URL: string } }).env.BASE_URL
-      const audio = new Audio(`${basePath}${recording}`)
+      const audio = new Audio(recordedSpeechSource(entry)!)
       activeAudio = audio
       audio.onended = () => { if (activeAudio === audio) activeAudio = null; setIsPaused(false) }
       audio.onerror = () => { if (activeAudio === audio) activeAudio = null; setIsPaused(false) }

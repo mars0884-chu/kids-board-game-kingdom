@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import homeLandscape from './assets/art-003-r03-home-landscape.webp'
 import homePortrait from './assets/art-003-r03-home-portrait.webp'
 import { BopomofoText } from './components/BopomofoText'
@@ -7,6 +7,7 @@ import { CommonUiPreview } from './components/common-ui'
 import { GoGame, type GoMode } from './games/go/GoGame'
 import { getChildText } from './content/child-text'
 import { useSpeech } from './hooks/useSpeech'
+import { warmRecordedSpeech } from './audio/recordedSpeech'
 import { TicTacToeProposal } from './games/tic-tac-toe/TicTacToeProposal'
 import type { TicTacToeMode } from './games/tic-tac-toe/storage'
 import { GomokuProposal, type GomokuMode } from './games/gomoku/GomokuProposal'
@@ -115,6 +116,10 @@ export default function App() {
   const [showComingSoon, setShowComingSoon] = useState(false)
   const { isSupported, speak } = useSpeech()
   const welcome = getChildText('home.welcome')
+  useEffect(() => {
+    warmRecordedSpeech(welcome)
+    homeModes.forEach((mode) => warmRecordedSpeech(getChildText(mode.textId)))
+  }, [welcome])
 
   const chooseMode = (modeId: HomeModeId, textId: string) => {
     setSelectedHomeMode(modeId)

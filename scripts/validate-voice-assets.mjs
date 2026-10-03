@@ -16,4 +16,9 @@ for (const row of rows.filter((entry) => entry.audience === 'child')) {
   const bytes = readFileSync(resolve(root, 'public/voice', filename))
   if (bytes.length < 1000 || bytes.toString('ascii', 4, 8) !== 'ftyp') throw new Error(`音檔格式異常：${filename}`)
 }
+const adventureVoice = readFileSync(resolve(root, 'public/voice/a6c0e34b63f16dc70071.m4a'))
+const adventureHash = createHash('sha256').update(adventureVoice).digest('hex').toUpperCase()
+if (adventureHash !== 'F47F34882AFEDBE868226BC10B00B0DD920D289CEB36D10DD7EE50233FD5F028') {
+  throw new Error('冒險闖關語音不是製作人核准的四字連讀版本')
+}
 console.log(`台灣口音語音素材檢查通過：${expected.length} 句。`)
