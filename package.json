@@ -1,6 +1,6 @@
 {
   "name": "kids-board-game-kingdom",
-  "version": "0.16.2",
+  "version": "0.17.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "validate": "node scripts/validate-content.mjs && node scripts/validate-bopomofo-layout.mjs && node scripts/validate-art-screenshots.mjs && node scripts/validate-gomoku-grid-geometry.mjs && node scripts/validate-gomoku-touch-targets.mjs && node scripts/validate-verification-launcher.mjs",
+    "validate": "node scripts/validate-content.mjs && node scripts/validate-bopomofo-layout.mjs && node scripts/validate-voice-assets.mjs && node scripts/validate-art-screenshots.mjs && node scripts/validate-gomoku-grid-geometry.mjs && node scripts/validate-gomoku-touch-targets.mjs && node scripts/validate-verification-launcher.mjs",
     "typecheck": "tsc -b",
     "test": "vitest run --pool=forks --maxWorkers=1",
     "verify:jump-chess-webrtc": "node scripts/verify-jump-chess-webrtc-playwright.mjs",

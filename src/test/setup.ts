@@ -11,3 +11,7 @@ vi.mock('virtual:pwa-register/react', () => ({
     updateServiceWorker: vi.fn(),
   }),
 }))
+
+// 測試環境沒有真正的音訊裝置；提供可完成的播放承諾以驗證介面流程。
+vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined)
+vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})

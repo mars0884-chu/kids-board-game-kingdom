@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { ChildTextEntry } from '../content/child-text'
+let activeAudio: HTMLAudioElement | null = null
 
 export function selectTaiwanSpeechVoice(voices: readonly SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
   const normaliseLanguage = (language: string) => language.trim().toLowerCase().replaceAll('_', '-')
@@ -23,6 +24,7 @@ export function useSpeech() {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
 
   useEffect(() => {
+    if ('Audio' in window) setIsSupported(true)
     if (!('speechSynthesis' in window)) return
 
     const synthesis = window.speechSynthesis
@@ -30,7 +32,8 @@ export function useSpeech() {
       const availableVoices = synthesis.getVoices()
       setVoices(availableVoices)
       // 沒有通過「台灣語系＋台灣來源標記」時保持停用；不得讓瀏覽器自行退回其他中文語音。
-      setIsSupported(selectTaiwanSpeechVoice(availableVoices) !== undefined)
+      setIsSupported(('Audio' in window)
+        || selectTaiwanSpeechVoice(availableVoices) !== undefined)
     }
     updateVoices()
     synthesis.addEventListener('voiceschanged', updateVoices)
@@ -42,15 +45,25 @@ export function useSpeech() {
   }, [])
 
   const speak = useCallback((entry: ChildTextEntry) => {
-    if (!('speechSynthesis' in window)) {
+    activeAudio?.pause()
+    activeAudio = null
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel()
+    const recording = entry.audio_asset
+    if (recording.startsWith('voice/') && 'Audio' in window) {
+      const basePath = (import.meta as unknown as { env: { BASE_URL: string } }).env.BASE_URL
+      const audio = new Audio(`${basePath}${recording}`)
+      activeAudio = audio
+      audio.onended = () => { if (activeAudio === audio) activeAudio = null; setIsPaused(false) }
+      audio.onerror = () => { if (activeAudio === audio) activeAudio = null; setIsPaused(false) }
+      setIsPaused(false)
+      void audio.play().catch(() => { if (activeAudio === audio) activeAudio = null })
       return
     }
-
-    window.speechSynthesis.cancel()
+    if (!('speechSynthesis' in window)) return
     const availableVoices = window.speechSynthesis.getVoices()
     const taiwanVoice = selectTaiwanSpeechVoice(availableVoices.length > 0 ? availableVoices : voices)
     if (!taiwanVoice) {
-      setIsSupported(false)
+      setIsSupported('Audio' in window)
       setIsPaused(false)
       return
     }
@@ -67,6 +80,11 @@ export function useSpeech() {
   }, [voices])
 
   const togglePause = useCallback(() => {
+    if (activeAudio) {
+      if (activeAudio.paused) void activeAudio.play().then(() => setIsPaused(false)).catch(() => {})
+      else { activeAudio.pause(); setIsPaused(true) }
+      return
+    }
     if (!('speechSynthesis' in window) || !window.speechSynthesis.speaking) {
       return
     }
