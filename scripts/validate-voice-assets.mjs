@@ -18,7 +18,7 @@ for (const row of rows.filter((entry) => entry.audience === 'child')) {
 }
 const adventureVoice = readFileSync(resolve(root, 'public/voice/a6c0e34b63f16dc70071.m4a'))
 const adventureHash = createHash('sha256').update(adventureVoice).digest('hex').toUpperCase()
-if (adventureHash !== 'F47F34882AFEDBE868226BC10B00B0DD920D289CEB36D10DD7EE50233FD5F028') {
-  throw new Error('冒險闖關語音不是製作人核准的四字連讀版本')
+if (adventureHash !== '2DE0851953822F356B0997A71C1DBE17FF8F81514022EA62B2F0BBC356528608') {
+  throw new Error('冒險闖關語音不是核准聲線的開頭淡入版本')
 }
 console.log(`台灣口音語音素材檢查通過：${expected.length} 句。`)

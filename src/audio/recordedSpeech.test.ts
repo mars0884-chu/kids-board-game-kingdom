@@ -18,6 +18,7 @@ describe('錄製語音預載', () => {
     warmRecordedSpeech(entry)
     await vi.waitFor(() => expect(recordedSpeechSource(entry)).toBe('blob:ready-voice'))
     expect(fetchAudio).toHaveBeenCalledTimes(1)
+    expect(fetchAudio).toHaveBeenCalledWith(expect.stringContaining('11111111111111111111.m4a?voice=2'))
     expect(makeUrl).toHaveBeenCalledTimes(1)
   })
 })

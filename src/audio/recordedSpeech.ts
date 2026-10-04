@@ -2,11 +2,12 @@ import type { ChildTextEntry } from '../content/child-text'
 
 const prepared = new Map<string, string>()
 const loading = new Set<string>()
+const voiceRevision = '2'
 
 function assetUrl(entry: ChildTextEntry): string | null {
   if (!entry.audio_asset.startsWith('voice/')) return null
   const basePath = (import.meta as unknown as { env: { BASE_URL: string } }).env.BASE_URL
-  return `${basePath}${entry.audio_asset}`
+  return `${basePath}${entry.audio_asset}?voice=${voiceRevision}`
 }
 
 // 畫面出現時先取回短錄音，避免兒童點下按鍵後才開始跨網路下載。
